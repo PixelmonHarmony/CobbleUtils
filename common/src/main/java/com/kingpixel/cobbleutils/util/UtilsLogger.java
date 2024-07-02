@@ -11,6 +11,7 @@ import java.util.concurrent.CompletableFuture;
  */
 public class UtilsLogger {
   private Logger logger; // Log for the console.
+  private String prefix = "[" + CobbleUtils.MOD_NAME + "] ";
 
   // Enums used for the log file.
   private enum Level {
@@ -30,7 +31,7 @@ public class UtilsLogger {
    * @param message The message to log.
    */
   public void info(String message) {
-    logger.info(message);
+    logger.info(prefix + message);
 //		write(Level.INFO, message);
   }
 
@@ -40,7 +41,7 @@ public class UtilsLogger {
    * @param message The message to log.
    */
   public void error(String message) {
-    logger.error(message);
+    logger.error(prefix + message);
 //		write(Level.ERROR, message);
   }
 
@@ -50,7 +51,7 @@ public class UtilsLogger {
    * @param message The message to log.
    */
   public void fatal(String message) {
-    logger.fatal(message);
+    logger.fatal(prefix + message);
 //		write(Level.FATAL, message);
   }
 
@@ -63,7 +64,7 @@ public class UtilsLogger {
   private void write(Level level, String message) {
     // TODO Can't append to file.
 
-    String output = "[" + level + "]: " + message;
+    String output = prefix + "[" + level + "]: " + message;
 
     CompletableFuture<Boolean> future = Utils.writeFileAsync(CobbleUtils.PATH, "logs.txt", output);
 

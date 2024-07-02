@@ -12,12 +12,16 @@ public class PokemonSpawn {
   public static void register() {
     if (CobbleUtils.config.isRandomsize()) {
       CobblemonEvents.POKEMON_ENTITY_SPAWN.subscribe(Priority.HIGH, (evt) -> {
-        evt.getEntity().getPokemon().setScaleModifier(CobbleUtils.config.getRandomPokemonSize());
-        if (CobbleUtils.config.isDebug())
-          CobbleUtils.LOGGER.info("Pokemon " + evt.getEntity().getPokemon().getSpecies().getName() + " scaled to " + evt.getEntity().getPokemon().getScaleModifier());
+        try {
+          if (CobbleUtils.config.getPokemonsizes().isEmpty()) return Unit.INSTANCE;
+          if (!CobbleUtils.config.isRandomsize()) return Unit.INSTANCE;
+          float scale = CobbleUtils.config.getRandomPokemonSize();
+          evt.getEntity().getPokemon().setScaleModifier(scale);
+        } catch (Exception e) {
+          CobbleUtils.LOGGER.error("Error scaling pokemon: " + e.getMessage());
+        }
         return Unit.INSTANCE;
       });
-      CobbleUtils.LOGGER.info("PokemonSpawn registered");
     }
   }
 }

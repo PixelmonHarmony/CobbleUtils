@@ -9,12 +9,12 @@ import lombok.ToString;
 @Getter
 @ToString
 public class SizeChance {
-  private String name;
+  private String id;
   private float size;
   private int chance;
 
   public SizeChance() {
-    this.name = "normal";
+    this.id = "normal";
     this.size = 1f;
     this.chance = 100;
   }
@@ -24,8 +24,8 @@ public class SizeChance {
     this.chance = chance;
   }
 
-  public SizeChance(String name, float size, int chance) {
-    this.name = name;
+  public SizeChance(String id, float size, int chance) {
+    this.id = id;
     this.size = size;
     this.chance = chance;
   }

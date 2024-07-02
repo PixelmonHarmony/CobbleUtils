@@ -15,10 +15,27 @@ public class Reload implements Command<CommandSourceStack> {
   public static void register(CommandDispatcher<CommandSourceStack> dispatcher,
                               LiteralArgumentBuilder<CommandSourceStack> base) {
     dispatcher.register(
-      base.then(
+      base.requires(source -> source.hasPermission(2)).then(
         Commands.literal("reload")
+          .requires(
+            source -> source.hasPermission(2)
+          )
           .executes(new Reload()))
     );
+
+    for (String literal : CobbleUtils.config.getCommandparty()) {
+      dispatcher.register(
+        Commands.literal(literal)
+          .then(
+            Commands.literal("reload")
+              .requires(
+                source -> source.hasPermission(2))
+              .executes(new Reload())
+          )
+      );
+    }
+
+
   }
 
   @Override public int run(CommandContext<CommandSourceStack> context) {

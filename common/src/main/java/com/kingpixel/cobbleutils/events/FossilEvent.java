@@ -12,12 +12,16 @@ public class FossilEvent {
   public static void register() {
     if (CobbleUtils.config.isRandomsize()) {
       CobblemonEvents.FOSSIL_REVIVED.subscribe(Priority.HIGH, (evt) -> {
-        evt.getPokemon().setScaleModifier(CobbleUtils.config.getRandomPokemonSize());
-        if (CobbleUtils.config.isDebug())
-          CobbleUtils.LOGGER.info("Pokemon " + evt.getPokemon().getSpecies().getName() + " scaled to " + evt.getPokemon().getScaleModifier());
+        try {
+          if (CobbleUtils.config.getPokemonsizes().isEmpty()) return Unit.INSTANCE;
+          if (!CobbleUtils.config.isRandomsize()) return Unit.INSTANCE;
+          float scale = CobbleUtils.config.getRandomPokemonSize();
+          evt.getPokemon().setScaleModifier(scale);
+        } catch (Exception e) {
+          CobbleUtils.LOGGER.error("Error scaling pokemon: " + e.getMessage());
+        }
         return Unit.INSTANCE;
       });
-      CobbleUtils.LOGGER.info("FossilEvent registered");
     }
   }
 }

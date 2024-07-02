@@ -27,7 +27,7 @@ public class PokemonSize implements Command<CommandSourceStack> {
     float minsize = CobbleUtils.config.getMinpokemonsize();
     float maxsize = CobbleUtils.config.getMaxpokemonsize();
     dispatcher.register(
-      base.then(
+      base.requires(source -> source.hasPermission(2)).then(
         Commands.literal("scale").requires(
             source -> source.hasPermission(2)
           )

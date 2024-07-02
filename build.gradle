@@ -43,6 +43,10 @@ subprojects {
 
     repositories {
         // Add repositories to retrieve artifacts from in here.
+        maven {
+            url "https://maven.nucleoid.xyz/"
+            name "Nucleoid"
+        }
         mavenCentral()
         maven {
             name = "sonatype-oss-snapshots1"

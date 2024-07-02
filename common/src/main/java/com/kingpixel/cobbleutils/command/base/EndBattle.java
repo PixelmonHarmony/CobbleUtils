@@ -23,16 +23,13 @@ public class EndBattle implements Command<CommandSourceStack> {
   public static void register(CommandDispatcher<CommandSourceStack> dispatcher,
                               LiteralArgumentBuilder<CommandSourceStack> base) {
     dispatcher.register(
-      base.then(
-        Commands.literal("endbattle")
+      Commands.literal("endbattle")
+        .executes(new EndBattle())
+        .requires(source -> source.hasPermission(2))
+        .then(Commands.argument("player", EntityArgument.players())
+          .requires(source -> source.hasPermission(2))
           .executes(new EndBattle())
-          .requires(
-            source -> source.hasPermission(2)
-          )
-          .then(Commands.argument("player", EntityArgument.players())
-            .executes(new EndBattle())
-          )
-      )
+        )
     );
   }
 
