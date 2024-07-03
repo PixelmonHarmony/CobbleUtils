@@ -29,7 +29,7 @@ public class RewardsCommand implements Command<CommandSourceStack> {
                 .then(
                   Commands.literal("command")
                     .then(
-                      Commands.argument("command", StringArgumentType.string())
+                      Commands.argument("command", StringArgumentType.greedyString())
                         .executes(new RewardsCommand()))
                 )
             )

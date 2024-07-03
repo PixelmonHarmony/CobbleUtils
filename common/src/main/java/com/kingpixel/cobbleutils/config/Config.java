@@ -33,6 +33,7 @@ public class Config {
   private boolean pickup;
   private boolean party;
   private boolean rewards;
+  private boolean activeshinytoken;
   private boolean directreward;
   private int alertreward;
   private float minpokemonsize;
@@ -42,6 +43,7 @@ public class Config {
   private List<String> blacklist;
   private List<String> legends;
   private List<String> ultraBeasts;
+  private List<String> forms;
   private ItemModel shinytoken;
   private Map<String, ItemModel> itemsCommands;
 
@@ -63,6 +65,7 @@ public class Config {
     party = true;
     rewards = true;
     directreward = true;
+    activeshinytoken = true;
     minpokemonsize = 0.01f;
     maxpokemonsize = 10f;
     alertreward = 15;
@@ -80,6 +83,7 @@ public class Config {
       "yveltal", "zygarde", "solgaleo", "lunala", "necrozma", "zacian", "zamazenta", "eternatus", "calyrex");
     ultraBeasts = List.of("naganadel", "blacephalon", "stakataka", "kartana", "buzzwole", "pheromosa", "xurkitree",
       "celesteela", "guzzlord", "poipole");
+    forms = List.of("Normal", "Hisui", "Galar");
     itemsCommands = new HashMap<>();
     itemsCommands.put("eco", new ItemModel("cobblemon:relic_coin", "<gradient:#e0d234:#ede69a><bold>Money", List.of(
       "§aThis give you a random amount of money")));
@@ -118,8 +122,8 @@ public class Config {
         itemsCommands = config.getItemsCommands();
         legends = config.getLegends();
         ultraBeasts = config.getUltraBeasts();
-        
-
+        activeshinytoken = config.isActiveshinytoken();
+        forms = config.getForms();
         String data = gson.toJson(this);
         CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(CobbleUtils.PATH, "config.json",
           data);

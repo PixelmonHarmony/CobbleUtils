@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.CompletionHandler;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -34,7 +33,6 @@ import java.util.function.Consumer;
 
 public abstract class Utils {
   public static final Random RANDOM = new Random();
-  public static final Charset standardCharsets = StandardCharsets.UTF_8;
 
   public static CompletableFuture<Boolean> writeFileAsync(String filePath, String filename, String data) {
     CompletableFuture<Boolean> future = new CompletableFuture<>();

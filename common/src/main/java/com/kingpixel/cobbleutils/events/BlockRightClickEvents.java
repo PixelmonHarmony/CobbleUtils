@@ -33,9 +33,11 @@ public class BlockRightClickEvents {
 
 
       // Lógica específica para diferentes tipos de bloques
-      if (id.contains("fossil_analyzer") && CobbleUtils.config.isFossil()) {
+      if (id.contains("fossil_analyzer")) {
+        if (!CobbleUtils.config.isFossil()) return;
         handleFossilAnalyzer(player, blockEntity);
-      } else if ((id.contains("cobblemon.restoration_tank") || id.contains("cobblemon.monitor")) && CobbleUtils.config.isFossil()) {
+      } else if ((id.contains("cobblemon.restoration_tank") || id.contains("cobblemon.monitor"))) {
+        if (!CobbleUtils.config.isFossil()) return;
         handleRestorationTankOrMonitor(player, tag);
       } else {
       }

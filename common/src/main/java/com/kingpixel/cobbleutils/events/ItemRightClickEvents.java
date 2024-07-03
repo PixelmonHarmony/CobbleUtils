@@ -17,9 +17,11 @@ public class ItemRightClickEvents {
   public static CompoundEventResult register(Player player, InteractionHand hand) {
     ItemStack itemStack = player.getItemInHand(hand);
     if (itemStack.hasTag() && itemStack.getTag().contains("shinytoken") && itemStack.getItem() == Utils.parseItemId(CobbleUtils.config.getShinytoken().getItem()).getItem()) {
+      if (!CobbleUtils.config.isActiveshinytoken()) return CompoundEventResult.pass();
       ShinyTokenUI.openmenu(player);
     }
-    if (itemStack.getItem().getDescriptionId(player.getMainHandItem()).contains("shulker_box") && CobbleUtils.config.isShulkers()) {
+    if (itemStack.getItem().getDescriptionId(player.getMainHandItem()).contains("shulker_box")) {
+      if (!CobbleUtils.config.isShulkers()) return CompoundEventResult.pass();
       return shulkers((ServerPlayer) player, hand, itemStack);
     }
     return CompoundEventResult.pass();

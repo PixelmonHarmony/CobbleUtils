@@ -4,7 +4,10 @@ import com.kingpixel.cobbleutils.Model.PlayerInfo;
 import com.kingpixel.cobbleutils.Model.RewardsData;
 import com.kingpixel.cobbleutils.command.CommandTree;
 import com.kingpixel.cobbleutils.config.*;
-import com.kingpixel.cobbleutils.events.*;
+import com.kingpixel.cobbleutils.events.BlockRightClickEvents;
+import com.kingpixel.cobbleutils.events.DropItemEvent;
+import com.kingpixel.cobbleutils.events.ItemRightClickEvents;
+import com.kingpixel.cobbleutils.events.ScaleEvent;
 import com.kingpixel.cobbleutils.managers.PartyManager;
 import com.kingpixel.cobbleutils.managers.RewardsManager;
 import com.kingpixel.cobbleutils.party.command.CommandsParty;
@@ -145,14 +148,9 @@ public class CobbleUtils {
 
     InteractionEvent.RIGHT_CLICK_ITEM.register(ItemRightClickEvents::register);
 
-
-    PokemonSpawn.register();
-
-    FossilEvent.register();
+    ScaleEvent.register();
 
     PlayerEvent.DROP_ITEM.register(DropItemEvent::register);
-
-    PlayerEvent.PICKUP_ITEM_POST.register(PickUpEvent::register);
   }
 
   private static void tasks() {
