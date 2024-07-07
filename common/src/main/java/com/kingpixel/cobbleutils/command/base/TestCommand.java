@@ -21,6 +21,7 @@ public class TestCommand implements Command<CommandSourceStack> {
                               LiteralArgumentBuilder<CommandSourceStack> base) {
     dispatcher.register(
       Commands.literal("testrandompoke")
+        .requires(source -> source.hasPermission(2))
         .then(
           Commands.literal("normal")
             .executes(context -> {
@@ -35,6 +36,7 @@ public class TestCommand implements Command<CommandSourceStack> {
         )
         .then(
           Commands.literal("legendary")
+            .requires(source -> source.hasPermission(2))
             .executes(context -> {
               Player player = context.getSource().getPlayerOrException();
               try {
@@ -47,6 +49,7 @@ public class TestCommand implements Command<CommandSourceStack> {
         )
         .then(
           Commands.literal("ultrabeast")
+            .requires(source -> source.hasPermission(2))
             .executes(context -> {
               Player player = context.getSource().getPlayerOrException();
               try {

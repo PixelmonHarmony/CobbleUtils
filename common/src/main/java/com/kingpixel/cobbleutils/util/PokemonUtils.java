@@ -79,10 +79,10 @@ public class PokemonUtils {
 
     return s.replace("%level%",
         String.valueOf(pokemon.getLevel()))
-      .replace("%nature%", PokemonUtils.getNatureTranslate(nature))
+      .replace("%nature%", getNatureTranslate(nature))
       .replace("%pokemon%", pokemon.getSpecies().getName())
       .replace("%shiny%", pokemon.getShiny() ? CobbleUtils.language.getSymbolshiny() : "")
-      .replace("%ability%", PokemonUtils.getAbilityTranslate(pokemon.getAbility()))
+      .replace("%ability%", getAbilityTranslate(pokemon.getAbility()))
       .replace("%ivshp%", String.valueOf(pokemon.getIvs().get(Stats.HP)))
       .replace("%ivsatk%", String.valueOf(pokemon.getIvs().get(Stats.ATTACK)))
       .replace("%ivsdef%", String.valueOf(pokemon.getIvs().get(Stats.DEFENCE)))
@@ -98,12 +98,12 @@ public class PokemonUtils {
       .replace("%legendary%", pokemon.isLegendary() ? CobbleUtils.language.getYes() :
         CobbleUtils.language.getNo())
       .replace("%item%", pokemon.heldItem() == null ? CobbleUtils.language.getNone() : pokemon.heldItem().getHoverName().getString())
-      .replace("%size%", PokemonUtils.getSize(pokemon))
+      .replace("%size%", getSize(pokemon))
       .replace("%form%", CobbleUtils.language.getForms().getOrDefault(pokemon.getForm().getName(), pokemon.getForm().getName()))
-      .replace("%up%", PokemonUtils.getStatTranslate(nature.getIncreasedStat()))
-      .replace("%down%", PokemonUtils.getStatTranslate(nature.getDecreasedStat()))
-      .replace("%ball%", PokemonUtils.getPokeBallTranslate(pokemon.getCaughtBall()))
-      .replace("%gender%", PokemonUtils.getGenderTranslate(pokemon.getGender()))
+      .replace("%up%", getStatTranslate(nature.getIncreasedStat()))
+      .replace("%down%", getStatTranslate(nature.getDecreasedStat()))
+      .replace("%ball%", getPokeBallTranslate(pokemon.getCaughtBall()))
+      .replace("%gender%", getGenderTranslate(pokemon.getGender()))
       .replace("%ivs%", getIvsAverage(pokemon.getIvs()).toString())
       .replace("%evs%", getEvsAverage(pokemon.getEvs()).toString())
       .replace("%move1%", getMoveTranslate(pokemon.getMoveSet().get(0)))
@@ -113,8 +113,10 @@ public class PokemonUtils {
       .replace("%tradeable%", pokemon.getTradeable() ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
       .replace("%owner%", pokemon.getOwnerPlayer() != null ?
         pokemon.getOwnerPlayer().getGameProfile().getName() : CobbleUtils.language.getNone())
-      .replace("%ultrabeast%", pokemon.isUltraBeast() ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo());
+      .replace("%ultrabeast%", pokemon.isUltraBeast() ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
+      .replace("%types%", getType(pokemon));
   }
+
 
   /**
    * Get the size of the pokemon
@@ -173,6 +175,25 @@ public class PokemonUtils {
    */
   public static String getNatureTranslate(Nature nature) {
     return Component.translatable("cobblemon.nature." + nature.getName().getPath()).getString();
+  }
+
+  /**
+   * Get the type of the pokemon
+   *
+   * @param pokemon The pokemon to get the type
+   *
+   * @return The type of the pokemon
+   */
+  private static String getType(Pokemon pokemon) {
+    if (CobbleUtils.config.isDebug()) CobbleUtils.LOGGER.info(pokemon.getPrimaryType().getName());
+    StringBuilder s =
+      new StringBuilder(CobbleUtils.language.getTypes().getOrDefault(pokemon.getPrimaryType().getName(), pokemon.getPrimaryType().getName()));
+    if (pokemon.getSecondaryType() != null) {
+      s.append(" / ");
+      s.append(CobbleUtils.language.getTypes().getOrDefault(pokemon.getSecondaryType().getName(),
+        pokemon.getSecondaryType().getName()));
+    }
+    return s.toString();
   }
 
   /**

@@ -151,7 +151,7 @@ public abstract class Utils {
   }
 
   public static Gson newGson() {
-    return new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
+    return new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
   }
 
   public static Gson newWithoutSpacingGson() {

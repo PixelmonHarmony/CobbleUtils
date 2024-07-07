@@ -6,6 +6,7 @@ import com.kingpixel.cobbleutils.Model.ItemModel;
 import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Getter;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -46,6 +47,7 @@ public class Lang {
   private String days;
   private Map<String, String> gender;
   private Map<String, String> forms;
+  private Map<String, String> types;
   private ItemModel itemPc;
 
   /**
@@ -79,6 +81,7 @@ public class Lang {
     messageThisPokemonIsShiny = "&aThis Pokemon is shiny!";
     lorepokemon = List.of(
       "&7Level: &f%level%",
+      "&7Type: &f%types%",
       "&6Gender: %gender%",
       "&5Legendary: %legendary%",
       "&5Ultra Beast: %ultrabeast%",
@@ -113,6 +116,25 @@ public class Lang {
     days = "&6%d% &adays";
     gender = Map.of("M", "&b♂", "F", "&d♀", "N", "&7⚲");
     forms = Map.of("hisui", "&cHisuian");
+    types = new HashMap<>();
+    types.put("normal", "<gradient:#939393:#C3C3C3>Normal&7");
+    types.put("steel", "<gradient:#706F6F:#6F6F6F>Steel&7");
+    types.put("poison", "<gradient:#B363CD:#D0A5DE>Poison&7");
+    types.put("electric", "<gradient:#E9E13B:#EAE8BA>Electric&7");
+    types.put("ice", "<gradient:#87CEEB:#00FFFF>Ice&7");
+    types.put("fighting", "<gradient:#D77361:#F1C0B7>Fighting&7");
+    types.put("dragon", "<gradient:#8B72CF:#B9A8E7>Dragon&7");
+    types.put("water", "<gradient:#5498C5:#9BC6E3>Water&7");
+    types.put("rock", "<gradient:#D0953C:#E5BD80>Rock&7");
+    types.put("ghost", "<gradient:#4B0082:#9370DB>Ghost&7");
+    types.put("bug", "<gradient:#A5CB60:#CBE0A5>Bug&7");
+    types.put("grass", "<gradient:#A5CB60:#CBE0A5>Grass&7");
+    types.put("flying", "<gradient:#C4E9ED:#E3F5F7>Flying&7");
+    types.put("dark", "<gradient:#000000:#303030>Dark&7");
+    types.put("fire", "<gradient:#E24D4D:#F69F9F>Fire&7");
+    types.put("ground", "<gradient:#B8860B:#D2B48C>Ground&7");
+    types.put("psychic", "<gradient:#D74DE2:#DE77E7>Psychic&7");
+    types.put("fairy", "<gradient:#9C38A5:#C06EC7>Fairy&7");
     itemPc = new ItemModel("cobblemon:pc", "&bPC", List.of(""));
   }
 
@@ -160,6 +182,7 @@ public class Lang {
         forms = lang.getForms();
         itemPc = lang.getItemPc();
         lorechance = lang.getLorechance();
+        types = lang.getTypes();
 
 
         String data = gson.toJson(this);

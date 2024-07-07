@@ -25,7 +25,9 @@ public class CommandTree {
     CommandDispatcher<CommandSourceStack> dispatcher,
     CommandBuildContext registry) {
 
-    TestCommand.register(dispatcher, Commands.literal("cobbleutils"));
+    if (CobbleUtils.config.isDebug()) {
+      TestCommand.register(dispatcher, Commands.literal("cobbleutils"));
+    }
 
     for (String literal : CobbleUtils.config.getCommmandplugin()) {
       LiteralArgumentBuilder<CommandSourceStack> base = Commands.literal(literal);

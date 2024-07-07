@@ -26,7 +26,7 @@ public class DropItemEvent {
    * @return EventResult
    */
   public static EventResult register(Player player, ItemEntity itemEntity) {
-    //if (true) return EventResult.pass(); // TODO: Remove this line when fixing the dupe
+    if (true) return EventResult.pass(); // TODO: Remove this line when fixing the dupe
     ItemStack itemStack = itemEntity.getItem();
     Inventory inventory = player.getInventory();
     if (player.isCreative()) return EventResult.pass();
