@@ -40,6 +40,10 @@ public class AdventureTranslator {
   private static final MiniMessage miniMessage = MiniMessage.miniMessage();
 
 
+  public static Component toNativeWithOutPrefix(String displayname) {
+    return toNative(miniMessage.deserialize(replaceNative(displayname)));
+  }
+
   public static Component toNative(String displayname) {
     return toNative(miniMessage.deserialize(replaceNative(displayname
       .replace("%prefix%", CobbleUtils.config.getPrefix())

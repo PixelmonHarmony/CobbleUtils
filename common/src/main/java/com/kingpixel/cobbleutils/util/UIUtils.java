@@ -281,7 +281,7 @@ public class UIUtils {
           .build());
 
       // Construir la página vinculada
-      LinkedPage.Builder linkedPageBuilder = LinkedPage.builder().title(titlemenu);
+      LinkedPage.Builder linkedPageBuilder = LinkedPage.builder().title(AdventureTranslator.toNative(titlemenu));
       return PaginationHelper.createPagesFromPlaceholders(template, buttonsList, linkedPageBuilder);
     }).get();
   }

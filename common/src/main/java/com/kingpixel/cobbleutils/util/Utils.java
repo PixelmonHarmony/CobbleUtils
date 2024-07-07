@@ -5,7 +5,13 @@ import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.Model.ItemModel;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -21,10 +27,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.Random;
-import java.util.Scanner;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -205,5 +208,24 @@ public abstract class Utils {
 
   public static Pokemon createPokemonParse(String pokemonName) {
     return PokemonProperties.Companion.parse(pokemonName).create();
+  }
+
+  public static ItemStack parseItemModel(ItemModel itemModel, int amount) {
+    ItemStack itemStack = parseItemId(itemModel.getItem(), amount);
+    itemStack.setHoverName(AdventureTranslator.toNative(itemModel.getDisplayname()));
+    if (itemModel.getCustomModelData() != 0)
+      itemStack.getOrCreateTag().putInt("CustomModelData", itemModel.getCustomModelData());
+    if (itemModel.getLore() != null && !itemModel.getLore().isEmpty()) {
+      ListTag nbtLore = new ListTag();
+      List<Component> lorecomp = AdventureTranslator.toNativeL(itemModel.getLore());
+      for (Component line : lorecomp) {
+        MutableComponent result = Component.empty()
+          .setStyle(Style.EMPTY.withItalic(false))
+          .append(line);
+        nbtLore.add(StringTag.valueOf(Component.Serializer.toJson(result)));
+      }
+      itemStack.getOrCreateTagElement("display").put("Lore", nbtLore);
+    }
+    return itemStack;
   }
 }

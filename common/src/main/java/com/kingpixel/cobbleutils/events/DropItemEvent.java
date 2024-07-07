@@ -1,6 +1,5 @@
 package com.kingpixel.cobbleutils.events;
 
-import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.util.RewardsUtils;
 import dev.architectury.event.EventResult;
 import net.minecraft.world.entity.Entity;
@@ -27,17 +26,19 @@ public class DropItemEvent {
    * @return EventResult
    */
   public static EventResult register(Player player, ItemEntity itemEntity) {
+    //if (true) return EventResult.pass(); // TODO: Remove this line when fixing the dupe
     ItemStack itemStack = itemEntity.getItem();
     Inventory inventory = player.getInventory();
-    if (player.isDeadOrDying()) {
-      return EventResult.pass();
-    }
+    if (player.isCreative()) return EventResult.pass();
+    if (player.isDeadOrDying()) return EventResult.pass();
 
-    CobbleUtils.LOGGER.info("Item dropped: " + itemEntity.getItem().getCount() + " " + itemEntity.getItem().getHoverName().getString());
+
+    // CobbleUtils.LOGGER.info("Item dropped: " + itemEntity.getItem().getCount() + " " + itemEntity.getItem()
+    // .getHoverName().getString());
     if (inventory.getSlotWithRemainingSpace(itemStack) == -1 && inventory.getFreeSlot() == -1) {
       RewardsUtils.saveRewardItemStack(player, itemStack);
-      itemEntity.remove(Entity.RemovalReason.DISCARDED);
-      return EventResult.interruptDefault();
+      itemEntity.remove(Entity.RemovalReason.KILLED);
+      return EventResult.interruptTrue();
     }
 
     return EventResult.pass();

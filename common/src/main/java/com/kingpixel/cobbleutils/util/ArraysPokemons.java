@@ -15,6 +15,9 @@ public class ArraysPokemons {
   public static ArrayList<Species> legendarys = new ArrayList<>();
   public static ArrayList<Species> ultraBeasts = new ArrayList<>();
 
+  /**
+   * Initialize the Pokémon arrays
+   */
   public static void init() {
     Collection<Species> species = PokemonSpecies.INSTANCE.getSpecies();
     Set<String> pokeBlacklist = new HashSet<>(CobbleUtils.config.getBlacklist());
@@ -51,6 +54,13 @@ public class ArraysPokemons {
     }
   }
 
+  /**
+   * Check if the Pokémon has a form allowed
+   *
+   * @param pokemon The Pokémon to check
+   *
+   * @return If the Pokémon has a form allowed
+   */
   private static boolean hasAllowedForm(Pokemon pokemon) {
     if (pokemon.getSpecies().getForms().isEmpty()) return false;
     return pokemon.getSpecies().getForms().stream()
@@ -58,6 +68,13 @@ public class ArraysPokemons {
       .anyMatch(CobbleUtils.config.getForms()::contains);
   }
 
+  /**
+   * Get a random form of the Pokémon
+   *
+   * @param pokemon The Pokémon to get the form
+   *
+   * @return The random form of the Pokémon
+   */
   private static FormData getRandomForm(Pokemon pokemon) {
     List<FormData> forms = pokemon.getSpecies().getForms();
     List<String> allowedForms = new ArrayList<>(CobbleUtils.config.getForms());
@@ -66,11 +83,18 @@ public class ArraysPokemons {
     List<FormData> allowedFormsInPokemon = forms.stream()
       .filter(form -> allowedForms.contains(form.getName()))
       .toList();
-    
+
     return allowedFormsInPokemon.get(new Random().nextInt(allowedFormsInPokemon.size()));
   }
 
 
+  /**
+   * Create a Pokémon from a species
+   *
+   * @param species The species to create the Pokémon
+   *
+   * @return The Pokémon created
+   */
   private static Pokemon createPokemon(Species species) {
     Pokemon pokemon = PokemonProperties.Companion.parse(species.showdownId()).create();
     if (CobbleUtils.config.isDebug()) {
@@ -82,6 +106,11 @@ public class ArraysPokemons {
     return pokemon;
   }
 
+  /**
+   * Get a random Pokémon
+   *
+   * @return The random Pokémon
+   */
   public static Pokemon getRandomPokemon() {
     Pokemon pokemon = createPokemon(pokemons.get(new Random().nextInt(pokemons.size())));
     if (hasAllowedForm(pokemon)) {
@@ -91,7 +120,11 @@ public class ArraysPokemons {
     return pokemon;
   }
 
-
+  /**
+   * Get a random legendary Pokémon
+   *
+   * @return The random legendary Pokémon
+   */
   public static Pokemon getRandomLegendary() {
     Pokemon pokemon = createPokemon(legendarys.get(new Random().nextInt(legendarys.size())));
     if (hasAllowedForm(pokemon)) {
@@ -101,7 +134,11 @@ public class ArraysPokemons {
     return pokemon;
   }
 
-
+  /**
+   * Get a random ultra beast Pokémon
+   *
+   * @return The random ultra beast Pokémon
+   */
   public static Pokemon getRandomUltraBeast() {
     Pokemon pokemon = createPokemon(ultraBeasts.get(new Random().nextInt(ultraBeasts.size())));
     if (hasAllowedForm(pokemon)) {

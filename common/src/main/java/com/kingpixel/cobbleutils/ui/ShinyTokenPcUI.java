@@ -29,7 +29,8 @@ public class ShinyTokenPcUI {
             throw new RuntimeException(e);
           }
         },
-        actionclose -> UIManager.openUIForcefully(actionclose.getPlayer(), Objects.requireNonNull(ShinyTokenUI.openmenu(player))), "PC");
+        actionclose -> UIManager.openUIForcefully(actionclose.getPlayer(),
+          Objects.requireNonNull(ShinyTokenUI.openmenu(player))), CobbleUtils.language.getTitlepc());
     } catch (NoPokemonStoreException | InterruptedException | ExecutionException e) {
       e.printStackTrace();
     }

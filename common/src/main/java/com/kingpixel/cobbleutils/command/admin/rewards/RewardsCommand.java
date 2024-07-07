@@ -11,6 +11,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 
 /**
@@ -38,11 +39,15 @@ public class RewardsCommand implements Command<CommandSourceStack> {
   }
 
   @Override public int run(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-    if (CobbleUtils.config.isDebug())
-      CobbleUtils.LOGGER.info("RewardsPokemon command");
     Player player = EntityArgument.getPlayer(context, "player");
     String command = StringArgumentType.getString(context, "command");
-    RewardsUtils.saveRewardCommand(player, command);
+    if (RewardsUtils.saveRewardCommand(player, command)) {
+      if (context.getSource().isPlayer()) {
+        context.getSource().getPlayer().sendSystemMessage(Component.literal("Command saved!"));
+      } else {
+        CobbleUtils.LOGGER.info("Command saved!");
+      }
+    }
     return 1;
   }
 }

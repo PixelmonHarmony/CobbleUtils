@@ -18,12 +18,11 @@ import java.util.*;
  * @author Carlos Varas Alonso - 28/06/2024 2:28
  */
 @Getter
-@SuppressWarnings("NullPointerException")
 public class PartyManager {
   // Map<PartyName, PartyData>
-  private Map<String, PartyData> parties;
+  private final Map<String, PartyData> parties;
   // Map<UserUUID, PartyName>
-  private Map<UUID, UserParty> userParty;
+  private final Map<UUID, UserParty> userParty;
 
   public PartyManager() {
     this.parties = new HashMap<>();

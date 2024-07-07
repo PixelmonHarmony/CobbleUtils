@@ -16,6 +16,7 @@ public class Lang {
   private String titlemenushiny;
   private String titlemenushinyoperation;
   private String titlemenurewards;
+  private String titlepc;
   private String confirm;
   private String cancel;
   private String close;
@@ -27,6 +28,7 @@ public class Lang {
   private String none;
   private String symbolshiny;
   private String pokemonnameformat;
+  private String messageReload;
   private String messagerandomitem;
   private String messagearebattle;
   private String messagefossiltime;
@@ -36,6 +38,7 @@ public class Lang {
   private String messageThisPokemonIsShiny;
   private String coloritem;
   private List<String> lorepokemon;
+  private List<String> lorechance;
   // Time
   private String seconds;
   private String minutes;
@@ -56,9 +59,11 @@ public class Lang {
     previous = "&ePrevious";
     empty = "&cEmpty";
     titlemenushiny = "&eShiny Menu";
+    titlepc = "&ePC";
     messageNotHaveRewards = "&cYou don't have rewards.";
     titlemenushinyoperation = "&eShiny Operation";
     titlemenurewards = "&eRewards Menu";
+    messageReload = "&aReloaded.";
     yes = "&a✔";
     no = "&c✖";
     symbolshiny = " &e⭐";
@@ -98,6 +103,9 @@ public class Lang {
       " &7- &f%move4%",
       "&aOwner: &f%owner%"
     );
+    lorechance = List.of(
+      "&7Chance: &f%chance%"
+    );
     // Time
     seconds = "&6%s% &aseconds";
     minutes = "&6%m% &aminutes";
@@ -127,6 +135,8 @@ public class Lang {
         titlemenurewards = lang.getTitlemenurewards();
         yes = lang.getYes();
         no = lang.getNo();
+        titlepc = lang.getTitlepc();
+
         symbolshiny = lang.getSymbolshiny();
         pokemonnameformat = lang.getPokemonnameformat();
         lorepokemon = lang.getLorepokemon();
@@ -149,6 +159,7 @@ public class Lang {
         gender = lang.getGender();
         forms = lang.getForms();
         itemPc = lang.getItemPc();
+        lorechance = lang.getLorechance();
 
 
         String data = gson.toJson(this);

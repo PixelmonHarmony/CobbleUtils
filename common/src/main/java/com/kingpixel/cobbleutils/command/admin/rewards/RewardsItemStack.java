@@ -13,6 +13,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.item.ItemArgument;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
@@ -40,7 +41,14 @@ public class RewardsItemStack implements Command<CommandSourceStack> {
                         .executes(context -> {
                           Player player = EntityArgument.getPlayer(context, "player");
                           ItemStack itemStack = ItemArgument.getItem(context, "item").createItemStack(1, false);
-                          return saveItem(context, player, itemStack, 1);
+                          if (saveItem(context, player, itemStack, 1)) {
+                            if (context.getSource().isPlayer()) {
+                              context.getSource().getPlayer().sendSystemMessage(Component.literal("Command saved!"));
+                            } else {
+                              CobbleUtils.LOGGER.info("Command saved!");
+                            }
+                          }
+                          return 1;
                         })
                         .then(
                           Commands.argument("amount", IntegerArgumentType.integer())
@@ -48,7 +56,14 @@ public class RewardsItemStack implements Command<CommandSourceStack> {
                               Player player = EntityArgument.getPlayer(context, "player");
                               Integer amount = IntegerArgumentType.getInteger(context, "amount");
                               ItemStack itemStack = ItemArgument.getItem(context, "item").createItemStack(amount, false);
-                              return saveItem(context, player, itemStack, amount);
+                              if (saveItem(context, player, itemStack, amount)) {
+                                if (context.getSource().isPlayer()) {
+                                  context.getSource().getPlayer().sendSystemMessage(Component.literal("Command saved!"));
+                                } else {
+                                  CobbleUtils.LOGGER.info("Command saved!");
+                                }
+                              }
+                              return 1;
                             })
                         )
                     )
@@ -59,10 +74,7 @@ public class RewardsItemStack implements Command<CommandSourceStack> {
   }
 
 
-  private static int saveItem(CommandContext<CommandSourceStack> context, Player player, ItemStack itemStack, int i) throws CommandSyntaxException {
-    if (CobbleUtils.config.isDebug())
-      CobbleUtils.LOGGER.info("RewardsPokemon command");
-
+  private static boolean saveItem(CommandContext<CommandSourceStack> context, Player player, ItemStack itemStack, int i) throws CommandSyntaxException {
     itemStack.setCount(i);
 
     if (itemStack.getCount() > itemStack.getMaxStackSize()) {
@@ -74,13 +86,13 @@ public class RewardsItemStack implements Command<CommandSourceStack> {
         itemStack.setCount(itemStack.getCount() - itemStack.getMaxStackSize());
       }
       RewardsUtils.saveRewardItemStack(player, itemStacks);
-      return 1;
+      return true;
     }
     if (itemStack != null) {
       RewardsUtils.saveRewardItemStack(player, itemStack);
-      return 1;
+      return true;
     }
-    return 0;
+    return false;
   }
 
   @Override public int run(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {

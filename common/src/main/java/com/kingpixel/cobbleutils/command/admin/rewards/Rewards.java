@@ -43,6 +43,10 @@ public class Rewards implements Command<CommandSourceStack> {
     try {
       target = EntityArgument.getPlayer(context, "player");
     } catch (Exception e) {
+      if (!context.getSource().isPlayer()) {
+        CobbleUtils.LOGGER.info("You must was a player to execute this command");
+        return 0;
+      }
     }
     if (target != null) {
       if (RewardsUtils.hasRewards(target)) {

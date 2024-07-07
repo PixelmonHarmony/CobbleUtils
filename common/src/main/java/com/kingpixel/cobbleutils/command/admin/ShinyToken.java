@@ -3,7 +3,6 @@ package com.kingpixel.cobbleutils.command.admin;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.RewardsUtils;
-import com.kingpixel.cobbleutils.util.Utils;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -55,10 +54,7 @@ public class ShinyToken implements Command<CommandSourceStack> {
     for (Component c : comp) {
       lore += c.getString() + "\n";
     }
-    ItemStack itemStack = Utils.parseItemId(CobbleUtils.config.getShinytoken().getItem());
-    itemStack.setCount(amount);
-    itemStack.setHoverName(AdventureTranslator.toNative(CobbleUtils.config.getShinytoken().getDisplayname()));
-    itemStack.getTag().getCompound("display").putString("Lore", lore);
+    ItemStack itemStack = CobbleUtils.config.getShinytoken().getItemStack(amount);
     itemStack.addTagElement("shinytoken", ItemStack.EMPTY.save(new CompoundTag()));
 
     if (!player.getInventory().add(itemStack)) {

@@ -55,7 +55,6 @@ public class CobbleUtils {
   private static final List<ScheduledFuture<?>> scheduledTasks = new CopyOnWriteArrayList<>();
 
   public static void init() {
-    LOGGER.info("Initializing " + MOD_ID);
     events();
   }
 
@@ -83,7 +82,7 @@ public class CobbleUtils {
     LOGGER.info("§e+-------------------------------+");
     LOGGER.info("§e| §6CobbleUtils");
     LOGGER.info("§e+-------------------------------+");
-    LOGGER.info("§e| §6Version: §f" + "1.0.2");
+    LOGGER.info("§e| §6Version: §f" + "1.0.1");
     LOGGER.info("§e| §6Author: §fZonary123");
     LOGGER.info("§e| §6Website: §fhttps://github.com/Zonary123/CobbleUtils");
     LOGGER.info("§e+-------------------------------+");
@@ -117,8 +116,10 @@ public class CobbleUtils {
     LifecycleEvent.SERVER_STARTED.register(server -> load());
 
     LifecycleEvent.SERVER_STOPPING.register(server -> {
-      scheduledTasks.forEach(task -> task.cancel(false));
+      scheduledTasks.forEach(task -> task.cancel(true));
       scheduledTasks.clear();
+      LOGGER.info("CobbleUtils has been stopped.");
+
     });
 
     LifecycleEvent.SERVER_LEVEL_LOAD.register(level -> server = level.getLevel().getServer());
@@ -174,5 +175,4 @@ public class CobbleUtils {
 
     scheduledTasks.add(alertreward);
   }
-
 }

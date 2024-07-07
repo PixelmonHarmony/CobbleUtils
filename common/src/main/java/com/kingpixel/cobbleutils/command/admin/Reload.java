@@ -1,10 +1,12 @@
 package com.kingpixel.cobbleutils.command.admin;
 
 import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 
@@ -38,8 +40,14 @@ public class Reload implements Command<CommandSourceStack> {
 
   }
 
-  @Override public int run(CommandContext<CommandSourceStack> context) {
+  @Override public int run(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
     CobbleUtils.load();
+    if (!context.getSource().isPlayer()) {
+      CobbleUtils.server.sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.language.getMessageReload()));
+      return 0;
+    } else {
+      context.getSource().getPlayerOrException().sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.language.getMessageReload()));
+    }
     return 1;
   }
 }

@@ -13,7 +13,6 @@ import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.PokemonUtils;
 import com.kingpixel.cobbleutils.util.UIUtils;
 import com.kingpixel.cobbleutils.util.Utils;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -48,18 +47,17 @@ public class ShinyTokenUI {
         int col = i % 3 + 3;
         templateBuilder.set(row + 1, col, slot);
       }
-      templateBuilder.set(0, 4, GooeyButton.builder()
-        .display(Utils.parseItemId(CobbleUtils.language.getItemPc().getItem()))
-        .title(AdventureTranslator.toNative(CobbleUtils.language.getItemPc().getDisplayname()))
-        .lore(Component.class, AdventureTranslator.toNativeL(CobbleUtils.language.getItemPc().getLore()))
-        .onClick(action -> {
-          UIManager.openUIForcefully((ServerPlayer) player, ShinyTokenPcUI.getMenuShinyTokenPc(player));
-        })
-        .build());
+      templateBuilder.set(0, 4,
+        CobbleUtils.language.getItemPc().getButton(action -> UIManager.openUIForcefully(action.getPlayer(),
+          ShinyTokenPcUI.getMenuShinyTokenPc(action.getPlayer()))));
 
 
-      templateBuilder.fill(GooeyButton.builder().display(new ItemStack(Items.GRAY_STAINED_GLASS_PANE)
-        .setHoverName(AdventureTranslator.toNative(""))).build());
+      GooeyButton fill = GooeyButton.builder()
+        .display(Utils.parseItemId(CobbleUtils.config.getFill()))
+        .title("")
+        .build();
+
+      templateBuilder.fill(fill);
 
 
       GooeyPage page =

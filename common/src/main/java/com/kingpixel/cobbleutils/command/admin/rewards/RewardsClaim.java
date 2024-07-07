@@ -27,8 +27,10 @@ public class RewardsClaim implements Command<CommandSourceStack> {
   }
 
   @Override public int run(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-    if (CobbleUtils.config.isDebug())
-      CobbleUtils.LOGGER.info("RewardsClaim command");
+    if (!context.getSource().isPlayer()) {
+      CobbleUtils.LOGGER.info("Only players can claim rewards!");
+      return 0;
+    }
     Player player = context.getSource().getPlayerOrException();
     RewardsUtils.claimRewards(player);
 

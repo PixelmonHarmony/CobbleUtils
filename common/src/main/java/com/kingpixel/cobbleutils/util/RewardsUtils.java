@@ -29,16 +29,16 @@ public class RewardsUtils {
    *
    * @param player    Player to save the item for
    * @param itemStack Item to save
+   *
+   * @return
    */
-  public static void saveRewardItemStack(Player player, ItemStack itemStack) {
-    // Get the RewardsData object for the player
+  public static boolean saveRewardItemStack(Player player, ItemStack itemStack) {
     RewardsData rewardsData = CobbleUtils.rewardsManager.getRewardsData().get(player.getUUID());
 
-    // Save the item
-    saveItemToRewardsData(rewardsData, itemStack);
+    saveItemToRewardsData(player, rewardsData, itemStack);
 
-    // Save the information
     rewardsData.writeInfo();
+    return true;
   }
 
   /**
@@ -48,32 +48,32 @@ public class RewardsUtils {
    * @param itemStacks List of items to save
    */
   public static void saveRewardItemStack(Player player, List<ItemStack> itemStacks) {
-    // Get the RewardsData object for the player
     RewardsData rewardsData = CobbleUtils.rewardsManager.getRewardsData().get(player.getUUID());
 
-    // Save each item in the list
     for (ItemStack itemStack : itemStacks) {
-      saveItemToRewardsData(rewardsData, itemStack);
+      saveItemToRewardsData(player, rewardsData, itemStack);
     }
 
-    // Save the information
     rewardsData.writeInfo();
   }
 
   /**
    * Helper method to save an item into the RewardsData.
    *
+   * @param player
    * @param rewardsData RewardsData object to save the item to
    * @param itemStack   ItemStack to save
    */
-  private static void saveItemToRewardsData(RewardsData rewardsData, ItemStack itemStack) {
-    // Variables to handle item surplus
+  private static void saveItemToRewardsData(Player player, RewardsData rewardsData, ItemStack itemStack) {
+    if (player.getInventory().add(itemStack)) return;
+
     int remainingCount = itemStack.getCount();
     int maxStackSize = itemStack.getMaxStackSize();
 
-    // Check if an existing item of the same type can be stacked
+
+    // Add to rewards data
     for (ItemObject item : rewardsData.getItems()) {
-      if (remainingCount <= 0) break;  // Exit if no items left to add
+      if (remainingCount <= 0) break;
 
       try {
         ItemStack existingItemStack = ItemStack.of(TagParser.parseTag(item.getItem()));
@@ -93,7 +93,6 @@ public class RewardsUtils {
       }
     }
 
-    // If there are remaining items, add new stacks
     while (remainingCount > 0) {
       int toAdd = Math.min(remainingCount, maxStackSize);
       ItemStack newItemStack = itemStack.copy();
@@ -103,16 +102,23 @@ public class RewardsUtils {
     }
   }
 
+
   /**
    * Saves a Pokémon into the player's rewards inventory.
    *
    * @param player  Player to save the Pokémon for
    * @param pokemon Pokémon to save
+   *
+   * @return
    */
-  public static void saveRewardPokemon(Player player, Pokemon pokemon) {
+  public static boolean saveRewardPokemon(Player player, Pokemon pokemon) throws NoPokemonStoreException {
+    if (Cobblemon.INSTANCE.getStorage().getParty(player.getUUID()).add(pokemon)) {
+      return true;
+    }
     RewardsData rewardsData = CobbleUtils.rewardsManager.getRewardsData().get(player.getUUID());
     rewardsData.getPokemons().add(pokemon.saveToJSON(new JsonObject()));
     rewardsData.writeInfo();
+    return true;
   }
 
   /**
@@ -134,11 +140,14 @@ public class RewardsUtils {
    *
    * @param player  Player to save the command for
    * @param command Command to save
+   *
+   * @return
    */
-  public static void saveRewardCommand(Player player, String command) {
+  public static boolean saveRewardCommand(Player player, String command) {
     RewardsData rewardsData = CobbleUtils.rewardsManager.getRewardsData().get(player.getUUID());
-    rewardsData.getCommands().add(command);
+    rewardsData.getCommands().add(command.replace("%player%", player.getGameProfile().getName()));
     rewardsData.writeInfo();
+    return true;
   }
 
   /**
@@ -149,6 +158,7 @@ public class RewardsUtils {
    */
   public static void saveRewardCommand(Player player, List<String> commands) {
     RewardsData rewardsData = CobbleUtils.rewardsManager.getRewardsData().get(player.getUUID());
+    commands.replaceAll(command -> command.replace("%player%", player.getGameProfile().getName()));
     rewardsData.getCommands().addAll(commands);
     rewardsData.writeInfo();
   }
@@ -156,7 +166,7 @@ public class RewardsUtils {
   /**
    * Claims rewards for the player.
    *
-   * @param player Player to claim rewards for
+   * @param player Player to claim rewards
    */
   public static void claimRewards(Player player) {
     if (!CobbleUtils.config.isRewards()) return;
