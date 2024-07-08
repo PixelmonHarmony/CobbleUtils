@@ -8,6 +8,7 @@ import com.cobblemon.mod.common.pokeball.PokeBall;
 import com.cobblemon.mod.common.pokemon.*;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,15 +69,24 @@ public class PokemonUtils {
    * @return The string with the replaced placeholders
    */
   public static String replace(String s, Pokemon pokemon) {
+    if (pokemon == null) {
+      // Handle the case where pokemon is null, maybe throw an IllegalArgumentException or return a default string
+      return "Pokemon data not available";
+    }
+
+    String owner = pokemon.getOriginalTrainerName();
+    if (owner == null) owner = CobbleUtils.language.getNone();
     Nature nature = pokemon.getNature();
-    if (pokemon.getPersistentData().contains("breedable") &&
+
+    // Example of null check and default value for breedable
+    if (pokemon.getPersistentData() != null && pokemon.getPersistentData().contains("breedable") &&
       !pokemon.getPersistentData().getBoolean("breedable")) {
       s = s.replace("%breedable%", pokemon.getPersistentData().getBoolean("breedable") ? CobbleUtils.language.getYes() :
         CobbleUtils.language.getNo());
     } else {
       s = s.replace("%breedable%", CobbleUtils.language.getYes());
     }
-
+    
     return s.replace("%level%",
         String.valueOf(pokemon.getLevel()))
       .replace("%nature%", getNatureTranslate(nature))
@@ -111,12 +121,14 @@ public class PokemonUtils {
       .replace("%move3%", getMoveTranslate(pokemon.getMoveSet().get(2)))
       .replace("%move4%", getMoveTranslate(pokemon.getMoveSet().get(3)))
       .replace("%tradeable%", pokemon.getTradeable() ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
-      .replace("%owner%", pokemon.getOwnerPlayer() != null ?
-        pokemon.getOwnerPlayer().getGameProfile().getName() : CobbleUtils.language.getNone())
+      .replace("%owner%", owner)
       .replace("%ultrabeast%", pokemon.isUltraBeast() ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
       .replace("%types%", getType(pokemon));
   }
 
+  private static String getOwnerName(Player player) {
+    return player.getGameProfile().getName();
+  }
 
   /**
    * Get the size of the pokemon
@@ -185,7 +197,6 @@ public class PokemonUtils {
    * @return The type of the pokemon
    */
   private static String getType(Pokemon pokemon) {
-    if (CobbleUtils.config.isDebug()) CobbleUtils.LOGGER.info(pokemon.getPrimaryType().getName());
     StringBuilder s =
       new StringBuilder(CobbleUtils.language.getTypes().getOrDefault(pokemon.getPrimaryType().getName(), pokemon.getPrimaryType().getName()));
     if (pokemon.getSecondaryType() != null) {

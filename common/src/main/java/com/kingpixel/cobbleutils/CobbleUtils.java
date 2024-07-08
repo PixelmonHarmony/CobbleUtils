@@ -82,9 +82,10 @@ public class CobbleUtils {
     LOGGER.info("§e+-------------------------------+");
     LOGGER.info("§e| §6CobbleUtils");
     LOGGER.info("§e+-------------------------------+");
-    LOGGER.info("§e| §6Version: §f" + "1.0.1");
+    LOGGER.info("§e| §6Version: §f" + "1.0.3");
     LOGGER.info("§e| §6Author: §fZonary123");
     LOGGER.info("§e| §6Website: §fhttps://github.com/Zonary123/CobbleUtils");
+    LOGGER.info("§e| §6Discord: §fhttps://discord.com/invite/fKNc7FnXpa");
     LOGGER.info("§e+-------------------------------+");
     LOGGER.info("§e| §6Initializing CobbleUtils...");
     LOGGER.info("§e+-------------------------------+");
@@ -119,18 +120,18 @@ public class CobbleUtils {
       scheduledTasks.forEach(task -> task.cancel(true));
       scheduledTasks.clear();
       LOGGER.info("CobbleUtils has been stopped.");
-
     });
 
     LifecycleEvent.SERVER_LEVEL_LOAD.register(level -> server = level.getLevel().getServer());
 
     PlayerEvent.PLAYER_JOIN.register(player -> {
       partyManager.getUserParty().put(player.getUUID(), new UserParty("", false));
-      RewardsData rewardsData = rewardsManager.getRewardsData().get(player.getUUID());
-      if (rewardsData == null) {
-        rewardsManager.getRewardsData().put(player.getUUID(), new RewardsData(player.getGameProfile().getName(), player.getUUID()));
-        rewardsManager.getRewardsData().get(player.getUUID()).init();
-      }
+      RewardsData rewardsData = rewardsManager.getRewardsData().computeIfAbsent(
+        player.getUUID(),
+        uuid -> new RewardsData(player.getGameProfile().getName(), player.getUUID())
+      );
+
+      rewardsData.init();
     });
 
     PlayerEvent.PLAYER_QUIT.register(player -> {

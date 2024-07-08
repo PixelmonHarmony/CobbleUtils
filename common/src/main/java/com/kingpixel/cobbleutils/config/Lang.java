@@ -87,7 +87,7 @@ public class Lang {
       "&5Ultra Beast: %ultrabeast%",
       "&eTradeable: &f%tradeable%",
       "&eBreedable: &f%breedable%",
-      "&eNature: &f%nature% &f(&a🢙%up%&f/&c🢛%down%&f)",
+      "&eNature: &f%nature% &f(&a↑%up%&f/&c↓%down%&f)",
       "&6Ability: &f%ability%",
       "&dIVs: &f%ivs%",
       " &cHP: &f%ivshp% &9Atk: &f%ivsatk% &7Def: &f%ivsdef%",

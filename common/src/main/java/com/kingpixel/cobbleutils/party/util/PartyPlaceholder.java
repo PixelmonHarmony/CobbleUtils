@@ -1,18 +1,11 @@
 package com.kingpixel.cobbleutils.party.util;
 
-import com.kingpixel.cobbleutils.CobbleUtils;
-import eu.pb4.placeholders.api.PlaceholderContext;
-import eu.pb4.placeholders.api.PlaceholderResult;
-import eu.pb4.placeholders.api.Placeholders;
-import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
-import net.minecraft.resources.ResourceLocation;
-
 /**
  * @author Carlos Varas Alonso - 02/07/2024 18:34
  */
 public class PartyPlaceholder {
   public static void register() {
-    Placeholders.register(
+    /*Placeholders.register(
       new ResourceLocation("cobbleutils", "party"),
       (ctx, arg) -> {
         if (!ctx.hasPlayer())
@@ -34,6 +27,6 @@ public class PartyPlaceholder {
         } else {
           return PlaceholderResult.value("");
         }
-      });
+      });*/
   }
 }

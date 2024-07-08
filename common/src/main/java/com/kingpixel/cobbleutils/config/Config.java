@@ -110,6 +110,11 @@ public class Config {
         minpokemonsize = config.getMinpokemonsize();
         maxpokemonsize = config.getMaxpokemonsize();
         pokemonsizes = config.getPokemonsizes();
+        pokemonsizes.forEach(sizeChance -> {
+          if (sizeChance.getItem() == null) {
+            sizeChance.setItem(new ItemModel("minecraft:stone", "Stone", List.of()));
+          }
+        });
         party = config.isParty();
         rewards = config.isRewards();
         ecocommand = config.getEcocommand();
