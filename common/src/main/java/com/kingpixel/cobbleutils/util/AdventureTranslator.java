@@ -22,7 +22,6 @@ package com.kingpixel.cobbleutils.util;
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
- *
  */
 
 import com.kingpixel.cobbleutils.CobbleUtils;
@@ -38,7 +37,6 @@ import java.util.List;
 
 public class AdventureTranslator {
   private static final MiniMessage miniMessage = MiniMessage.miniMessage();
-
 
   public static Component toNativeWithOutPrefix(String displayname) {
     return toNative(miniMessage.deserialize(replaceNative(displayname)));
@@ -141,5 +139,4 @@ public class AdventureTranslator {
       .replace("§r", "<reset>");
     return displayname;
   }
-
 }

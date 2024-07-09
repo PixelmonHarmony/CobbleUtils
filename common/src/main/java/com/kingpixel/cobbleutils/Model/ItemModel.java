@@ -25,6 +25,7 @@ import java.util.function.Consumer;
 @Setter
 @ToString
 public class ItemModel {
+  private Integer slot;
   private String item;
   private String displayname;
   private List<String> lore = new ArrayList<>();
@@ -35,6 +36,14 @@ public class ItemModel {
     this.item = item;
     this.displayname = displayname;
     this.lore = lore;
+  }
+
+  public ItemModel(Integer slot, String item, String displayname, List<String> lore, int customModelData) {
+    this.slot = slot;
+    this.item = item;
+    this.displayname = displayname;
+    this.lore = lore;
+    CustomModelData = customModelData;
   }
 
   /**
