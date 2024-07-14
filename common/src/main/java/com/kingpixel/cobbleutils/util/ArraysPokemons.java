@@ -148,4 +148,137 @@ public class ArraysPokemons {
     return pokemon;
   }
 
+  /**
+   * Get a random Pokemon
+   *
+   * @param size The size of the list
+   *
+   * @return List of random Pokémon without repetitions
+   */
+  public static List<Pokemon> getRandomListPokemonNormal(int size) {
+    List<String> names = new ArrayList<>();
+    List<Pokemon> pokemons = new ArrayList<>();
+    for (int i = 0; i < size; i++) {
+      Pokemon pokemon = getRandomPokemon();
+      if (!names.contains(pokemon.getSpecies().showdownId())) {
+        names.add(pokemon.getSpecies().showdownId());
+        pokemons.add(pokemon);
+      } else {
+        i--;
+      }
+    }
+    return pokemons;
+  }
+
+  /**
+   * Get a random Pokemon
+   *
+   * @param size    The size of the list
+   * @param roundUp If the list is rounded up
+   *
+   * @return List of random Pokemons with half common pokemons
+   */
+  public static List<Pokemon> getRandomListPokemonNormalHalf(int size, boolean roundUp) {
+    List<String> names = new ArrayList<>();
+    List<Pokemon> commonPokemons = new ArrayList<>();
+    List<Pokemon> rarePokemons = new ArrayList<>();
+    int halfSize;
+    if (roundUp) {
+      halfSize = (size + 1) / 2;
+    } else {
+      halfSize = size / 2;
+    }
+
+    while (commonPokemons.size() < halfSize) {
+      Pokemon pokemon = getRandomPokemon();
+      if (PokemonUtils.getRarityS(pokemon).equalsIgnoreCase("common") &&
+        !names.contains(pokemon.getSpecies().showdownId())) {
+        names.add(pokemon.getSpecies().showdownId());
+        commonPokemons.add(pokemon);
+      }
+    }
+
+    while (commonPokemons.size() + rarePokemons.size() < size) {
+      Pokemon pokemon = getRandomPokemon();
+      if (!names.contains(pokemon.getSpecies().showdownId())) {
+        names.add(pokemon.getSpecies().showdownId());
+        if (PokemonUtils.getRarityS(pokemon).equalsIgnoreCase("common")) {
+          commonPokemons.add(pokemon);
+        } else {
+          rarePokemons.add(pokemon);
+        }
+      }
+    }
+
+
+    // Combine both lists
+    List<Pokemon> pokemons = new ArrayList<>(commonPokemons);
+    pokemons.addAll(rarePokemons);
+
+    return pokemons;
+  }
+
+
+  /**
+   * Get a random legendary Pokemon
+   *
+   * @param size The size of the list
+   *
+   * @return List of random legendary Pokemon without repetitions
+   */
+  public static List<Pokemon> getRandomListPokemonLegendary(int size) {
+    List<String> names = new ArrayList<>();
+    List<Pokemon> pokemons = new ArrayList<>();
+    for (int i = 0; i < size; i++) {
+      Pokemon pokemon = getRandomLegendary();
+      if (!names.contains(pokemon.getSpecies().showdownId())) {
+        names.add(pokemon.getSpecies().showdownId());
+        pokemons.add(pokemon);
+      } else {
+        i--;
+      }
+    }
+    return pokemons;
+  }
+
+  /**
+   * Get a random ultra beast Pokemon
+   *
+   * @param size The size of the list
+   *
+   * @return List of random ultra beast Pokemon without repetitions
+   */
+  public static List<Pokemon> getRandomListPokemonUltraBeast(int size) {
+    List<String> names = new ArrayList<>();
+    List<Pokemon> pokemons = new ArrayList<>();
+    for (int i = 0; i < size; i++) {
+      Pokemon pokemon = getRandomUltraBeast();
+      if (!names.contains(pokemon.getSpecies().showdownId())) {
+        names.add(pokemon.getSpecies().showdownId());
+        pokemons.add(pokemon);
+      } else {
+        i--;
+      }
+    }
+    return pokemons;
+  }
+
+  /**
+   * Get a random Pokemon
+   *
+   * @param rarity The rarity of the Pokemon
+   *
+   * @return Pokemon with rarity
+   */
+  public static Pokemon getRandomPokemonNormalRarity(String rarity) {
+    String s;
+    do {
+      Pokemon pokemon = getRandomPokemon();
+      s = PokemonUtils.getRarityS(pokemon);
+      if (s.equalsIgnoreCase(rarity)) {
+        return pokemon;
+      }
+    } while (true);
+  }
+  
 }

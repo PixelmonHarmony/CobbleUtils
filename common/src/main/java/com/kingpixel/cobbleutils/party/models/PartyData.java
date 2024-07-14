@@ -38,12 +38,12 @@ public class PartyData {
   public void init() {
     CompletableFuture<Boolean> futureRead = Utils.readFileAsync(CobbleUtils.PATH_PARTY_DATA, name + ".json",
       el -> {
-        Gson gson = Utils.newGson();
+        Gson gson = Utils.newWithoutSpacingGson();
         PartyData config = gson.fromJson(el, PartyData.class);
-        this.name = config.getName();
-        this.owner = config.getOwner();
-        this.members = config.getMembers();
-        this.invites = config.getInvites();
+        name = config.getName();
+        owner = config.getOwner();
+        members = config.getMembers();
+        invites = config.getInvites();
         String data = gson.toJson(this);
         CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(CobbleUtils.PATH_PARTY_DATA, name + ".json",
           data);
@@ -54,7 +54,7 @@ public class PartyData {
 
     if (!futureRead.join()) {
       CobbleUtils.LOGGER.info("No config.json file found for" + CobbleUtils.MOD_NAME + ". Attempting to generate one.");
-      Gson gson = Utils.newGson();
+      Gson gson = Utils.newWithoutSpacingGson();
       String data = gson.toJson(this);
       CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(CobbleUtils.PATH_PARTY_DATA, name + ".json",
         data);

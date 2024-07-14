@@ -155,9 +155,11 @@ public class Lang {
         titlemenushiny = lang.getTitlemenushiny();
         titlemenushinyoperation = lang.getTitlemenushinyoperation();
         titlemenurewards = lang.getTitlemenurewards();
+        if (titlemenurewards == null) titlemenurewards = "&eRewards Menu";
         yes = lang.getYes();
         no = lang.getNo();
         titlepc = lang.getTitlepc();
+        messageReload = lang.getMessageReload();
 
         symbolshiny = lang.getSymbolshiny();
         pokemonnameformat = lang.getPokemonnameformat();

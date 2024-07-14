@@ -23,7 +23,7 @@ public class Rewards implements Command<CommandSourceStack> {
   public static void register(CommandDispatcher<CommandSourceStack> dispatcher,
                               LiteralArgumentBuilder<CommandSourceStack> base) {
     dispatcher.register(
-      Commands.literal("rewards")
+      base
         .executes(new Rewards())
         .then(
           Commands.literal("other")

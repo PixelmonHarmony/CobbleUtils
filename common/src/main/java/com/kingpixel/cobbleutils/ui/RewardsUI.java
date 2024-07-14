@@ -37,93 +37,97 @@ import java.util.Objects;
  */
 public class RewardsUI {
   public static Page getRewards(Player player) {
-    ChestTemplate template = ChestTemplate.builder(6).build();
-    List<Button> buttons = new ArrayList<>();
+    try {
+      ChestTemplate template = ChestTemplate.builder(6).build();
+      List<Button> buttons = new ArrayList<>();
 
-    RewardsData rewardsData = CobbleUtils.rewardsManager.getRewardsData().get(player.getUUID());
+      RewardsData rewardsData = CobbleUtils.rewardsManager.getRewardsData().get(player.getUUID());
 
-    rewardsData.getPokemons().forEach(pokemon -> buttons.add(UIUtils.createButtonPokemon(Pokemon.Companion.loadFromJSON(pokemon), action -> {
-      try {
-        if (Cobblemon.INSTANCE.getStorage().getParty(player.getUUID()).add(Pokemon.Companion.loadFromJSON(pokemon))) {
-          rewardsData.getPokemons().remove(pokemon);
-          rewardsData.writeInfo();
+      rewardsData.getPokemons().forEach(pokemon -> buttons.add(UIUtils.createButtonPokemon(Pokemon.Companion.loadFromJSON(pokemon), action -> {
+        try {
+          if (Cobblemon.INSTANCE.getStorage().getParty(player.getUUID()).add(Pokemon.Companion.loadFromJSON(pokemon))) {
+            rewardsData.getPokemons().remove(pokemon);
+            rewardsData.writeInfo();
+          }
+          UIManager.openUIForcefully(action.getAction().getPlayer(), getRewards(player));
+        } catch (NoPokemonStoreException e) {
+          throw new RuntimeException(e);
         }
-        UIManager.openUIForcefully(action.getAction().getPlayer(), getRewards(player));
-      } catch (NoPokemonStoreException e) {
-        throw new RuntimeException(e);
-      }
-    })));
+      })));
 
-    rewardsData.getItems().forEach(item -> {
-      ItemStack itemStack = CobbleUtilities.getItem(item.getItem());
-      buttons.add(UIUtils.createButtonItem(itemStack, action -> {
-        if (player.getInventory().getFreeSlot() == -1) return;
-        if (action.getPlayer().getInventory().add(itemStack)) {
-          rewardsData.getItems().remove(item);
+      rewardsData.getItems().forEach(item -> {
+        ItemStack itemStack = CobbleUtilities.getItem(item.getItem());
+        buttons.add(UIUtils.createButtonItem(itemStack, action -> {
+          if (player.getInventory().getFreeSlot() == -1) return;
+          if (action.getPlayer().getInventory().add(itemStack)) {
+            rewardsData.getItems().remove(item);
+            rewardsData.writeInfo();
+            UIManager.openUIForcefully(action.getPlayer(), getRewards(player));
+          }
+        }));
+      });
+
+      rewardsData.getCommands().forEach(command -> {
+        buttons.add(UIUtils.createButtonCommand(command, action -> {
+          if (player.getInventory().getFreeSlot() == -1) return;
+          CommandDispatcher<CommandSourceStack> disparador = CobbleUtils.server.getCommands().getDispatcher();
+          try {
+            CommandSourceStack serverSource = CobbleUtils.server.createCommandSourceStack();
+            ParseResults<CommandSourceStack> parse = disparador.parse(command, serverSource);
+            disparador.execute(parse);
+          } catch (CommandSyntaxException e) {
+            System.err.println("Error al ejecutar el comando: " + command);
+            e.printStackTrace();
+          }
+          rewardsData.getCommands().remove(command);
           rewardsData.writeInfo();
           UIManager.openUIForcefully(action.getPlayer(), getRewards(player));
-        }
-      }));
-    });
 
-    rewardsData.getCommands().forEach(command -> {
-      buttons.add(UIUtils.createButtonCommand(command, action -> {
-        if (player.getInventory().getFreeSlot() == -1) return;
-        CommandDispatcher<CommandSourceStack> disparador = CobbleUtils.server.getCommands().getDispatcher();
-        try {
-          CommandSourceStack serverSource = CobbleUtils.server.createCommandSourceStack();
-          ParseResults<CommandSourceStack> parse = disparador.parse(command, serverSource);
-          disparador.execute(parse);
-        } catch (CommandSyntaxException e) {
-          System.err.println("Error al ejecutar el comando: " + command);
-          e.printStackTrace();
-        }
-        rewardsData.getCommands().remove(command);
-        rewardsData.writeInfo();
-        UIManager.openUIForcefully(action.getPlayer(), getRewards(player));
+        }));
+      });
 
-      }));
-    });
+      buttons.removeIf(Objects::isNull);
 
-    buttons.removeIf(Objects::isNull);
+      LinkedPageButton previus = LinkedPageButton.builder()
+        .display(Utils.parseItemId("minecraft:arrow"))
+        .title(AdventureTranslator.toNative(CobbleUtils.language.getPrevious()))
+        .linkType(LinkType.Previous)
+        .build();
 
-    LinkedPageButton previus = LinkedPageButton.builder()
-      .display(Utils.parseItemId("minecraft:arrow"))
-      .title(AdventureTranslator.toNative(CobbleUtils.language.getPrevious()))
-      .linkType(LinkType.Previous)
-      .build();
+      LinkedPageButton next = LinkedPageButton.builder()
+        .display(Utils.parseItemId("minecraft:arrow"))
+        .title(AdventureTranslator.toNative(CobbleUtils.language.getNext()))
+        .linkType(LinkType.Next)
+        .build();
 
-    LinkedPageButton next = LinkedPageButton.builder()
-      .display(Utils.parseItemId("minecraft:arrow"))
-      .title(AdventureTranslator.toNative(CobbleUtils.language.getNext()))
-      .linkType(LinkType.Next)
-      .build();
-
-    GooeyButton close = GooeyButton.builder()
-      .display(Items.RED_STAINED_GLASS_PANE.getDefaultInstance())
-      .title(AdventureTranslator.toNative(CobbleUtils.language.getClose()))
-      .onClick(action -> {
-        action.getPlayer().closeContainer();
-      })
-      .build();
+      GooeyButton close = GooeyButton.builder()
+        .display(Items.RED_STAINED_GLASS_PANE.getDefaultInstance())
+        .title(AdventureTranslator.toNative(CobbleUtils.language.getClose()))
+        .onClick(action -> {
+          action.getPlayer().closeContainer();
+        })
+        .build();
 
 
-    PlaceholderButton placeholder = new PlaceholderButton();
+      PlaceholderButton placeholder = new PlaceholderButton();
 
-    GooeyButton fill = GooeyButton.builder().display(Items.GRAY_STAINED_GLASS_PANE.getDefaultInstance().setHoverName(Component.literal(""))).build();
-    template.fill(fill)
-      .rectangle(0, 0, 5, 9, placeholder)
-      .fillFromList(buttons)
-      .set(5, 4, close)
-      .set(5, 0, previus)
-      .set(5, 8, next);
+      GooeyButton fill = GooeyButton.builder().display(Items.GRAY_STAINED_GLASS_PANE.getDefaultInstance().setHoverName(Component.literal(""))).build();
+      template.fill(fill)
+        .rectangle(0, 0, 5, 9, placeholder)
+        .fillFromList(buttons)
+        .set(5, 4, close)
+        .set(5, 0, previus)
+        .set(5, 8, next);
 
-    LinkedPage.Builder linkedPageBuilder = LinkedPage.builder()
-      .title(AdventureTranslator.toNative(CobbleUtils.language.getTitlemenurewards()));
+      LinkedPage.Builder linkedPageBuilder = LinkedPage.builder()
+        .title(AdventureTranslator.toNative(CobbleUtils.language.getTitlemenurewards()));
 
-    LinkedPage firstPage = PaginationHelper.createPagesFromPlaceholders(template, buttons, linkedPageBuilder);
-    return firstPage;
+      LinkedPage firstPage = PaginationHelper.createPagesFromPlaceholders(template, buttons, linkedPageBuilder);
+      return firstPage;
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    }
   }
-
-
+  
 }

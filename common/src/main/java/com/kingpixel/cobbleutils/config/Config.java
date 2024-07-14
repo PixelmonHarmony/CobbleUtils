@@ -46,6 +46,7 @@ public class Config {
   private List<String> forms;
   private ItemModel shinytoken;
   private Map<String, ItemModel> itemsCommands;
+  private Map<String, Double> rarity;
 
 
   public Config() {
@@ -89,6 +90,11 @@ public class Config {
       "§aThis give you a random amount of money")));
     itemsCommands.put("give", new ItemModel("minecraft:chest", "<gradient:#e0d234:#ede69a><bold>Item", List.of(
       "§aThis give you a item")));
+    rarity = new HashMap<>();
+    rarity.put("common", 7.0);
+    rarity.put("uncommon", 2.5);
+    rarity.put("rare", 0.3);
+    rarity.put("epic", 0.1);
   }
 
   public void init() {
@@ -129,6 +135,8 @@ public class Config {
         ultraBeasts = config.getUltraBeasts();
         activeshinytoken = config.isActiveshinytoken();
         forms = config.getForms();
+        rarity = config.getRarity();
+        
         String data = gson.toJson(this);
         CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(CobbleUtils.PATH, "config.json",
           data);

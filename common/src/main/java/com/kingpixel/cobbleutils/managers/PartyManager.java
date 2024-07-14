@@ -31,13 +31,13 @@ public class PartyManager {
 
   public void createParty(String partyName, PlayerInfo owner) {
     UserParty userParty = this.userParty.get(owner.getUuid());
-    PartyData partyData = new PartyData(partyName, owner);
     if (userParty.isHasParty()) {
       // Esta en una party el jugador
       CobbleUtils.server.getPlayerList().getPlayer(owner.getUuid())
         .sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyAlreadyInParty()));
       return;
     }
+    PartyData partyData = new PartyData(partyName, owner);
     if (parties.get(partyName) == null) {
       // No existe el party
       parties.put(partyName, partyData);

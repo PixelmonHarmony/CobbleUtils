@@ -86,7 +86,7 @@ public class PokemonUtils {
     } else {
       s = s.replace("%breedable%", CobbleUtils.language.getYes());
     }
-    
+
     return s.replace("%level%",
         String.valueOf(pokemon.getLevel()))
       .replace("%nature%", getNatureTranslate(nature))
@@ -271,4 +271,31 @@ public class PokemonUtils {
     return CobbleUtils.language.getGender().getOrDefault(gender.getShowdownName(), gender.getShowdownName());
   }
 
+  /**
+   * Get the rarity of the pokemon
+   *
+   * @param pokemon The pokemon to get the rarity
+   *
+   * @return The rarity of the pokemon
+   */
+  public static double getRarity(Pokemon pokemon) {
+    return CobbleUtils.spawnRates.getRarity(pokemon);
+  }
+
+  /**
+   * Get the rarity of the pokemon
+   *
+   * @param pokemon The pokemon to get the rarity
+   *
+   * @return The rarity of the pokemon
+   */
+  public static String getRarityS(Pokemon pokemon) {
+    double rarity = getRarity(pokemon);
+    for (String key : CobbleUtils.config.getRarity().keySet()) {
+      if (rarity < CobbleUtils.config.getRarity().get(key)) {
+        return key;
+      }
+    }
+    return "common";
+  }
 }

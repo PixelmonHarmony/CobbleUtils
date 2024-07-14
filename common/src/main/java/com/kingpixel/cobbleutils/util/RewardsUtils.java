@@ -305,4 +305,12 @@ public class RewardsUtils {
       !rewardsData.getPokemons().isEmpty();
   }
 
+  public static void removeRewards(Player player) {
+    RewardsData rewardsData = CobbleUtils.rewardsManager.getRewardsData().get(player.getUUID());
+    if (rewardsData == null) return;
+    rewardsData.getItems().clear();
+    rewardsData.getPokemons().clear();
+    rewardsData.getCommands().clear();
+    rewardsData.writeInfo();
+  }
 }

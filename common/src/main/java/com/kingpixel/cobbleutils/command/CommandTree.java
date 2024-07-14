@@ -63,6 +63,7 @@ public class CommandTree {
         RewardsItemStack.register(dispatcher, base, registry);
         RewardsCommand.register(dispatcher, base);
         RewardsClaim.register(dispatcher, base);
+        RewardsRemove.register(dispatcher, base);
       }
     }
 

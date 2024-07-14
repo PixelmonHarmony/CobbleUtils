@@ -74,19 +74,7 @@ public class ItemModel {
    * @return The itemstack of the item
    */
   public static ItemStack getItemStack(ItemModel itemModel) {
-    if (itemModel.getItem().startsWith("pokemon:")) {
-      return PokemonItem.from(PokemonProperties.Companion.parse(itemModel.getItem().replace("pokemon:", "")));
-    } else if (itemModel.getItem().startsWith("command:")) {
-      String command = itemModel.getItem().replace("command:", "");
-      for (Map.Entry<String, ItemModel> entry : CobbleUtils.config.getItemsCommands().entrySet()) {
-        if (command.startsWith(entry.getKey())) {
-          return Utils.parseItemId(entry.getValue().getItem(), 1);
-        }
-      }
-      return Utils.parseItemId("minecraft:command_block", 1);
-    } else {
-      return Utils.parseItemModel(itemModel, 1);
-    }
+    return getItemStack(itemModel, 1);
   }
 
   /**
@@ -99,7 +87,8 @@ public class ItemModel {
    */
   public static ItemStack getItemStack(ItemModel itemModel, int amount) {
     if (itemModel.getItem().startsWith("pokemon:")) {
-      return PokemonItem.from(PokemonProperties.Companion.parse(itemModel.getItem().replace("pokemon:", "")));
+      return Utils.addThingsItemStack(PokemonItem.from(PokemonProperties.Companion.parse(itemModel.getItem().replace(
+        "pokemon:", ""))), itemModel);
     } else if (itemModel.getItem().startsWith("command:")) {
       String command = itemModel.getItem().replace("command:", "");
       for (Map.Entry<String, ItemModel> entry : CobbleUtils.config.getItemsCommands().entrySet()) {

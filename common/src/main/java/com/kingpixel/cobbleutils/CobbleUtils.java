@@ -59,12 +59,23 @@ public class CobbleUtils {
   }
 
   public static void load() {
+    checks();
     files();
     spawnRates.init();
     ArraysPokemons.init();
     PartyPlaceholder.register();
     sign();
     tasks();
+  }
+
+  private static void checks() {
+    Utils.createDirectoryIfNeeded(PATH);
+    Utils.createDirectoryIfNeeded(PATH_LANG);
+    Utils.createDirectoryIfNeeded(PATH_RANDOM);
+    Utils.createDirectoryIfNeeded(PATH_PARTY);
+    Utils.createDirectoryIfNeeded(PATH_PARTY_LANG);
+    Utils.createDirectoryIfNeeded(PATH_PARTY_DATA);
+    Utils.createDirectoryIfNeeded(PATH_REWARDS_DATA);
   }
 
 
@@ -82,7 +93,7 @@ public class CobbleUtils {
     LOGGER.info("§e+-------------------------------+");
     LOGGER.info("§e| §6CobbleUtils");
     LOGGER.info("§e+-------------------------------+");
-    LOGGER.info("§e| §6Version: §f" + "1.0.3");
+    LOGGER.info("§e| §6Version: §f" + "1.0.5");
     LOGGER.info("§e| §6Author: §fZonary123");
     LOGGER.info("§e| §6Website: §fhttps://github.com/Zonary123/CobbleUtils");
     LOGGER.info("§e| §6Discord: §fhttps://discord.com/invite/fKNc7FnXpa");

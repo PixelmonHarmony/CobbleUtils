@@ -80,17 +80,15 @@ public abstract class Utils {
   }
 
   public static boolean writeFileSync(File file, String data) {
-    try {
-      FileWriter writer = new FileWriter(file);
+    try (FileWriter writer = new FileWriter(file)) {
       writer.write(data);
-      writer.close();
       return true;
-    } catch (Exception e) {
-      CobbleUtils.LOGGER.fatal("Unable to write to file for " + CobbleUtils.MOD_ID + ".\nStack Trace: ");
-      e.printStackTrace();
+    } catch (IOException e) {
+      CobbleUtils.LOGGER.fatal("Unable to write to file for " + CobbleUtils.MOD_ID + ". " + e);
       return false;
     }
   }
+
 
   public static CompletableFuture<Boolean> readFileAsync(String filePath, String filename,
                                                          Consumer<String> callback) {
@@ -131,24 +129,19 @@ public abstract class Utils {
   }
 
   public static boolean readFileSync(File file, Consumer<String> callback) {
-    try {
-      Scanner reader = new Scanner(file);
-
-      String data = "";
-
+    try (Scanner reader = new Scanner(file)) {
+      StringBuilder data = new StringBuilder();
       while (reader.hasNextLine()) {
-        data += reader.nextLine();
+        data.append(reader.nextLine());
       }
-      reader.close();
-      callback.accept(data);
+      callback.accept(data.toString());
       return true;
-    } catch (Exception e) {
-      CobbleUtils.LOGGER
-        .fatal("Unable to read file " + file.getName() + " for " + CobbleUtils.MOD_ID + ".\nStack Trace: ");
-      e.printStackTrace();
+    } catch (IOException e) {
+      CobbleUtils.LOGGER.fatal("Unable to read file " + file.getName() + " for " + CobbleUtils.MOD_ID + "." + e.getMessage());
       return false;
     }
   }
+
 
   public static Gson newGson() {
     return new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
@@ -170,14 +163,18 @@ public abstract class Utils {
     CompoundTag tag = new CompoundTag();
     tag.putString("id", id);
     tag.putInt("Count", 1);
-    return ItemStack.of(tag);
+    ItemStack itemStack = ItemStack.of(tag);
+    itemStack.setTag(null);
+    return itemStack;
   }
 
   public static ItemStack parseItemId(String id, int amount) {
     CompoundTag tag = new CompoundTag();
     tag.putString("id", id);
     tag.putInt("Count", amount);
-    return ItemStack.of(tag);
+    ItemStack itemStack = ItemStack.of(tag);
+    itemStack.setTag(null);
+    return itemStack;
   }
 
   public static File getAbsolutePath(String directoryPath) {
@@ -212,6 +209,10 @@ public abstract class Utils {
 
   public static ItemStack parseItemModel(ItemModel itemModel, int amount) {
     ItemStack itemStack = parseItemId(itemModel.getItem(), amount);
+    return addThingsItemStack(itemStack, itemModel);
+  }
+
+  public static ItemStack addThingsItemStack(ItemStack itemStack, ItemModel itemModel) {
     itemStack.setHoverName(AdventureTranslator.toNative(itemModel.getDisplayname()));
     if (itemModel.getCustomModelData() != 0)
       itemStack.getOrCreateTag().putInt("CustomModelData", itemModel.getCustomModelData());
@@ -227,5 +228,16 @@ public abstract class Utils {
       itemStack.getOrCreateTagElement("display").put("Lore", nbtLore);
     }
     return itemStack;
+  }
+
+  public static void createDirectoryIfNeeded(String directoryPath) {
+    File directory = getAbsolutePath(directoryPath);
+    if (!directory.exists()) {
+      if (directory.mkdirs()) {
+        CobbleUtils.LOGGER.info("Created directory: " + directoryPath);
+      } else {
+        CobbleUtils.LOGGER.error("Failed to create directory: " + directoryPath);
+      }
+    }
   }
 }
