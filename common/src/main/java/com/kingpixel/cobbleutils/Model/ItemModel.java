@@ -38,6 +38,13 @@ public class ItemModel {
     this.lore = lore;
   }
 
+  public ItemModel(String item, String displayname, List<String> lore, int customModelData) {
+    this.item = item;
+    this.displayname = displayname;
+    this.lore = lore;
+    this.CustomModelData = customModelData;
+  }
+
   public ItemModel(Integer slot, String item, String displayname, List<String> lore, int customModelData) {
     this.slot = slot;
     this.item = item;

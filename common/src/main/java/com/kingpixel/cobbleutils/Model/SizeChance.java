@@ -22,6 +22,7 @@ public class SizeChance {
     this.id = "normal";
     this.size = 1f;
     this.chance = 100;
+    this.item = new ItemModel("cobblemon:big_root", "", List.of(""));
   }
 
   public SizeChance(float size, int chance) {

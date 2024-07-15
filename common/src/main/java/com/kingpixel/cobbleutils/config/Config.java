@@ -1,15 +1,13 @@
 package com.kingpixel.cobbleutils.config;
 
+import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.google.gson.Gson;
 import com.kingpixel.cobbleutils.CobbleUtils;
-import com.kingpixel.cobbleutils.Model.ItemModel;
-import com.kingpixel.cobbleutils.Model.SizeChance;
+import com.kingpixel.cobbleutils.Model.*;
 import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Getter;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -35,14 +33,16 @@ public class Config {
   private boolean rewards;
   private boolean activeshinytoken;
   private boolean directreward;
+  private boolean solveSizeRandom;
   private int alertreward;
   private float minpokemonsize;
   private float maxpokemonsize;
   private List<SizeChance> pokemonsizes;
-  private List<String> shinytokenBlacklist;
-  private List<String> blacklist;
-  private List<String> legends;
-  private List<String> ultraBeasts;
+  private List<ScalePokemonData> specifiedSizes;
+  private List<PokemonData> shinytokenBlacklist;
+  private List<PokemonData> blacklist;
+  private List<PokemonData> legends;
+  private List<PokemonData> ultraBeasts;
   private List<String> forms;
   private ItemModel shinytoken;
   private Map<String, ItemModel> itemsCommands;
@@ -61,6 +61,7 @@ public class Config {
     shulkers = true;
     randomsize = true;
     fossil = true;
+    solveSizeRandom = true;
     pickup = true;
     shinyparticle = true;
     party = true;
@@ -77,13 +78,11 @@ public class Config {
       new SizeChance("Big", 1.25f, 15),
       new SizeChance("Giant", 1.5f, 5)
     );
-    shinytoken = new ItemModel("minecraft:paper", "<gradient:#e0d234:#ede69a><bold>Shiny Token", List.of("§aShiny Token"));
-    shinytokenBlacklist = List.of("ditto");
-    blacklist = List.of("ditto");
-    legends = List.of("mewtwo", "mew", "rayquaza", "giratina", "arceus", "reshiram", "zekrom", "kyurem", "xerneas",
-      "yveltal", "zygarde", "solgaleo", "lunala", "necrozma", "zacian", "zamazenta", "eternatus", "calyrex");
-    ultraBeasts = List.of("naganadel", "blacephalon", "stakataka", "kartana", "buzzwole", "pheromosa", "xurkitree",
-      "celesteela", "guzzlord", "poipole");
+    shinytoken = new ItemModel("minecraft:paper", "<gradient:#e0d234:#ede69a><bold>Shiny Token", List.of("§aShiny " +
+      "Token"), 0);
+    shinytokenBlacklist = List.of(new PokemonData("ditto", "normal"));
+    blacklist = List.of(new PokemonData("ditto", "normal"));
+    legends = List.of(new PokemonData("mewtwo", "normal"));
     forms = List.of("Normal", "Hisui", "Galar");
     itemsCommands = new HashMap<>();
     itemsCommands.put("eco", new ItemModel("cobblemon:relic_coin", "<gradient:#e0d234:#ede69a><bold>Money", List.of(
@@ -95,6 +94,9 @@ public class Config {
     rarity.put("uncommon", 2.5);
     rarity.put("rare", 0.3);
     rarity.put("epic", 0.1);
+    specifiedSizes = new ArrayList<>();
+    specifiedSizes.add(new ScalePokemonData("ditto", "normal", SizeChanceWithoutItem.transform(pokemonsizes)));
+    specifiedSizes.add(new ScalePokemonData("zorua", "hisui", SizeChanceWithoutItem.transform(pokemonsizes)));
   }
 
   public void init() {
@@ -116,6 +118,7 @@ public class Config {
         minpokemonsize = config.getMinpokemonsize();
         maxpokemonsize = config.getMaxpokemonsize();
         pokemonsizes = config.getPokemonsizes();
+        solveSizeRandom = config.isSolveSizeRandom();
         pokemonsizes.forEach(sizeChance -> {
           if (sizeChance.getItem() == null) {
             sizeChance.setItem(new ItemModel("minecraft:stone", "Stone", List.of()));
@@ -128,15 +131,18 @@ public class Config {
         commandrewards = config.getCommandrewards();
         commmandplugin = config.getCommmandplugin();
         alertreward = config.getAlertreward();
+        itemsCommands = config.getItemsCommands();
+
         shinytokenBlacklist = config.getShinytokenBlacklist();
         blacklist = config.getBlacklist();
-        itemsCommands = config.getItemsCommands();
         legends = config.getLegends();
         ultraBeasts = config.getUltraBeasts();
+
         activeshinytoken = config.isActiveshinytoken();
         forms = config.getForms();
         rarity = config.getRarity();
-        
+        specifiedSizes = config.getSpecifiedSizes();
+
         String data = gson.toJson(this);
         CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(CobbleUtils.PATH, "config.json",
           data);
@@ -164,26 +170,46 @@ public class Config {
    *
    * @return El tamaño del Pokémon seleccionado según las probabilidades.
    */
-  public float getRandomPokemonSize() {
+  public SizeChance getRandomPokemonSize() {
     int totalWeight = pokemonsizes.stream().mapToInt(SizeChance::getChance).sum();
-    int randomValue = Utils.RANDOM.nextInt(totalWeight) + 1; // +1 para incluir el valor totalWeight
+    int randomValue = Utils.RANDOM.nextInt(totalWeight) + 1;
 
     int currentWeight = 0;
     for (SizeChance sizeChance : pokemonsizes) {
       currentWeight += sizeChance.getChance();
       if (randomValue <= currentWeight) {
-        return sizeChance.getSize();
+        return sizeChance;
       }
     }
-    return 1.0f; // valor predeterminado si algo sale mal
+    return new SizeChance();
   }
 
-  public String getSizeName(float size) {
-    for (SizeChance sizeChance : pokemonsizes) {
-      if (sizeChance.getSize() == size) {
-        return sizeChance.getId();
-      }
-    }
-    return "Normal";
+  public boolean isBlacklisted(Pokemon pokemon) {
+    return blacklist.stream().anyMatch(pokemonData -> PokemonData.equals(pokemonData, PokemonData.from(pokemon)));
+  }
+
+  public boolean isShinyTokenBlacklisted(Pokemon pokemon) {
+    return shinytokenBlacklist.stream().anyMatch(pokemonData -> PokemonData.equals(pokemonData, PokemonData.from(pokemon)));
+  }
+
+  public boolean isLegendary(Pokemon pokemon) {
+    return legends.stream().anyMatch(pokemonData -> PokemonData.equals(pokemonData, PokemonData.from(pokemon)));
+  }
+
+  public boolean isUltraBeast(Pokemon pokemon) {
+    return ultraBeasts.stream().anyMatch(pokemonData -> PokemonData.equals(pokemonData, PokemonData.from(pokemon)));
+  }
+
+  public boolean isForm(String form) {
+    return forms.contains(form);
+  }
+
+  public String getSizeName(Pokemon pokemon) {
+    float scaleModifier = pokemon.getScaleModifier();
+    ScalePokemonData scalePokemonData = ScalePokemonData.getScalePokemonData(pokemon);
+    return scalePokemonData.getSizes().stream()
+      .min(Comparator.comparingDouble(size -> Math.abs(size.getSize() - scaleModifier)))
+      .map(SizeChanceWithoutItem::getId)
+      .orElse("Normal");
   }
 }

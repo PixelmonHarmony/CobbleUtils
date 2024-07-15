@@ -98,21 +98,16 @@ public class CobbleUtils {
     LOGGER.info("§e| §6Website: §fhttps://github.com/Zonary123/CobbleUtils");
     LOGGER.info("§e| §6Discord: §fhttps://discord.com/invite/fKNc7FnXpa");
     LOGGER.info("§e+-------------------------------+");
-    LOGGER.info("§e| §6Initializing CobbleUtils...");
-    LOGGER.info("§e+-------------------------------+");
-    LOGGER.info("§e| §6Pokemons size: §aImplemented");
+    LOGGER.info("§e| §6Pokemons size: §a" + CobbleUtils.config.isRandomsize());
     LOGGER.info("§e| §6Shulkers: §cUnimplemented");
-    LOGGER.info("§e| §6Fossil: §aImplemented");
+    LOGGER.info("§e| §6Fossil: §a" + CobbleUtils.config.isFossil());
     LOGGER.info("§e| §6Shiny particles: §cUnimplemented");
-    LOGGER.info("§e| §6Random size: §aImplemented");
     LOGGER.info("§e| §6Random item: §aImplemented");
     LOGGER.info("§e| §6Random money: §aImplemented");
     LOGGER.info("§e| §6Random pokemon: §aImplemented");
     LOGGER.info("§e| §6Pick Up: §cUnimplemented");
-    LOGGER.info("§e| §6Party: §aImplemented");
-    LOGGER.info("§e| §6Rewards: §aImplemented");
-    LOGGER.info("§e+-------------------------------+");
-    LOGGER.info("§e| §6CobbleUtils initialized!");
+    LOGGER.info("§e| §6Party: §a" + CobbleUtils.config.isParty());
+    LOGGER.info("§e| §6Rewards: §a" + CobbleUtils.config.isRewards());
     LOGGER.info("§e+-------------------------------+");
   }
 

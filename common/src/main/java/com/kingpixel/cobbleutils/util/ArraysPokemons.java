@@ -20,7 +20,10 @@ public class ArraysPokemons {
    */
   public static void init() {
     Collection<Species> species = PokemonSpecies.INSTANCE.getSpecies();
-    Set<String> pokeBlacklist = new HashSet<>(CobbleUtils.config.getBlacklist());
+    Set<String> pokeBlacklist = new HashSet<>();
+    CobbleUtils.config.getBlacklist().forEach(pokemonData -> {
+      pokeBlacklist.add(pokemonData.getPokename());
+    });
 
     List<Species> filteredSpecies = species.stream()
       .filter(species1 -> species1.getNationalPokedexNumber() != 9999)
@@ -280,5 +283,5 @@ public class ArraysPokemons {
       }
     } while (true);
   }
-  
+
 }

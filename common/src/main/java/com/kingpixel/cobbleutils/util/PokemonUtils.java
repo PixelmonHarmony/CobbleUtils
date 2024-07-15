@@ -138,7 +138,7 @@ public class PokemonUtils {
    * @return The size of the pokemon
    */
   public static String getSize(Pokemon pokemon) {
-    return CobbleUtils.config.getSizeName(pokemon.getScaleModifier());
+    return CobbleUtils.config.getSizeName(pokemon);
   }
 
   /**

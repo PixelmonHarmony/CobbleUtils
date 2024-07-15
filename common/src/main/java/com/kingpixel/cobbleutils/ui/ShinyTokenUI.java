@@ -10,7 +10,6 @@ import com.cobblemon.mod.common.api.storage.party.PlayerPartyStore;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
-import com.kingpixel.cobbleutils.util.PokemonUtils;
 import com.kingpixel.cobbleutils.util.UIUtils;
 import com.kingpixel.cobbleutils.util.Utils;
 import net.minecraft.server.level.ServerPlayer;
@@ -34,13 +33,12 @@ public class ShinyTokenUI {
         slot = UIUtils.createButtonPokemon(pokemon, action -> {
           try {
             if (pokemon == null) return;
-            if (CobbleUtils.config.getShinytokenBlacklist().contains(PokemonUtils.getIdentifierPokemon(pokemon)))
-              return;
+            if (CobbleUtils.config.isShinyTokenBlacklisted(pokemon)) return;
             if (!pokemon.getShiny()) {
               UIManager.openUIForcefully((ServerPlayer) player, confirmShiny(player, pokemon));
             }
           } catch (NoPokemonStoreException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
           }
         });
         int row = i / 3;

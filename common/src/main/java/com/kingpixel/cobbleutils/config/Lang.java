@@ -18,6 +18,7 @@ public class Lang {
   private String titlemenushinyoperation;
   private String titlemenurewards;
   private String titlepc;
+  private String titleparty;
   private String confirm;
   private String cancel;
   private String close;
@@ -49,6 +50,10 @@ public class Lang {
   private Map<String, String> forms;
   private Map<String, String> types;
   private ItemModel itemPc;
+  private ItemModel itemNoPokemon;
+  private ItemModel itemPrevious;
+  private ItemModel itemNext;
+  private ItemModel itemClose;
 
   /**
    * Constructor to generate a file if one doesn't exist.
@@ -61,7 +66,8 @@ public class Lang {
     previous = "&ePrevious";
     empty = "&cEmpty";
     titlemenushiny = "&eShiny Menu";
-    titlepc = "&ePC";
+    titlepc = "&bPC";
+    titleparty = "&bParty";
     messageNotHaveRewards = "&cYou don't have rewards.";
     titlemenushinyoperation = "&eShiny Operation";
     titlemenurewards = "&eRewards Menu";
@@ -107,7 +113,7 @@ public class Lang {
       "&aOwner: &f%owner%"
     );
     lorechance = List.of(
-      "&7Chance: &f%chance%"
+      "&7Chance: &e%chance%&f%"
     );
     // Time
     seconds = "&6%s% &aseconds";
@@ -135,7 +141,11 @@ public class Lang {
     types.put("ground", "<gradient:#B8860B:#D2B48C>Ground&7");
     types.put("psychic", "<gradient:#D74DE2:#DE77E7>Psychic&7");
     types.put("fairy", "<gradient:#9C38A5:#C06EC7>Fairy&7");
-    itemPc = new ItemModel("cobblemon:pc", "&bPC", List.of(""));
+    itemPc = new ItemModel("cobblemon:pc", "&bPC", List.of(""), 0);
+    itemNoPokemon = new ItemModel("minecraft:barrier", "<gradient:#E05858:#F09E9E>No Pokemon", List.of(""), 0);
+    itemPrevious = new ItemModel("minecraft:arrow", "<gradient:#E0A457:#E9C79B>Previous", List.of(""), 0);
+    itemNext = new ItemModel("minecraft:arrow", "<gradient:#E0A457:#E9C79B>Next", List.of(""), 0);
+    itemClose = new ItemModel("minecraft:barrier", "<gradient:#E05858:#F09E9E>Close", List.of(""), 0);
   }
 
   /**
@@ -155,6 +165,7 @@ public class Lang {
         titlemenushiny = lang.getTitlemenushiny();
         titlemenushinyoperation = lang.getTitlemenushinyoperation();
         titlemenurewards = lang.getTitlemenurewards();
+        titleparty = lang.getTitleparty();
         if (titlemenurewards == null) titlemenurewards = "&eRewards Menu";
         yes = lang.getYes();
         no = lang.getNo();

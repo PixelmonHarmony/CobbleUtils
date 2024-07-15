@@ -16,6 +16,7 @@ import com.cobblemon.mod.common.api.storage.pc.PCStore;
 import com.cobblemon.mod.common.item.PokemonItem;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.Model.ItemModel;
 import com.kingpixel.cobbleutils.action.PokemonButtonAction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
@@ -44,8 +45,9 @@ public class UIUtils {
   public static GooeyButton createButtonPokemon(Pokemon pokemon, Consumer<PokemonButtonAction> actionpokemon) {
     if (pokemon == null) {
       return GooeyButton.builder()
-        .display(Utils.parseItemId("minecraft:barrier"))
-        .title(AdventureTranslator.toNative(CobbleUtils.language.getEmpty()))
+        .display(CobbleUtils.language.getItemNoPokemon().getItemStack())
+        .title(AdventureTranslator.toNative(CobbleUtils.language.getItemNoPokemon().getDisplayname()))
+        .lore(Component.class, AdventureTranslator.toNativeL(CobbleUtils.language.getItemNoPokemon().getLore()))
         .build();
     }
 
@@ -71,8 +73,9 @@ public class UIUtils {
                                                 Consumer<PokemonButtonAction> actionpokemon) {
     if (pokemon == null) {
       return GooeyButton.builder()
-        .display(Utils.parseItemId("minecraft:barrier"))
-        .title(AdventureTranslator.toNative(CobbleUtils.language.getEmpty()))
+        .display(CobbleUtils.language.getItemNoPokemon().getItemStack())
+        .title(AdventureTranslator.toNative(CobbleUtils.language.getItemNoPokemon().getDisplayname()))
+        .lore(Component.class, AdventureTranslator.toNativeL(CobbleUtils.language.getItemNoPokemon().getLore()))
         .build();
     }
 
@@ -264,21 +267,9 @@ public class UIUtils {
             .setHoverName(Component.literal(""))).build())
         .rectangle(0, 0, 5, 9, new PlaceholderButton())
         .fillFromList(buttonsList)
-        .set(5, 4, GooeyButton.builder()
-          .display(Utils.parseItemId("minecraft:barrier"))
-          .title(AdventureTranslator.toNative(CobbleUtils.language.getClose()))
-          .onClick(closeaction)
-          .build())
-        .set(5, 0, LinkedPageButton.builder()
-          .display(Utils.parseItemId("minecraft:arrow"))
-          .title(AdventureTranslator.toNative(CobbleUtils.language.getPrevious()))
-          .linkType(LinkType.Previous)
-          .build())
-        .set(5, 8, LinkedPageButton.builder()
-          .display(Utils.parseItemId("minecraft:arrow"))
-          .title(AdventureTranslator.toNative(CobbleUtils.language.getNext()))
-          .linkType(LinkType.Next)
-          .build());
+        .set(5, 4, getCloseButton(closeaction))
+        .set(5, 0, getLinkedPageButton(CobbleUtils.language.getItemPrevious(), LinkType.Previous))
+        .set(5, 8, getLinkedPageButton(CobbleUtils.language.getItemNext(), LinkType.Next));
 
       // Construir la página vinculada
       LinkedPage.Builder linkedPageBuilder = LinkedPage.builder().title(AdventureTranslator.toNative(titlemenu));
@@ -333,6 +324,37 @@ public class UIUtils {
     }).get();
   }
 
+  /**
+   * Get the linked page button
+   *
+   * @param itemModel The item model to get the button
+   * @param linkType  The type of link
+   *
+   * @return The linked page button
+   */
+  public static LinkedPageButton getLinkedPageButton(ItemModel itemModel, LinkType linkType) {
+    return LinkedPageButton.builder()
+      .display(itemModel.getItemStack())
+      .title(AdventureTranslator.toNative(itemModel.getDisplayname()))
+      .linkType(linkType)
+      .build();
+  }
+
+  /**
+   * Get the close button
+   *
+   * @param action The action to do when the button is clicked
+   *
+   * @return The close button
+   */
+  public static GooeyButton getCloseButton(Consumer<ButtonAction> action) {
+    ItemModel itemModel = CobbleUtils.language.getItemClose();
+    return GooeyButton.builder()
+      .display(itemModel.getItemStack())
+      .title(AdventureTranslator.toNative(itemModel.getDisplayname()))
+      .onClick(action)
+      .build();
+  }
 }
 
 

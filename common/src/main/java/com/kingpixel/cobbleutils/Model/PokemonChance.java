@@ -20,5 +20,6 @@ public class PokemonChance {
   public PokemonChance(String pokemon, int chance) {
     this.pokemon = pokemon;
     this.chance = chance;
+
   }
 }

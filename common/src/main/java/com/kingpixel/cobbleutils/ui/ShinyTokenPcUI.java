@@ -5,7 +5,6 @@ import ca.landonjw.gooeylibs2.api.page.GooeyPage;
 import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.storage.NoPokemonStoreException;
 import com.kingpixel.cobbleutils.CobbleUtils;
-import com.kingpixel.cobbleutils.util.PokemonUtils;
 import com.kingpixel.cobbleutils.util.UIUtils;
 import net.minecraft.world.entity.player.Player;
 
@@ -20,7 +19,7 @@ public class ShinyTokenPcUI {
     try {
       return UIUtils.createPagePc(Cobblemon.INSTANCE.getStorage().getPC(player.getUUID()), actionpokemon -> {
           try {
-            if (CobbleUtils.config.getShinytokenBlacklist().contains(PokemonUtils.getIdentifierPokemon(actionpokemon.getPokemon())))
+            if (CobbleUtils.config.isShinyTokenBlacklisted(actionpokemon.getPokemon()))
               return;
             if (!actionpokemon.getPokemon().getShiny())
               UIManager.openUIForcefully(actionpokemon.getAction().getPlayer(), ShinyTokenUI.confirmShiny(player,
