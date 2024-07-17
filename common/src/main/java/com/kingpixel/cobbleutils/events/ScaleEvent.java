@@ -35,7 +35,7 @@ public class ScaleEvent {
     }
   }
 
-  private static void solveScale(Pokemon pokemon) {
+  public static void solveScale(Pokemon pokemon) {
     if (pokemon.getPersistentData().getString("size").equalsIgnoreCase("custom")) return;
     ScalePokemonData scalePokemonData = ScalePokemonData.getScalePokemonData(pokemon);
     if (scalePokemonData.existSize(pokemon)) {

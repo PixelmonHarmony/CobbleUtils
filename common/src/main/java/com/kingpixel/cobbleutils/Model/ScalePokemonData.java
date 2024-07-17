@@ -48,7 +48,15 @@ public class ScalePokemonData {
   }
 
   /**
-   * Compara dos instancias de ScalePokemonData para igualdad de Pokémon y forma.
+   * Compare two ScalePokemonData objects.
+   * <p>
+   * Compare the pokemon and form of the two objects.
+   * <p>
+   *
+   * @param scalePokemonData1 ScalePokemonData
+   * @param scalePokemonData2 ScalePokemonData
+   *
+   * @return boolean if the two objects are equals
    */
   public static boolean equals(ScalePokemonData scalePokemonData1, ScalePokemonData scalePokemonData2) {
     return scalePokemonData1.getPokemon().equalsIgnoreCase(scalePokemonData2.getPokemon()) &&
@@ -66,11 +74,9 @@ public class ScalePokemonData {
     for (SizeChanceWithoutItem sizeChance : SizeChance) {
       currentWeight += sizeChance.getChance();
       if (randomValue <= currentWeight) {
-        CobbleUtils.LOGGER.info("Retornamos size");
         return sizeChance;
       }
     }
-    CobbleUtils.LOGGER.info("Retornamos size por defecto");
     return new SizeChanceWithoutItem();
   }
 
@@ -122,6 +128,24 @@ public class ScalePokemonData {
     return new SizeChanceWithoutItem();
   }
 
+  /**
+   * Obtain a size of a pokemon based on the size id
+   *
+   * @param pokemon Pokemon to get the size
+   *
+   * @return SizeChanceWithoutItem with the id and size
+   */
+  public static SizeChanceWithoutItem getSize(Pokemon pokemon, String sizeId) {
+    return getScalePokemonData(pokemon).getSizes().stream().filter(sizeChanceWithoutItem -> sizeChanceWithoutItem.getId().equalsIgnoreCase(sizeId)).findFirst().orElse(new SizeChanceWithoutItem());
+  }
+
+  /**
+   * Check if the size exists in the list of sizes
+   *
+   * @param pokemon Pokemon
+   *
+   * @return boolean
+   */
   public boolean existSize(Pokemon pokemon) {
     String size = pokemon.getPersistentData().getString("size");
     return getScalePokemonData(pokemon).getSizes().stream().anyMatch(sizeChanceWithoutItem -> sizeChanceWithoutItem.getId().equalsIgnoreCase(size));
