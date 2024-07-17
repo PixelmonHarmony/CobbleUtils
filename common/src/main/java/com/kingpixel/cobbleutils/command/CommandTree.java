@@ -64,6 +64,7 @@ public class CommandTree {
         RewardsCommand.register(dispatcher, base);
         RewardsClaim.register(dispatcher, base);
         RewardsRemove.register(dispatcher, base);
+        RewardsReload.register(dispatcher, base);
       }
     }
 

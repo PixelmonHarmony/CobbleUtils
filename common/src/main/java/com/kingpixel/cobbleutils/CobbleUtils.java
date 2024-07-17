@@ -93,7 +93,7 @@ public class CobbleUtils {
     LOGGER.info("§e+-------------------------------+");
     LOGGER.info("§e| §6CobbleUtils");
     LOGGER.info("§e+-------------------------------+");
-    LOGGER.info("§e| §6Version: §f" + "1.0.5");
+    LOGGER.info("§e| §6Version: §f" + "1.0.6");
     LOGGER.info("§e| §6Author: §fZonary123");
     LOGGER.info("§e| §6Website: §fhttps://github.com/Zonary123/CobbleUtils");
     LOGGER.info("§e| §6Discord: §fhttps://discord.com/invite/fKNc7FnXpa");
@@ -140,6 +140,7 @@ public class CobbleUtils {
       rewardsData.init();
     });
 
+
     PlayerEvent.PLAYER_QUIT.register(player -> {
       UserParty userParty = partyManager.getUserParty().get(player.getUUID());
       if (userParty.isHasParty()) {
@@ -149,17 +150,23 @@ public class CobbleUtils {
       }
     });
 
+
     InteractionEvent.RIGHT_CLICK_BLOCK.register((player, hand, blockpos, direction) -> {
       BlockRightClickEvents.register(player, hand, blockpos, direction);
       return EventResult.pass();
     });
 
+
     InteractionEvent.RIGHT_CLICK_ITEM.register(ItemRightClickEvents::register);
+
+    // ? Add the event for fishing a pokemon
 
     ScaleEvent.register();
 
+
     PlayerEvent.DROP_ITEM.register(DropItemEvent::register);
   }
+
 
   private static void tasks() {
     for (ScheduledFuture<?> task : scheduledTasks) {

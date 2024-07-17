@@ -38,6 +38,7 @@ public class Lang {
   private String messageNotHaveRewards;
   private String messageHaveRewards;
   private String messageThisPokemonIsShiny;
+  private String messageNoPokemon;
   private String coloritem;
   private List<String> lorepokemon;
   private List<String> lorechance;
@@ -54,6 +55,9 @@ public class Lang {
   private ItemModel itemPrevious;
   private ItemModel itemNext;
   private ItemModel itemClose;
+  private ItemModel itemConfirm;
+  private ItemModel itemCancel;
+  private ItemModel itemCommand;
 
   /**
    * Constructor to generate a file if one doesn't exist.
@@ -73,7 +77,7 @@ public class Lang {
     titlemenurewards = "&eRewards Menu";
     messageReload = "&aReloaded.";
     yes = "&a✔";
-    no = "&c✖";
+    no = "&c✘";
     symbolshiny = " &e⭐";
     none = "&cNone";
     coloritem = "<gradient:#cc7435:#e3ab84>";
@@ -85,6 +89,7 @@ public class Lang {
     messagefossiltime = "&aYou need to wait %time% &ato get a new fossil.";
     messagefossilcomplete = "&aYou have completed the fossil.";
     messageThisPokemonIsShiny = "&aThis Pokemon is shiny!";
+    messageNoPokemon = "&cNo Pokemon";
     lorepokemon = List.of(
       "&7Level: &f%level%",
       "&7Type: &f%types%",
@@ -95,10 +100,10 @@ public class Lang {
       "&eBreedable: &f%breedable%",
       "&eNature: &f%nature% &f(&a↑%up%&f/&c↓%down%&f)",
       "&6Ability: &f%ability%",
-      "&dIVs: &f%ivs%",
+      "&dIVs: &e%ivs%&7/&e31",
       " &cHP: &f%ivshp% &9Atk: &f%ivsatk% &7Def: &f%ivsdef%",
       " &bSpAtk: &f%ivsspa% &eSpDef: &f%ivsspdef% &bSpd: &f%ivsspeed%",
-      "&3EVs: &f%evs%",
+      "&3EVs: &e%evs%&7/&e510",
       " &cHP: &f%evshp% &9Atk: &f%evsatk% &7Def: &f%evsdef%",
       " &bSpAtk: &f%evsspa% &eSpDef: &f%evsspdef% &bSpd: &f%evsspeed%",
       "&6Size: &f%size%",
@@ -146,6 +151,9 @@ public class Lang {
     itemPrevious = new ItemModel("minecraft:arrow", "<gradient:#E0A457:#E9C79B>Previous", List.of(""), 0);
     itemNext = new ItemModel("minecraft:arrow", "<gradient:#E0A457:#E9C79B>Next", List.of(""), 0);
     itemClose = new ItemModel("minecraft:barrier", "<gradient:#E05858:#F09E9E>Close", List.of(""), 0);
+    itemCommand = new ItemModel("minecraft:command_block", "<gradient:#E0A457:#E9C79B>Command", List.of(""), 0);
+    itemConfirm = new ItemModel("minecraft:emerald", "<gradient:#4B9F4B:#7DC97D>Confirm", List.of(""), 0);
+    itemCancel = new ItemModel("minecraft:redstone", "<gradient:#E05858:#F09E9E>Cancel", List.of(""), 0);
   }
 
   /**
@@ -196,6 +204,14 @@ public class Lang {
         itemPc = lang.getItemPc();
         lorechance = lang.getLorechance();
         types = lang.getTypes();
+
+        itemCommand = lang.getItemCommand();
+        itemClose = lang.getItemClose();
+        itemNext = lang.getItemNext();
+        itemPrevious = lang.getItemPrevious();
+        itemNoPokemon = lang.getItemNoPokemon();
+        itemConfirm = lang.getItemConfirm();
+        itemCancel = lang.getItemCancel();
 
 
         String data = gson.toJson(this);

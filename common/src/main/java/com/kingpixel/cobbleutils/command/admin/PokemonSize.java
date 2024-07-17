@@ -2,11 +2,12 @@ package com.kingpixel.cobbleutils.command.admin;
 
 import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.storage.NoPokemonStoreException;
+import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.SizeChance;
+import com.kingpixel.cobbleutils.util.PlayerUtils;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.LiteralMessage;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -15,7 +16,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
 
 /**
  * @author Carlos Varas Alonso - 12/06/2024 3:47
@@ -45,9 +46,33 @@ public class PokemonSize implements Command<CommandSourceStack> {
                 }
                 return builder.buildFuture();
               })
-              .executes(new PokemonSize())
+              .executes(context -> {
+                if (!context.getSource().isPlayer()) {
+                  CobbleUtils.LOGGER.info("This command can only be executed by a player");
+                  return 0;
+                }
+                ServerPlayer player = context.getSource().getPlayerOrException();
+                int slot = IntegerArgumentType.getInteger(context, "slot");
+                float scale = FloatArgumentType.getFloat(context, "scale");
+                try {
+                  scale(player, slot, scale);
+                } catch (NoPokemonStoreException e) {
+                  e.printStackTrace();
+                }
+                return 1;
+              })
               .then(Commands.argument("player", EntityArgument.players())
-                .executes(new PokemonSize())
+                .executes(context -> {
+                  ServerPlayer player = EntityArgument.getPlayer(context, "player");
+                  int slot = IntegerArgumentType.getInteger(context, "slot");
+                  float scale = FloatArgumentType.getFloat(context, "scale");
+                  try {
+                    scale(player, slot, scale);
+                  } catch (NoPokemonStoreException e) {
+                    e.printStackTrace();
+                  }
+                  return 1;
+                })
               )
             )
           )
@@ -57,44 +82,17 @@ public class PokemonSize implements Command<CommandSourceStack> {
 
   @Override
   public int run(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-    try {
-      // Obtener argumentos del comando
-      float scale = FloatArgumentType.getFloat(context, "scale");
-      int slot = IntegerArgumentType.getInteger(context, "slot") - 1;
-
-      // Obtener el jugador que ejecuta el comando
-      Player player = context.getSource().getPlayerOrException();
-
-      // Intentar obtener el jugador objetivo, si se especifica
-      Player targetPlayer = null;
-      try {
-        targetPlayer = EntityArgument.getPlayer(context, "player");
-      } catch (Exception e) {
-        // El argumento "player" es opcional, si no se encuentra no pasa nada
-      }
-
-      // Si se especificó un jugador, usarlo
-      if (targetPlayer != null) {
-        player = targetPlayer;
-      }
-
-      // Aplicar el modificador de escala al Pokémon en la posición especificada
-      Cobblemon.INSTANCE.getStorage().getParty(player.getUUID()).get(slot).setScaleModifier(scale);
-
-      // Log de depuración
-      if (CobbleUtils.config.isDebug()) {
-        CobbleUtils.LOGGER.info("Scale: " + scale);
-      }
-
-    } catch (NoPokemonStoreException e) {
-      // Manejo específico de la excepción NoPokemonStoreException
-      throw new CommandSyntaxException(CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownArgument(), new LiteralMessage("No Pokémon found in the specified slot."));
-    } catch (Exception e) {
-      // Manejo de otras excepciones genéricas
-      throw new CommandSyntaxException(CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownArgument(), new LiteralMessage("An error occurred while executing the command."));
-    }
-
     return 1;
+  }
+
+  private static void scale(ServerPlayer player, int slot, float scale) throws NoPokemonStoreException {
+    Pokemon pokemon = Cobblemon.INSTANCE.getStorage().getParty(player.getUUID()).get(--slot);
+    if (pokemon == null) {
+      PlayerUtils.sendMessage(player, CobbleUtils.language.getMessageNoPokemon());
+      return;
+    }
+    pokemon.setScaleModifier(scale);
+    pokemon.getPersistentData().putString("size", "custom");
   }
 
 }

@@ -7,10 +7,12 @@ import com.cobblemon.mod.common.api.pokemon.stats.Stats;
 import com.cobblemon.mod.common.pokeball.PokeBall;
 import com.cobblemon.mod.common.pokemon.*;
 import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.Model.ScalePokemonData;
+import com.kingpixel.cobbleutils.Model.SizeChanceWithoutItem;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.player.Player;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -63,6 +65,28 @@ public class PokemonUtils {
   /**
    * Replace the placeholders with the pokemon data
    *
+   * @param pokemon The pokemon to get the data
+   *
+   * @return The lore with the replaced placeholders
+   */
+  public static List<String> replaceLore(Pokemon pokemon) {
+    return replace(CobbleUtils.language.getLorepokemon(), pokemon);
+  }
+
+  /**
+   * Replace the placeholders with the pokemon data
+   *
+   * @param pokemon The pokemon to get the data
+   *
+   * @return The string with the replaced placeholders
+   */
+  public static String replace(Pokemon pokemon) {
+    return replace(CobbleUtils.language.getPokemonnameformat(), pokemon);
+  }
+
+  /**
+   * Replace the placeholders with the pokemon data
+   *
    * @param s       The string to replace
    * @param pokemon The pokemon to get the data
    *
@@ -70,12 +94,10 @@ public class PokemonUtils {
    */
   public static String replace(String s, Pokemon pokemon) {
     if (pokemon == null) {
-      // Handle the case where pokemon is null, maybe throw an IllegalArgumentException or return a default string
       return "Pokemon data not available";
     }
 
-    String owner = pokemon.getOriginalTrainerName();
-    if (owner == null) owner = CobbleUtils.language.getNone();
+
     Nature nature = pokemon.getNature();
 
     // Example of null check and default value for breedable
@@ -87,6 +109,7 @@ public class PokemonUtils {
       s = s.replace("%breedable%", CobbleUtils.language.getYes());
     }
 
+    pokemon.heldItem();
     return s.replace("%level%",
         String.valueOf(pokemon.getLevel()))
       .replace("%nature%", getNatureTranslate(nature))
@@ -105,9 +128,8 @@ public class PokemonUtils {
       .replace("%evsspa%", String.valueOf(pokemon.getEvs().get(Stats.SPECIAL_ATTACK)))
       .replace("%evsspdef%", String.valueOf(pokemon.getEvs().get(Stats.SPECIAL_DEFENCE)))
       .replace("%evsspeed%", String.valueOf(pokemon.getEvs().get(Stats.SPEED)))
-      .replace("%legendary%", pokemon.isLegendary() ? CobbleUtils.language.getYes() :
-        CobbleUtils.language.getNo())
-      .replace("%item%", pokemon.heldItem() == null ? CobbleUtils.language.getNone() : pokemon.heldItem().getHoverName().getString())
+      .replace("%legendary%", pokemon.isLegendary() ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
+      .replace("%item%", pokemon.heldItem().getHoverName().getString())
       .replace("%size%", getSize(pokemon))
       .replace("%form%", CobbleUtils.language.getForms().getOrDefault(pokemon.getForm().getName(), pokemon.getForm().getName()))
       .replace("%up%", getStatTranslate(nature.getIncreasedStat()))
@@ -115,19 +137,29 @@ public class PokemonUtils {
       .replace("%ball%", getPokeBallTranslate(pokemon.getCaughtBall()))
       .replace("%gender%", getGenderTranslate(pokemon.getGender()))
       .replace("%ivs%", getIvsAverage(pokemon.getIvs()).toString())
-      .replace("%evs%", getEvsAverage(pokemon.getEvs()).toString())
+      .replace("%evs%", getEvsTotal(pokemon.getEvs()).toString())
       .replace("%move1%", getMoveTranslate(pokemon.getMoveSet().get(0)))
       .replace("%move2%", getMoveTranslate(pokemon.getMoveSet().get(1)))
       .replace("%move3%", getMoveTranslate(pokemon.getMoveSet().get(2)))
       .replace("%move4%", getMoveTranslate(pokemon.getMoveSet().get(3)))
       .replace("%tradeable%", pokemon.getTradeable() ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
-      .replace("%owner%", owner)
+      .replace("%owner%", getOwnerName(pokemon))
       .replace("%ultrabeast%", pokemon.isUltraBeast() ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
-      .replace("%types%", getType(pokemon));
+      .replace("%types%", getType(pokemon))
+      .replace("%rarity%", String.valueOf(getRarity(pokemon)));
   }
 
-  private static String getOwnerName(Player player) {
-    return player.getGameProfile().getName();
+  /**
+   * Get the owner name of the pokemon
+   *
+   * @param pokemon The pokemon to get the owner name
+   *
+   * @return The owner name of the pokemon
+   */
+  public static String getOwnerName(Pokemon pokemon) {
+    String owner = pokemon.getOriginalTrainerName();
+    if (owner == null) owner = CobbleUtils.language.getNone();
+    return owner;
   }
 
   /**
@@ -138,7 +170,20 @@ public class PokemonUtils {
    * @return The size of the pokemon
    */
   public static String getSize(Pokemon pokemon) {
-    return CobbleUtils.config.getSizeName(pokemon);
+    return getSizeName(pokemon);
+  }
+
+  /**
+   * Get the total of the IVs
+   *
+   * @param iVs The IVs to get the total
+   *
+   * @return The total of the IVs
+   */
+  public static Integer getIvsTotal(IVs iVs) {
+    AtomicInteger sum = new AtomicInteger();
+    iVs.forEach((ivs) -> sum.addAndGet(ivs.getValue()));
+    return sum.get();
   }
 
   /**
@@ -152,6 +197,19 @@ public class PokemonUtils {
     AtomicInteger sum = new AtomicInteger();
     iVs.forEach((ivs) -> sum.addAndGet(ivs.getValue()));
     return sum.get() / 6;
+  }
+
+  /**
+   * Get the total of the EVs
+   *
+   * @param eVs The EVs to get the total
+   *
+   * @return The total of the EVs
+   */
+  public static Integer getEvsTotal(EVs eVs) {
+    AtomicInteger sum = new AtomicInteger();
+    eVs.forEach((evs) -> sum.addAndGet(evs.getValue()));
+    return sum.get();
   }
 
   /**
@@ -196,7 +254,7 @@ public class PokemonUtils {
    *
    * @return The type of the pokemon
    */
-  private static String getType(Pokemon pokemon) {
+  public static String getType(Pokemon pokemon) {
     StringBuilder s =
       new StringBuilder(CobbleUtils.language.getTypes().getOrDefault(pokemon.getPrimaryType().getName(), pokemon.getPrimaryType().getName()));
     if (pokemon.getSecondaryType() != null) {
@@ -297,5 +355,21 @@ public class PokemonUtils {
       }
     }
     return "common";
+  }
+
+  /**
+   * Get the size of the pokemon
+   *
+   * @param pokemon The pokemon to get the size
+   *
+   * @return The size of the pokemon
+   */
+  public static String getSizeName(Pokemon pokemon) {
+    float scaleModifier = pokemon.getScaleModifier();
+    ScalePokemonData scalePokemonData = ScalePokemonData.getScalePokemonData(pokemon);
+    return scalePokemonData.getSizes().stream()
+      .min(Comparator.comparingDouble(size -> Math.abs(size.getSize() - scaleModifier)))
+      .map(SizeChanceWithoutItem::getId)
+      .orElse("Normal");
   }
 }

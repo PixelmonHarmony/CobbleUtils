@@ -7,7 +7,10 @@ import com.kingpixel.cobbleutils.Model.*;
 import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Getter;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -202,14 +205,5 @@ public class Config {
 
   public boolean isForm(String form) {
     return forms.contains(form);
-  }
-
-  public String getSizeName(Pokemon pokemon) {
-    float scaleModifier = pokemon.getScaleModifier();
-    ScalePokemonData scalePokemonData = ScalePokemonData.getScalePokemonData(pokemon);
-    return scalePokemonData.getSizes().stream()
-      .min(Comparator.comparingDouble(size -> Math.abs(size.getSize() - scaleModifier)))
-      .map(SizeChanceWithoutItem::getId)
-      .orElse("Normal");
   }
 }

@@ -1,5 +1,6 @@
 package com.kingpixel.cobbleutils.util;
 
+import ca.landonjw.gooeylibs2.api.UIManager;
 import ca.landonjw.gooeylibs2.api.button.Button;
 import ca.landonjw.gooeylibs2.api.button.ButtonAction;
 import ca.landonjw.gooeylibs2.api.button.GooeyButton;
@@ -10,7 +11,9 @@ import ca.landonjw.gooeylibs2.api.helpers.PaginationHelper;
 import ca.landonjw.gooeylibs2.api.page.GooeyPage;
 import ca.landonjw.gooeylibs2.api.page.LinkedPage;
 import ca.landonjw.gooeylibs2.api.template.types.ChestTemplate;
+import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.moves.Move;
+import com.cobblemon.mod.common.api.storage.NoPokemonStoreException;
 import com.cobblemon.mod.common.api.storage.party.PlayerPartyStore;
 import com.cobblemon.mod.common.api.storage.pc.PCStore;
 import com.cobblemon.mod.common.item.PokemonItem;
@@ -19,6 +22,8 @@ import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.ItemModel;
 import com.kingpixel.cobbleutils.action.PokemonButtonAction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
@@ -178,9 +183,9 @@ public class UIUtils {
   public static GooeyButton createButtonCommand(String command, Consumer<ButtonAction> action) {
     AtomicReference<GooeyButton> button = new AtomicReference<>();
     CobbleUtils.config.getItemsCommands().forEach((c, i) -> {
-      if (command.contains(c) && button.get() == null) {
+      if (command.startsWith(c) && button.get() == null) {
         button.set(GooeyButton.builder()
-          .display(Utils.parseItemId(i.getItem()))
+          .display(i.getItemStack())
           .title(AdventureTranslator.toNative(i.getDisplayname()))
           .lore(Component.class, AdventureTranslator.toNativeL(i.getLore()))
           .onClick(action)
@@ -189,8 +194,9 @@ public class UIUtils {
     });
     if (button.get() != null) return button.get();
     return GooeyButton.builder()
-      .display(Utils.parseItemId("minecraft:command_block"))
+      .display(CobbleUtils.language.getItemCommand().getItemStack())
       .title(command)
+      .lore(Component.class, AdventureTranslator.toNativeL(CobbleUtils.language.getItemCommand().getLore()))
       .onClick(action)
       .build();
   }
@@ -316,10 +322,57 @@ public class UIUtils {
       template.fill(GooeyButton.builder()
         .display(new ItemStack(Items.GRAY_STAINED_GLASS_PANE)
           .setHoverName(AdventureTranslator.toNative(""))).build());
-
       return GooeyPage.builder()
         .template(template)
-        .title(AdventureTranslator.toNative(titlemenu))
+        .title(AdventureTranslator.toNative(CobbleUtils.language.getTitleparty()))
+        .build();
+    }).get();
+  }
+
+  /**
+   * Create a button with the item data
+   *
+   * @param player        The player to get the data
+   * @param actionpokemon The action to do when the button is clicked
+   *
+   * @return The button with the item data
+   *
+   * @throws ExecutionException   If the computation threw an exception
+   * @throws InterruptedException If the current thread was interrupted
+   */
+  public static GooeyPage createPageParty(ServerPlayer player, Consumer<PokemonButtonAction> actionpokemon,
+                                          Consumer<ButtonAction> actionclose) throws ExecutionException,
+    InterruptedException {
+    ChestTemplate template = ChestTemplate.builder(4).build();
+    PlayerPartyStore partyStore = null;
+    partyStore = Cobblemon.INSTANCE.getStorage().getParty(player);
+    List<CompletableFuture<Void>> slotFutures = new ArrayList<>();
+
+    for (int i = 0; i < partyStore.size(); i++) {
+      int slotIndex = i;
+      PlayerPartyStore finalPartyStore = partyStore;
+      CompletableFuture<Void> slotFuture = CompletableFuture.runAsync(() -> {
+        GooeyButton slot;
+        Pokemon pokemon = finalPartyStore.get(slotIndex);
+        slot = UIUtils.createButtonPokemon(pokemon, actionpokemon);
+        int row = slotIndex / 3 + 1;
+        int col = slotIndex % 3 + 3;
+        template.set(row, col, slot);
+      });
+      slotFutures.add(slotFuture);
+    }
+
+    CompletableFuture<Void> allSlotsFuture = CompletableFuture.allOf(
+      slotFutures.toArray(new CompletableFuture[0]));
+
+    return allSlotsFuture.thenApplyAsync(v -> {
+      template.fill(GooeyButton.builder()
+        .display(new ItemStack(Items.GRAY_STAINED_GLASS_PANE)
+          .setHoverName(AdventureTranslator.toNative(""))).build());
+      template.set(0, 4, getPcButton(player, actionpokemon, actionclose));
+      return GooeyPage.builder()
+        .template(template)
+        .title(AdventureTranslator.toNative(CobbleUtils.language.getTitleparty()))
         .build();
     }).get();
   }
@@ -353,6 +406,31 @@ public class UIUtils {
       .display(itemModel.getItemStack())
       .title(AdventureTranslator.toNative(itemModel.getDisplayname()))
       .onClick(action)
+      .build();
+  }
+
+  public static GooeyButton getPcButton(Player player, Consumer<PokemonButtonAction> actionpokemon,
+                                        Consumer<ButtonAction> closeaction) {
+    ItemModel itemModel = CobbleUtils.language.getItemPc();
+    PCStore pcStore = null;
+    try {
+      pcStore = Cobblemon.INSTANCE.getStorage().getPC(player.getUUID());
+    } catch (NoPokemonStoreException e) {
+      e.printStackTrace();
+
+    }
+    PCStore finalPcStore = pcStore;
+    return GooeyButton.builder()
+      .display(itemModel.getItemStack())
+      .title(AdventureTranslator.toNative(itemModel.getDisplayname()))
+      .onClick(action -> {
+        try {
+          UIManager.openUIForcefully(action.getPlayer(), createPagePc(finalPcStore, actionpokemon,
+            closeaction, CobbleUtils.language.getTitlepc()));
+        } catch (ExecutionException | InterruptedException e) {
+          e.printStackTrace();
+        }
+      })
       .build();
   }
 }
