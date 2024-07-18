@@ -93,7 +93,7 @@ public class CobbleUtils {
     LOGGER.info("§e+-------------------------------+");
     LOGGER.info("§e| §6CobbleUtils");
     LOGGER.info("§e+-------------------------------+");
-    LOGGER.info("§e| §6Version: §f" + "1.0.6");
+    LOGGER.info("§e| §6Version: §f" + "1.0.7");
     LOGGER.info("§e| §6Author: §fZonary123");
     LOGGER.info("§e| §6Website: §fhttps://github.com/Zonary123/CobbleUtils");
     LOGGER.info("§e| §6Discord: §fhttps://discord.com/invite/fKNc7FnXpa");
@@ -162,7 +162,6 @@ public class CobbleUtils {
     // ? Add the event for fishing a pokemon
 
     ScaleEvent.register();
-
 
     PlayerEvent.DROP_ITEM.register(DropItemEvent::register);
   }

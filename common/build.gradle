@@ -25,7 +25,6 @@ dependencies {
             "net.kyori:adventure-text-serializer-json:${rootProject.kyori_version}",
             "net.kyori:adventure-text-minimessage:${rootProject.kyori_version}",
             "net.kyori:adventure-text-logger-slf4j:${rootProject.kyori_version}",
-            "net.kyori:event-api:5.0.0-SNAPSHOT",
     ))
 }
 

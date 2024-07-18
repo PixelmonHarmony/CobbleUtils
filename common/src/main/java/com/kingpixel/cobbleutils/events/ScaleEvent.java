@@ -22,7 +22,8 @@ public class ScaleEvent {
       CobblemonEvents.STARTER_CHOSEN.subscribe(Priority.HIGH, (evt) -> scalePokemon(evt.getPokemon()));
       EntityEvent.ADD.register((entity, level) -> {
         if (entity instanceof PokemonEntity) {
-          if (((Mob) entity).isNoAi()) return EventResult.pass();
+          if (((Mob) entity).isNoAi())
+            return EventResult.pass();
           PokemonEntity pokemonEntity = (PokemonEntity) entity;
           if (pokemonEntity.getPokemon().isPlayerOwned()) {
             solveScale(pokemonEntity.getPokemon());
@@ -36,11 +37,13 @@ public class ScaleEvent {
   }
 
   public static void solveScale(Pokemon pokemon) {
-    if (pokemon.getPersistentData().getString("size").equalsIgnoreCase("custom")) return;
+    if (pokemon.getPersistentData().getString("size").equalsIgnoreCase("custom"))
+      return;
     ScalePokemonData scalePokemonData = ScalePokemonData.getScalePokemonData(pokemon);
     if (scalePokemonData.existSize(pokemon)) {
       SizeChanceWithoutItem size = scalePokemonData.getSize(pokemon);
-      if (pokemon.getScaleModifier() == size.getSize()) return;
+      if (pokemon.getScaleModifier() == size.getSize())
+        return;
       pokemon.getPersistentData().putString("size", size.getId());
       pokemon.setScaleModifier(size.getSize());
     } else {
@@ -61,8 +64,10 @@ public class ScaleEvent {
    * @return Unit
    */
   private static Unit scalePokemon(Pokemon pokemon) {
-    if (CobbleUtils.config.getPokemonsizes().isEmpty()) return Unit.INSTANCE;
-    if (!CobbleUtils.config.isRandomsize()) return Unit.INSTANCE;
+    if (CobbleUtils.config.getPokemonsizes().isEmpty())
+      return Unit.INSTANCE;
+    if (!CobbleUtils.config.isRandomsize())
+      return Unit.INSTANCE;
     ScalePokemonData scalePokemonData = ScalePokemonData.getScalePokemonData(pokemon);
     SizeChanceWithoutItem size = scalePokemonData.getRandomPokemonSize();
     pokemon.getPersistentData().putString("size", size.getId());

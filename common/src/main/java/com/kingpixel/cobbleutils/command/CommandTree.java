@@ -1,6 +1,7 @@
 package com.kingpixel.cobbleutils.command;
 
 import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.command.admin.PokeRename;
 import com.kingpixel.cobbleutils.command.admin.PokemonSize;
 import com.kingpixel.cobbleutils.command.admin.Reload;
 import com.kingpixel.cobbleutils.command.admin.ShinyToken;
@@ -52,6 +53,9 @@ public class CommandTree {
 
       // /cobbleutils shinytoken <player> <amount>
       ShinyToken.register(dispatcher, base);
+
+      // /cobbleutils pokerename <slot> <name>
+      PokeRename.register(dispatcher, base);
     }
 
     // Rewards

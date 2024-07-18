@@ -58,9 +58,9 @@ public class Config {
     lang = "en";
     fill = "minecraft:gray_stained_glass_pane";
     ecocommand = "eco deposit %amount% dollars %player%";
-    commandparty = List.of("party");
-    commandrewards = List.of("rewards");
-    commmandplugin = List.of("cobbleutils");
+    commandparty = List.of("party", "cuparty");
+    commandrewards = List.of("rewards", "curewards");
+    commmandplugin = List.of("cobbleutils", "pokeutils");
     shulkers = true;
     randomsize = true;
     fossil = true;
