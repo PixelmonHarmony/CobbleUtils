@@ -112,15 +112,14 @@ public class CobbleUtils {
   }
 
   private static void events() {
-    files();
     Utils.removeFiles(PATH_PARTY_DATA);
+
+    LifecycleEvent.SERVER_STARTED.register(server -> load());
 
     CommandRegistrationEvent.EVENT.register((dispatcher, registry, selection) -> {
       CommandTree.register(dispatcher, registry);
       CommandsParty.register(dispatcher, registry);
     });
-
-    LifecycleEvent.SERVER_STARTED.register(server -> load());
 
     LifecycleEvent.SERVER_STOPPING.register(server -> {
       scheduledTasks.forEach(task -> task.cancel(true));

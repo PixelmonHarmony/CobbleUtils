@@ -394,6 +394,24 @@ public class UIUtils {
   }
 
   /**
+   * Get the linked page button
+   *
+   * @param itemModel The item model to get the button
+   * @param linkType  The type of link
+   * @param action    The action to do when the button is clicked
+   *
+   * @return The linked page button
+   */
+  public static LinkedPageButton getLinkedPageButton(ItemModel itemModel, LinkType linkType, Consumer<ButtonAction> action) {
+    return LinkedPageButton.builder()
+      .display(itemModel.getItemStack())
+      .title(AdventureTranslator.toNative(itemModel.getDisplayname()))
+      .linkType(linkType)
+      .onClick(action)
+      .build();
+  }
+
+  /**
    * Get the close button
    *
    * @param action The action to do when the button is clicked
@@ -404,11 +422,20 @@ public class UIUtils {
     ItemModel itemModel = CobbleUtils.language.getItemClose();
     return GooeyButton.builder()
       .display(itemModel.getItemStack())
-      .title(AdventureTranslator.toNative(itemModel.getDisplayname()))
+      .title(AdventureTranslator.toNativeWithOutPrefix(itemModel.getDisplayname()))
       .onClick(action)
       .build();
   }
 
+  /**
+   * Get the pc button
+   *
+   * @param player        The player to get the data
+   * @param actionpokemon The action to do when the button is clicked
+   * @param closeaction   The action to do when the button is clicked
+   *
+   * @return The pc button
+   */
   public static GooeyButton getPcButton(Player player, Consumer<PokemonButtonAction> actionpokemon,
                                         Consumer<ButtonAction> closeaction) {
     ItemModel itemModel = CobbleUtils.language.getItemPc();
@@ -433,6 +460,111 @@ public class UIUtils {
       })
       .build();
   }
+
+  /**
+   * Get the confirm button
+   *
+   * @param action The action to do when the button is clicked
+   *
+   * @return The confirm button
+   */
+  public static GooeyButton getConfirmButton(Consumer<ButtonAction> action) {
+    ItemModel itemModel = CobbleUtils.language.getItemConfirm();
+    return GooeyButton.builder()
+      .display(itemModel.getItemStack())
+      .title(AdventureTranslator.toNative(itemModel.getDisplayname()))
+      .lore(Component.class, AdventureTranslator.toNativeLWithOutPrefix(itemModel.getLore()))
+      .onClick(action)
+      .build();
+  }
+
+  /**
+   * Get the back button
+   *
+   * @param pokemon       The pokemon to get the data
+   * @param actionPokemon The action to do when the button is clicked
+   *
+   * @return The confirm button
+   */
+  public static GooeyButton getConfirmButton(Pokemon pokemon, Consumer<PokemonButtonAction> actionPokemon) {
+    ItemModel itemModel = CobbleUtils.language.getItemConfirm();
+    return GooeyButton.builder()
+      .display(itemModel.getItemStack())
+      .title(AdventureTranslator.toNative(itemModel.getDisplayname()))
+      .lore(Component.class, AdventureTranslator.toNativeLWithOutPrefix(itemModel.getLore()))
+      .onClick(action -> actionPokemon.accept(new PokemonButtonAction(action, pokemon)))
+      .build();
+  }
+
+  /**
+   * Get the cancel button
+   *
+   * @param action The action to do when the button is clicked
+   *
+   * @return The cancel button
+   */
+  public static GooeyButton getCancelButton(Consumer<ButtonAction> action) {
+    ItemModel itemModel = CobbleUtils.language.getItemCancel();
+    return GooeyButton.builder()
+      .display(itemModel.getItemStack())
+      .title(AdventureTranslator.toNativeWithOutPrefix(itemModel.getDisplayname()))
+      .onClick(action)
+      .build();
+  }
+
+  /**
+   * Get the back button
+   *
+   * @param pokemon       The pokemon to get the data
+   * @param actionPokemon The action to do when the button is clicked
+   *
+   * @return The confirm button
+   */
+  public static GooeyButton getCancelButton(Pokemon pokemon, Consumer<PokemonButtonAction> actionPokemon) {
+    ItemModel itemModel = CobbleUtils.language.getItemCancel();
+    return GooeyButton.builder()
+      .display(itemModel.getItemStack())
+      .title(AdventureTranslator.toNativeWithOutPrefix(itemModel.getDisplayname()))
+      .lore(Component.class, AdventureTranslator.toNativeLWithOutPrefix(itemModel.getLore()))
+      .onClick(action -> actionPokemon.accept(new PokemonButtonAction(action, pokemon)))
+      .build();
+  }
+
+  /**
+   * Get the previous button
+   *
+   * @param action The action to do when the button is clicked
+   *
+   * @return The previous button
+   */
+  public static LinkedPageButton getPreviousButton(Consumer<ButtonAction> action) {
+    ItemModel itemModel = CobbleUtils.language.getItemPrevious();
+    return LinkedPageButton.builder()
+      .display(itemModel.getItemStack())
+      .title(AdventureTranslator.toNativeWithOutPrefix(itemModel.getDisplayname()))
+      .linkType(LinkType.Previous)
+      .onClick(action)
+      .build();
+  }
+
+  /**
+   * Get the next button
+   *
+   * @param action The action to do when the button is clicked
+   *
+   * @return The next button
+   */
+  public static LinkedPageButton getNextButton(Consumer<ButtonAction> action) {
+    ItemModel itemModel = CobbleUtils.language.getItemNext();
+    return LinkedPageButton.builder()
+      .display(itemModel.getItemStack())
+      .title(AdventureTranslator.toNativeWithOutPrefix(itemModel.getDisplayname()))
+      .linkType(LinkType.Next)
+      .onClick(action)
+      .build();
+  }
+
+
 }
 
 

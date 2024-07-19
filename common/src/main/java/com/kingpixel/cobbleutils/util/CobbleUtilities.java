@@ -135,6 +135,7 @@ public class CobbleUtilities {
     return executeCommand(comando);
   }
 
+
   /**
    * Execute a command
    *
@@ -150,7 +151,7 @@ public class CobbleUtilities {
       disparador.execute(parse);
       return true;
     } catch (CommandSyntaxException e) {
-      System.err.println("Error al ejecutar el comando: " + command);
+      System.err.println("Error to execute command: " + command);
       e.printStackTrace();
       return false;
     }

@@ -39,14 +39,14 @@ public class RewardsItemStack implements Command<CommandSourceStack> {
                     .then(
                       Commands.argument("item", ItemArgument.item(registry))
                         .executes(context -> {
+                          if (!context.getSource().isPlayer()) {
+                            CobbleUtils.LOGGER.info("Only players can save items!");
+                            return 0;
+                          }
                           Player player = EntityArgument.getPlayer(context, "player");
                           ItemStack itemStack = ItemArgument.getItem(context, "item").createItemStack(1, false);
                           if (saveItem(context, player, itemStack, 1)) {
-                            if (context.getSource().isPlayer()) {
-                              context.getSource().getPlayer().sendSystemMessage(Component.literal("Command saved!"));
-                            } else {
-                              CobbleUtils.LOGGER.info("Command saved!");
-                            }
+                            context.getSource().getPlayer().sendSystemMessage(Component.literal("Item saved!"));
                           }
                           return 1;
                         })
@@ -58,9 +58,9 @@ public class RewardsItemStack implements Command<CommandSourceStack> {
                               ItemStack itemStack = ItemArgument.getItem(context, "item").createItemStack(amount, false);
                               if (saveItem(context, player, itemStack, amount)) {
                                 if (context.getSource().isPlayer()) {
-                                  context.getSource().getPlayer().sendSystemMessage(Component.literal("Command saved!"));
+                                  context.getSource().getPlayer().sendSystemMessage(Component.literal("Item saved!"));
                                 } else {
-                                  CobbleUtils.LOGGER.info("Command saved!");
+                                  CobbleUtils.LOGGER.info("Item saved!");
                                 }
                               }
                               return 1;

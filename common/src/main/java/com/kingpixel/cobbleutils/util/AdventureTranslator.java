@@ -60,7 +60,23 @@ public class AdventureTranslator {
     return toNative(loreString);
   }
 
-  public static List<Component> toNative(List<net.kyori.adventure.text.Component> components) {
+  public static List<Component> toNativeLWithOutPrefix(List<String> lore) {
+    List<net.kyori.adventure.text.Component> loreString = new ArrayList<>();
+    for (String loreLine : lore) {
+      loreString.add(miniMessage.deserialize(replaceNative(loreLine)));
+    }
+    return toNativeLWithOut(loreString);
+  }
+
+  private static List<Component> toNativeLWithOut(List<net.kyori.adventure.text.Component> components) {
+    List<Component> nativeComponents = new java.util.ArrayList<>();
+    for (net.kyori.adventure.text.Component component : components) {
+      nativeComponents.add(toNative(component));
+    }
+    return nativeComponents;
+  }
+
+  private static List<Component> toNative(List<net.kyori.adventure.text.Component> components) {
     List<Component> nativeComponents = new java.util.ArrayList<>();
     for (net.kyori.adventure.text.Component component : components) {
       nativeComponents.add(toNative(component));

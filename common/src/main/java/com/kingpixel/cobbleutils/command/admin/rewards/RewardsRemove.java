@@ -22,6 +22,7 @@ public class RewardsRemove implements Command<CommandSourceStack> {
       base
         .then(
           Commands.literal("remove")
+            .requires(source -> source.hasPermission(2))
             .executes(context -> {
               if (!context.getSource().isPlayer()) {
                 CobbleUtils.LOGGER.info("Only players can claim rewards!");
@@ -31,6 +32,7 @@ public class RewardsRemove implements Command<CommandSourceStack> {
               RewardsUtils.removeRewards(player);
               return 1;
             })
+            .requires(source -> source.hasPermission(2))
             .then(Commands.argument("player", EntityArgument.player())
               .executes(context -> {
                 Player player = EntityArgument.getPlayer(context, "player");

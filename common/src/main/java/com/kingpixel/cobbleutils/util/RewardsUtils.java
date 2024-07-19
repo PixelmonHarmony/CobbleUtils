@@ -62,6 +62,7 @@ public class RewardsUtils {
         return newRewardsData;
       }
     );
+
     for (ItemStack itemStack : itemStacks) {
       saveItemToRewardsData(player, rewardsData, itemStack);
     }
@@ -77,7 +78,13 @@ public class RewardsUtils {
    * @param itemStack   ItemStack to save
    */
   private static void saveItemToRewardsData(Player player, RewardsData rewardsData, ItemStack itemStack) {
-    if (player.getInventory().add(itemStack)) return;
+    boolean added = player.getInventory().add(itemStack);
+    if (added) return;
+
+    if (!CobbleUtils.config.isRewards() || CobbleUtils.config.isDirectreward()) {
+      CobbleUtils.server.execute(() -> player.drop(itemStack, true));
+      return;
+    }
 
     int remainingCount = itemStack.getCount();
     int maxStackSize = itemStack.getMaxStackSize();
@@ -179,6 +186,7 @@ public class RewardsUtils {
       }
     );
     rewardsData.getCommands().add(command.replace("%player%", player.getGameProfile().getName()));
+    giveCommandRewards(rewardsData.getCommands());
     rewardsData.writeInfo();
     return true;
   }
@@ -200,7 +208,21 @@ public class RewardsUtils {
     );
     commands.replaceAll(command -> command.replace("%player%", player.getGameProfile().getName()));
     rewardsData.getCommands().addAll(commands);
+    giveCommandRewards(rewardsData.getCommands());
     rewardsData.writeInfo();
+  }
+
+  private static void giveCommandRewards(List<String> commands) {
+    if (CobbleUtils.config.isDirectreward() || !CobbleUtils.config.isRewards()) {
+      commands.forEach(c -> {
+        try {
+          CobbleUtilities.executeCommand(c);
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      });
+      commands.clear();
+    }
   }
 
   /**
@@ -209,7 +231,6 @@ public class RewardsUtils {
    * @param player Player to claim rewards
    */
   public static void claimRewards(Player player) {
-    if (!CobbleUtils.config.isRewards()) return;
     RewardsData rewardsData = CobbleUtils.rewardsManager.getRewardsData().get(player.getUUID());
     if (rewardsData == null) {
       rewardsData = CobbleUtils.rewardsManager.getRewardsData().computeIfAbsent(
