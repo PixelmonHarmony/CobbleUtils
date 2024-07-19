@@ -112,6 +112,7 @@ public class CobbleUtils {
   }
 
   private static void events() {
+    files();
     Utils.removeFiles(PATH_PARTY_DATA);
 
     LifecycleEvent.SERVER_STARTED.register(server -> load());

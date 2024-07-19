@@ -156,3 +156,50 @@ public class AdventureTranslator {
     return displayname;
   }
 }
+
+// ------------------------------------------------------------------------------------------------------------ //
+// Solution for servers without Impactor temporal fix
+/*
+import com.kingpixel.cobbleutils.CobbleUtils;
+import net.minecraft.network.chat.Component;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class AdventureTranslator {
+
+  public static Component toNativeWithOutPrefix(String displayname) {
+    return Component.literal(replaceNative(displayname));
+  }
+
+  public static Component toNative(String displayname) {
+    return Component.literal(replaceNative(displayname
+      .replace("%prefix%", CobbleUtils.config.getPrefix())
+      .replace("%partyprefix%", CobbleUtils.partyLang.getPrefix())));
+  }
+
+  public static List<Component> toNativeL(List<String> lore) {
+    List<Component> loreString = new ArrayList<>();
+    for (String loreLine : lore) {
+      loreString.add(Component.literal(replaceNative(loreLine)));
+    }
+    return loreString;
+  }
+
+  public static List<Component> toNativeLWithOutPrefix(List<String> lore) {
+    List<Component> loreString = new ArrayList<>();
+    for (String loreLine : lore) {
+      loreString.add(Component.literal(replaceNative(loreLine)));
+    }
+    return loreString;
+  }
+
+
+  private static String replaceNative(String displayname) {
+    if (displayname == null) {
+      return null;
+    }
+    displayname = displayname.replace("&", "§");
+    return displayname;
+  }
+}*/
