@@ -53,6 +53,14 @@ public class ItemModel {
     CustomModelData = customModelData;
   }
 
+  public ItemModel(ItemModel itemMoney) {
+    this.slot = itemMoney.getSlot();
+    this.item = itemMoney.getItem();
+    this.displayname = itemMoney.getDisplayname();
+    this.lore = itemMoney.getLore();
+    CustomModelData = itemMoney.getCustomModelData();
+  }
+
   /**
    * Get the itemstack of the item
    *

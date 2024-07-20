@@ -4,10 +4,8 @@ import com.kingpixel.cobbleutils.Model.PlayerInfo;
 import com.kingpixel.cobbleutils.Model.RewardsData;
 import com.kingpixel.cobbleutils.command.CommandTree;
 import com.kingpixel.cobbleutils.config.*;
-import com.kingpixel.cobbleutils.events.BlockRightClickEvents;
-import com.kingpixel.cobbleutils.events.DropItemEvent;
-import com.kingpixel.cobbleutils.events.ItemRightClickEvents;
-import com.kingpixel.cobbleutils.events.ScaleEvent;
+import com.kingpixel.cobbleutils.events.*;
+import com.kingpixel.cobbleutils.events.features.PokemonBoss;
 import com.kingpixel.cobbleutils.managers.PartyManager;
 import com.kingpixel.cobbleutils.managers.RewardsManager;
 import com.kingpixel.cobbleutils.party.command.CommandsParty;
@@ -93,7 +91,7 @@ public class CobbleUtils {
     LOGGER.info("§e+-------------------------------+");
     LOGGER.info("§e| §6CobbleUtils");
     LOGGER.info("§e+-------------------------------+");
-    LOGGER.info("§e| §6Version: §e" + "1.0.7");
+    LOGGER.info("§e| §6Version: §e" + "1.0.8");
     LOGGER.info("§e| §6Author: §eZonary123");
     LOGGER.info("§e| §6Website: §9https://github.com/Zonary123/CobbleUtils");
     LOGGER.info("§e| §6Discord: §9https://discord.com/invite/fKNc7FnXpa");
@@ -164,6 +162,10 @@ public class CobbleUtils {
     // ? Add the event for fishing a pokemon
 
     ScaleEvent.register();
+
+    PokerusEvents.register();
+
+    PokemonBoss.register();
 
     PlayerEvent.DROP_ITEM.register(DropItemEvent::register);
   }

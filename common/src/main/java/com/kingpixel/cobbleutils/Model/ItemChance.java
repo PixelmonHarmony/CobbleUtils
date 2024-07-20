@@ -6,6 +6,7 @@ import com.cobblemon.mod.common.api.storage.NoPokemonStoreException;
 import com.cobblemon.mod.common.item.PokemonItem;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.Model.options.ImpactorItem;
 import com.kingpixel.cobbleutils.util.*;
 import lombok.Getter;
 import lombok.ToString;
@@ -23,8 +24,8 @@ import java.util.Map;
 @Getter
 @ToString
 public class ItemChance {
-  private String item;
-  private int chance;
+  private final String item;
+  private final int chance;
 
   public ItemChance() {
     this.item = "minecraft:dirt";
@@ -59,41 +60,60 @@ public class ItemChance {
   /**
    * Handles giving the reward to the player based on the item type.
    *
-   * @param player    The player to give the reward to.
-   * @param itemModel The ItemChance model specifying the reward.
+   * @param player     The player to give the reward to.
+   * @param itemChance The ItemChance model specifying the reward.
    *
    * @throws NoPokemonStoreException If there's an issue with storing Pokémon.
    */
-  public static boolean giveReward(Player player, ItemChance itemModel) throws NoPokemonStoreException {
-    String item = itemModel.getItem();
-    if (item.startsWith("pokemon:")) {
-      Pokemon pokemon = getRewardPokemon(item);
-      return RewardsUtils.saveRewardPokemon(player, pokemon);
-    } else if (item.startsWith("command:")) {
-      String command = item.replace("command:", "");
-      return RewardsUtils.saveRewardCommand(player, command);
-    } else {
-      return RewardsUtils.saveRewardItemStack(player, Utils.parseItemId(item));
-    }
+  public static boolean giveReward(Player player, ItemChance itemChance) throws NoPokemonStoreException {
+    return giveReward(player, itemChance, 1);
   }
 
   /**
    * Handles giving the reward to the player based on the item type and amount.
    *
-   * @param player    The player to give the reward to.
-   * @param itemModel The ItemChance model specifying the reward.
-   * @param amount    The amount of the item to give.
+   * @param player     The player to give the reward to.
+   * @param itemChance The ItemChance model specifying the reward.
+   * @param amount     The amount of the item to give.
    *
    * @throws NoPokemonStoreException If there's an issue with storing Pokémon.
    */
-  public static boolean giveReward(Player player, ItemChance itemModel, int amount) throws NoPokemonStoreException {
-    String item = itemModel.getItem();
+  public static boolean giveReward(Player player, ItemChance itemChance, int amount) throws NoPokemonStoreException {
+    String item = itemChance.getItem();
+    CobbleUtils.LOGGER.info("ItemChance: " + item);
     if (item.startsWith("pokemon:")) {
       Pokemon pokemon = getRewardPokemon(item);
       return RewardsUtils.saveRewardPokemon(player, pokemon);
     } else if (item.startsWith("command:")) {
       String command = item.replace("command:", "");
       return RewardsUtils.saveRewardCommand(player, command);
+    } else if (item.startsWith("money:")) {
+      int money;
+      CobbleUtils.LOGGER.info("Logintud de money:" + item.split(":").length);
+      if (item.split(":").length < 3) {
+        money = Integer.parseInt(item.replace("money:", ""));
+        player.sendSystemMessage(AdventureTranslator.toNativeWithOutPrefix(
+          CobbleUtils.language.getMessageReceiveMoney()
+            .replace("%amount%", String.valueOf(money))
+        ));
+        return RewardsUtils.saveRewardCommand(player, CobbleUtils.config.getEcocommand()
+          .replace("%player%", player.getName().getString())
+          .replace("%amount%", String.valueOf(amount)));
+      } else {
+        money = Integer.parseInt(item.split(":")[2]);
+        String currency = item.split(":")[1];
+        String command = CobbleUtils.config.getImpactorEconomy().getEcocommand();
+        ImpactorItem impactorItem = CobbleUtils.config.getImpactorEconomy().getItemsCommands().get(currency);
+        player.sendSystemMessage(AdventureTranslator.toNativeWithOutPrefix(
+          impactorItem.getMessage()
+            .replace("%amount%", String.valueOf(money))
+        ));
+
+        return RewardsUtils.saveRewardCommand(player, command
+          .replace("%player%", "player")
+          .replace("%amount%", String.valueOf(money))
+          .replace("%currency%", currency));
+      }
     } else {
       return RewardsUtils.saveRewardItemStack(player, Utils.parseItemId(item, amount));
     }
@@ -148,6 +168,15 @@ public class ItemChance {
         }
       }
       return Utils.parseItemId("minecraft:command_block", amount);
+    } else if (item.startsWith("money:")) {
+      if (item.split(":").length < 3) {
+        ItemModel itemModel = new ItemModel(CobbleUtils.language.getItemMoney());
+        return itemModel.getItemStack();
+      } else {
+        String currency = item.split(":")[1];
+        ImpactorItem impactorItem = CobbleUtils.config.getImpactorEconomy().getItemsCommands().get(currency);
+        return impactorItem.getItem().getItemStack();
+      }
     } else {
       return Utils.parseItemId(item, amount);
     }
@@ -172,6 +201,23 @@ public class ItemChance {
         }
       }
       return command; // Return the original command if no match found
+    } else if (item.startsWith("money:")) {
+      int money;
+      String title;
+      if (item.split(":").length < 3) {
+        money = Integer.parseInt(item.replace("money:", ""));
+        ItemModel itemModel = new ItemModel(CobbleUtils.language.getItemMoney());
+        title = itemModel.getDisplayname()
+          .replace("%amount%", String.valueOf(money));
+      } else {
+        money = Integer.parseInt(item.split(":")[2]);
+        String currency = item.split(":")[1];
+        ImpactorItem impactorItem = CobbleUtils.config.getImpactorEconomy().getItemsCommands().get(currency);
+        return impactorItem.getItem().getDisplayname()
+          .replace("%amount%", String.valueOf(money));
+
+      }
+      return title;
     } else {
       return ItemUtils.getNameItem(item);
     }

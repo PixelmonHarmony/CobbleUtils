@@ -40,6 +40,8 @@ public class Lang {
   private String messageHaveRewards;
   private String messageThisPokemonIsShiny;
   private String messageNoPokemon;
+  private String messageReceiveReward;
+  private String messageReceiveMoney;
   private String coloritem;
   private List<String> lorepokemon;
   private List<String> lorechance;
@@ -56,6 +58,7 @@ public class Lang {
   private Map<String, String> gender;
   private Map<String, String> forms;
   private Map<String, String> types;
+  private ItemModel itemMoney;
   private ItemModel itemPc;
   private ItemModel itemNoPokemon;
   private ItemModel itemPrevious;
@@ -97,6 +100,8 @@ public class Lang {
     messagefossilcomplete = "&aYou have completed the fossil.";
     messageThisPokemonIsShiny = "&aThis Pokemon is shiny!";
     messageNoPokemon = "&cNo Pokemon";
+    messageReceiveReward = "&aYou receive a reward!";
+    messageReceiveMoney = "&aYou receive %amount%$!";
     lorepokemon = List.of(
       "<#83dcde>Level: &f%level%",
       "<#14b2dd>Type: &f%types%",
@@ -110,6 +115,7 @@ public class Lang {
       "<#83a7de>IVs: &e%ivs%&7/&e31",
       " <#ee8339>HP: &f%ivshp% <#e84b48>Atk: &f%ivsatk% <#5d79e1>Def: &f%ivsdef%",
       " <#40b5cd>Sp. Atk: &f%ivsspa% <#f59bc2>Sp. Def: &f%ivsspdef% <#69cd65>Spd: &f%ivsspeed%",
+      "<#d3e38d>Pokerus: %pokerus%",
       "<#de8397>EVs: &e%evs%&7/&e510",
       " <#ee8339>HP: &f%evshp% <#e84b48>Atk: &f%evsatk% <#5d79e1>Def: &f%evsdef%",
       " <#40b5cd>Sp. Atk: &f%evsspa% <#f59bc2>Sp. Def: &f%evsspdef% <#69cd65>Spd: &f%evsspeed%",
@@ -156,6 +162,7 @@ public class Lang {
     types.put("ground", "<gradient:#B8860B:#D2B48C>Ground&7");
     types.put("psychic", "<gradient:#D74DE2:#DE77E7>Psychic&7");
     types.put("fairy", "<gradient:#9C38A5:#C06EC7>Fairy&7");
+    itemMoney = new ItemModel("cobblemon:relic_coin", "%amount% &ePokeDollars", List.of(""), 0);
     itemPc = new ItemModel("cobblemon:pc", "&bPC", List.of(""), 0);
     itemNoPokemon = new ItemModel("cobblemon:poke_ball", "<gradient:#E05858:#F09E9E>No Pokemon", List.of(""), 0);
     itemPrevious = new ItemModel("minecraft:arrow", "<gradient:#E0A457:#E9C79B>Previous", List.of(""), 0);
@@ -190,7 +197,7 @@ public class Lang {
         no = lang.getNo();
         titlepc = lang.getTitlepc();
         messageReload = lang.getMessageReload();
-
+        itemMoney = lang.getItemMoney();
         symbolshiny = lang.getSymbolshiny();
         pokemonnameformat = lang.getPokemonnameformat();
         lorepokemon = lang.getLorepokemon();
@@ -199,12 +206,17 @@ public class Lang {
         messageNotHaveRewards = lang.getMessageNotHaveRewards();
         nocooldown = lang.getNocooldown();
 
+
         // Messages
         messagerandomitem = lang.getMessagerandomitem();
         messagearebattle = lang.getMessagearebattle();
         messagefossiltime = lang.getMessagefossiltime();
         messagefossilcomplete = lang.getMessagefossilcomplete();
         messageHaveRewards = lang.getMessageHaveRewards();
+        messageNoPokemon = lang.getMessageNoPokemon();
+        messageReceiveReward = lang.getMessageReceiveReward();
+        messageReceiveMoney = lang.getMessageReceiveMoney();
+
         coloritem = lang.getColoritem();
         // Time
         seconds = lang.getSeconds();
@@ -216,7 +228,7 @@ public class Lang {
         itemPc = lang.getItemPc();
         lorechance = lang.getLorechance();
         types = lang.getTypes();
-        
+
 
         itemCommand = lang.getItemCommand();
         itemClose = lang.getItemClose();

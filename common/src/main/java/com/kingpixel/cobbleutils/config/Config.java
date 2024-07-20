@@ -4,6 +4,9 @@ import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.google.gson.Gson;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.*;
+import com.kingpixel.cobbleutils.Model.options.Boss;
+import com.kingpixel.cobbleutils.Model.options.ImpactorEconomy;
+import com.kingpixel.cobbleutils.Model.options.Pokerus;
 import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Getter;
 
@@ -40,6 +43,9 @@ public class Config {
   private int alertreward;
   private float minpokemonsize;
   private float maxpokemonsize;
+  private Pokerus pokerus;
+  private Boss bosses;
+  private ImpactorEconomy impactorEconomy;
   private List<SizeChance> pokemonsizes;
   private List<ScalePokemonData> specifiedSizes;
   private List<PokemonData> shinytokenBlacklist;
@@ -74,6 +80,9 @@ public class Config {
     minpokemonsize = 0.01f;
     maxpokemonsize = 10f;
     alertreward = 15;
+    pokerus = new Pokerus();
+    bosses = new Boss();
+    impactorEconomy = new ImpactorEconomy();
     pokemonsizes = List.of(
       new SizeChance("Tiny", 0.5f, 5),
       new SizeChance("Small", 0.75f, 15),
@@ -88,8 +97,6 @@ public class Config {
     legends = List.of(new PokemonData("mewtwo", "normal"));
     forms = List.of("Normal", "Hisui", "Galar");
     itemsCommands = new HashMap<>();
-    itemsCommands.put("eco", new ItemModel("cobblemon:relic_coin", "<gradient:#e0d234:#ede69a><bold>Money", List.of(
-      "§aThis give you a random amount of money")));
     itemsCommands.put("give", new ItemModel("minecraft:chest", "<gradient:#e0d234:#ede69a><bold>Item", List.of(
       "§aThis give you a item")));
     rarity = new HashMap<>();
@@ -127,6 +134,7 @@ public class Config {
             sizeChance.setItem(new ItemModel("minecraft:stone", "Stone", List.of()));
           }
         });
+        pokerus = config.getPokerus();
         party = config.isParty();
         rewards = config.isRewards();
         ecocommand = config.getEcocommand();
@@ -135,6 +143,9 @@ public class Config {
         commmandplugin = config.getCommmandplugin();
         alertreward = config.getAlertreward();
         itemsCommands = config.getItemsCommands();
+        bosses = config.getBosses();
+        impactorEconomy = config.getImpactorEconomy();
+
 
         shinytokenBlacklist = config.getShinytokenBlacklist();
         blacklist = config.getBlacklist();

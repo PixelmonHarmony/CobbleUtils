@@ -22,8 +22,7 @@ public class ScaleEvent {
       CobblemonEvents.STARTER_CHOSEN.subscribe(Priority.HIGH, (evt) -> scalePokemon(evt.getPokemon()));
       EntityEvent.ADD.register((entity, level) -> {
         if (entity instanceof PokemonEntity) {
-          if (((Mob) entity).isNoAi())
-            return EventResult.pass();
+          if (((Mob) entity).isNoAi()) return EventResult.pass();
           PokemonEntity pokemonEntity = (PokemonEntity) entity;
           if (pokemonEntity.getPokemon().isPlayerOwned()) {
             solveScale(pokemonEntity.getPokemon());

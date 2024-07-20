@@ -138,10 +138,22 @@ public class PokemonUtils {
         .replace("%ultrabeast%", pokemon.isUltraBeast() ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
         .replace("%types%", getType(pokemon))
         .replace("%rarity%", String.valueOf(getRarity(pokemon)))
-        .replace("%breedable%", isBreedable(pokemon) ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo());
+        .replace("%breedable%", isBreedable(pokemon) ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
+        .replace("%pokerus%", isPokerus(pokemon) ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo());
     }
 
     return message;
+  }
+
+  /**
+   * Check if the pokemon has pokerus
+   *
+   * @param pokemon The pokemon to check
+   *
+   * @return If the pokemon has pokerus
+   */
+  public static boolean isPokerus(Pokemon pokemon) {
+    return pokemon.getPersistentData().getBoolean("pokerus");
   }
 
   /**
