@@ -28,6 +28,7 @@ public class Lang {
   private String yes;
   private String no;
   private String none;
+  private String nocooldown;
   private String symbolshiny;
   private String pokemonnameformat;
   private String messageReload;
@@ -43,10 +44,15 @@ public class Lang {
   private List<String> lorepokemon;
   private List<String> lorechance;
   // Time
-  private String seconds;
-  private String minutes;
-  private String hours;
   private String days;
+  private String day;
+  private String hours;
+  private String hour;
+  private String minutes;
+  private String minute;
+  private String seconds;
+  private String second;
+
   private Map<String, String> gender;
   private Map<String, String> forms;
   private Map<String, String> types;
@@ -79,6 +85,7 @@ public class Lang {
     yes = "&a✔";
     no = "&c✘";
     symbolshiny = " &e⭐";
+    nocooldown = "&cNo cooldown";
     none = "&cNone";
     coloritem = "<gradient:#cc7435:#e3ab84>";
     pokemonnameformat = "&e%pokemon%%shiny% %gender% &f(&b%form%&f) &f(&b%level%&f)";
@@ -117,10 +124,17 @@ public class Lang {
       "&7Chance: &e%chance%&f%"
     );
     // Time
-    seconds = "&6%s% &aseconds";
-    minutes = "&6%m% &aminutes";
-    hours = "&6%h% &ahours";
-    days = "&6%d% &adays";
+
+    days = "&6%s &adays";
+    day = "&6%s &aday";
+    hours = "&6%s &ahours";
+    hour = "&6%s &ahour";
+    minutes = "&6%s &aminutes";
+    minute = "&6%s &aminute";
+    seconds = "&6%s &aseconds";
+    second = "&6%s &asecond";
+
+
     gender = Map.of("M", "&b♂", "F", "&d♀", "N", "&7⚲");
     forms = Map.of("hisui", "&cHisuian");
     types = new HashMap<>();
@@ -143,13 +157,14 @@ public class Lang {
     types.put("psychic", "<gradient:#D74DE2:#DE77E7>Psychic&7");
     types.put("fairy", "<gradient:#9C38A5:#C06EC7>Fairy&7");
     itemPc = new ItemModel("cobblemon:pc", "&bPC", List.of(""), 0);
-    itemNoPokemon = new ItemModel("minecraft:barrier", "<gradient:#E05858:#F09E9E>No Pokemon", List.of(""), 0);
+    itemNoPokemon = new ItemModel("cobblemon:poke_ball", "<gradient:#E05858:#F09E9E>No Pokemon", List.of(""), 0);
     itemPrevious = new ItemModel("minecraft:arrow", "<gradient:#E0A457:#E9C79B>Previous", List.of(""), 0);
     itemNext = new ItemModel("minecraft:arrow", "<gradient:#E0A457:#E9C79B>Next", List.of(""), 0);
     itemClose = new ItemModel("minecraft:barrier", "<gradient:#E05858:#F09E9E>Close", List.of(""), 0);
     itemCommand = new ItemModel("minecraft:command_block", "<gradient:#E0A457:#E9C79B>Command", List.of(""), 0);
-    itemConfirm = new ItemModel("minecraft:emerald", "<gradient:#4B9F4B:#7DC97D>Confirm", List.of(""), 0);
-    itemCancel = new ItemModel("minecraft:redstone", "<gradient:#E05858:#F09E9E>Cancel", List.of(""), 0);
+    itemConfirm = new ItemModel("minecraft:lime_stained_glass_pane", "<gradient:#4B9F4B:#7DC97D>Confirm", List.of(""),
+      0);
+    itemCancel = new ItemModel("minecraft:red_stained_glass_pane", "<gradient:#E05858:#F09E9E>Cancel", List.of(""), 0);
   }
 
   /**
@@ -182,6 +197,7 @@ public class Lang {
         messageThisPokemonIsShiny = lang.getMessageThisPokemonIsShiny();
         none = lang.getNone();
         messageNotHaveRewards = lang.getMessageNotHaveRewards();
+        nocooldown = lang.getNocooldown();
 
         // Messages
         messagerandomitem = lang.getMessagerandomitem();
@@ -200,6 +216,7 @@ public class Lang {
         itemPc = lang.getItemPc();
         lorechance = lang.getLorechance();
         types = lang.getTypes();
+        
 
         itemCommand = lang.getItemCommand();
         itemClose = lang.getItemClose();

@@ -7,6 +7,7 @@ modId = "cobbleutils"
 version = "${version}"
 displayName = "CobbleUtils"
 logoFile = "icon.png"
+authors = ["zonary123"]
 description = '''
 
 '''

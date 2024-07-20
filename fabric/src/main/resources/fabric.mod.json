@@ -4,8 +4,12 @@
   "version": "${version}",
   "name": "CobbleUtils",
   "description": "",
-  "authors": [],
-  "contact": {},
+  "authors": [
+    "zonary123"
+  ],
+  "contact": {
+    "homepage": "https://github.com/zonary123/CobbleUtils"
+  },
   "license": "MIT",
   "icon": "icon.png",
   "environment": "*",

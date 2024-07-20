@@ -93,10 +93,12 @@ public class CobbleUtils {
     LOGGER.info("§e+-------------------------------+");
     LOGGER.info("§e| §6CobbleUtils");
     LOGGER.info("§e+-------------------------------+");
-    LOGGER.info("§e| §6Version: §f" + "1.0.7");
-    LOGGER.info("§e| §6Author: §fZonary123");
-    LOGGER.info("§e| §6Website: §fhttps://github.com/Zonary123/CobbleUtils");
-    LOGGER.info("§e| §6Discord: §fhttps://discord.com/invite/fKNc7FnXpa");
+    LOGGER.info("§e| §6Version: §e" + "1.0.7");
+    LOGGER.info("§e| §6Author: §eZonary123");
+    LOGGER.info("§e| §6Website: §9https://github.com/Zonary123/CobbleUtils");
+    LOGGER.info("§e| §6Discord: §9https://discord.com/invite/fKNc7FnXpa");
+    LOGGER.info("§e| §6Support: §9https://github.com/Zonary123/CobbleUtils/issues");
+    LOGGER.info("§e| &dDonate: §9https://ko-fi.com/zonary123");
     LOGGER.info("§e+-------------------------------+");
     LOGGER.info("§e| §6Pokemons size: §a" + CobbleUtils.config.isRandomsize());
     LOGGER.info("§e| §6Shulkers: §cUnimplemented");
