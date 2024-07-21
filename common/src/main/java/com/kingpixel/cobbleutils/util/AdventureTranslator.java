@@ -69,7 +69,7 @@ public class AdventureTranslator {
   }
 
   private static List<Component> toNativeLWithOut(List<net.kyori.adventure.text.Component> components) {
-    List<Component> nativeComponents = new java.util.ArrayList<>();
+    List<Component> nativeComponents = new ArrayList<>();
     for (net.kyori.adventure.text.Component component : components) {
       nativeComponents.add(toNative(component));
     }
@@ -77,7 +77,7 @@ public class AdventureTranslator {
   }
 
   private static List<Component> toNative(List<net.kyori.adventure.text.Component> components) {
-    List<Component> nativeComponents = new java.util.ArrayList<>();
+    List<Component> nativeComponents = new ArrayList<>();
     for (net.kyori.adventure.text.Component component : components) {
       nativeComponents.add(toNative(component));
     }

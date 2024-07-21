@@ -186,7 +186,9 @@ public class RewardsUtils {
       }
     );
     rewardsData.getCommands().add(command.replace("%player%", player.getGameProfile().getName()));
-    giveCommandRewards(rewardsData.getCommands());
+    if (!CobbleUtils.config.isRewards() || CobbleUtils.config.isDirectreward()) {
+      giveCommandRewards(rewardsData.getCommands());
+    }
     rewardsData.writeInfo();
     return true;
   }
@@ -208,7 +210,9 @@ public class RewardsUtils {
     );
     commands.replaceAll(command -> command.replace("%player%", player.getGameProfile().getName()));
     rewardsData.getCommands().addAll(commands);
-    giveCommandRewards(rewardsData.getCommands());
+    if (!CobbleUtils.config.isRewards() || CobbleUtils.config.isDirectreward()) {
+      giveCommandRewards(rewardsData.getCommands());
+    }
     rewardsData.writeInfo();
   }
 

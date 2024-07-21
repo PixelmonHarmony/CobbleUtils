@@ -15,10 +15,13 @@ import kotlin.Unit;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Mob;
 
+import static com.kingpixel.cobbleutils.Model.CobbleUtilsTags.*;
+
 /**
  * @author Carlos Varas Alonso - 20/07/2024 9:04
  */
 public class PokemonBoss {
+
   public static void register() {
     // ? Pokemon Boss
     EntityEvent.ADD.register((entity, level) -> {
@@ -33,9 +36,9 @@ public class PokemonBoss {
         pokemon.setLevel(Utils.RANDOM.nextInt(bossChance.getMinlevel(), bossChance.getMaxlevel()));
         pokemon.setShiny(CobbleUtils.config.getBosses().isShiny());
         pokemon.setScaleModifier(Utils.RANDOM.nextFloat(bossChance.getMinsize(), bossChance.getMaxsize()));
-        pokemon.getPersistentData().putString("size", "custom");
-        pokemon.getPersistentData().putString("bossrarity", bossChance.getRarity());
-        pokemon.getPersistentData().putBoolean("boss", true);
+        pokemon.getPersistentData().putString(SIZE_TAG, SIZE_CUSTOM_TAG);
+        pokemon.getPersistentData().putString(BOSS_RARITY_TAG, bossChance.getRarity());
+        pokemon.getPersistentData().putBoolean(BOSS_TAG, true);
         pokemon.setNickname(Component.literal(bossChance.getRarity()));
       }
       return EventResult.pass();
@@ -54,10 +57,10 @@ public class PokemonBoss {
         if (battleActor instanceof PokemonBattleActor pokemonBattleActor) {
           Pokemon pokemon = pokemonBattleActor.getPokemon().getOriginalPokemon();
           if (pokemon.isPlayerOwned()) return;
-          if (pokemon.getPersistentData().getBoolean("boss")) {
+          if (pokemon.getPersistentData().getBoolean(BOSS_TAG)) {
             evt.getWinners().forEach(winner -> {
               if (winner instanceof PlayerBattleActor playerBattleActor) {
-                CobbleUtils.config.getBosses().giveRewards(pokemon.getPersistentData().getString("bossrarity"),
+                CobbleUtils.config.getBosses().giveRewards(pokemon.getPersistentData().getString(BOSS_RARITY_TAG),
                   playerBattleActor.getEntity());
               }
             });

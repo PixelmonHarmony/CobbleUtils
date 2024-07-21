@@ -1,26 +1,20 @@
 {
   "schemaVersion": 1,
-  "id": "cobbleutils",
-  "version": "${version}",
-  "name": "CobbleUtils",
-  "description": "",
+  "name": "${mod_name}",
+  "id": "${mod_id}",
+  "version": "${mod_version}",
+  "description": "${mod_description}",
   "authors": [
-    "zonary123"
+    "${author}"
   ],
   "contact": {
-    "homepage": "https://github.com/zonary123/CobbleUtils"
   },
-  "license": "MIT",
-  "icon": "icon.png",
+  "license": "${license}",
   "environment": "*",
-  "entrypoints": {
-    "main": [
-      "com.kingpixel.cobbleutils.fabric.CobbleUtilsFabric"
-    ]
-  },
   "depends": {
-    "fabricloader": ">=0.14.22",
-    "minecraft": ">=1.19.2",
+    "fabricloader": "*",
+    "fabric": "*",
+    "minecraft": "1.20.1",
     "cobblemon": ">=1.5.0"
   }
 }

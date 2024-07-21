@@ -56,6 +56,9 @@ public class CommandTree {
 
       // /cobbleutils pokerus <slot> <player>
       PokerusCommand.register(dispatcher, base);
+
+      // /cobbleutils breedable <slot> <breedable>
+      BreedableCommand.register(dispatcher, base);
     }
 
     // Rewards

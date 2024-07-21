@@ -1,4 +1,4 @@
-package com.kingpixel.cobbleutils.party.ui;
+package com.kingpixel.cobbleutils.ui;
 
 import ca.landonjw.gooeylibs2.api.UIManager;
 import ca.landonjw.gooeylibs2.api.button.Button;
@@ -129,5 +129,5 @@ public class RewardsUI {
       return null;
     }
   }
-  
+
 }

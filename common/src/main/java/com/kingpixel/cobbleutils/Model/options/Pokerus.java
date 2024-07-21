@@ -6,6 +6,8 @@ import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Getter;
 import lombok.ToString;
 
+import static com.kingpixel.cobbleutils.Model.CobbleUtilsTags.POKERUS_TAG;
+
 /**
  * @author Carlos Varas Alonso - 20/07/2024 6:33
  */
@@ -35,28 +37,28 @@ public class Pokerus {
   }
 
   public static void apply(Pokemon pokemon) {
-    pokemon.getPersistentData().putBoolean("pokerus", true);
+    pokemon.getPersistentData().putBoolean(POKERUS_TAG, true);
   }
 
   public static void applywithrarity(Pokemon pokemon) {
-    if (pokemon.getPersistentData().getBoolean("pokerus")) return;
+    if (pokemon.getPersistentData().getBoolean(POKERUS_TAG)) return;
     boolean apply = Utils.RANDOM.nextInt(CobbleUtils.config.getPokerus().getRarity()) == 0;
     if (CobbleUtils.config.isDebug() && apply) {
       CobbleUtils.LOGGER.info("Applying Pokerus to " + pokemon.getDisplayName());
     }
-    pokemon.getPersistentData().putBoolean("pokerus", apply);
+    pokemon.getPersistentData().putBoolean(POKERUS_TAG, apply);
   }
 
   public Pokemon apply(Pokemon pokemon, boolean battle) {
     if (pokemon == null) return null;
     if (!active) return pokemon;
-    if (pokemon.getPersistentData().getBoolean("pokerus")) return pokemon;
+    if (pokemon.getPersistentData().getBoolean(POKERUS_TAG)) return pokemon;
     boolean apply = Utils.RANDOM.nextInt(rarity) == 0;
     if (battle) {
-      pokemon.getPersistentData().putBoolean("pokerus", apply);
+      pokemon.getPersistentData().putBoolean(POKERUS_TAG, apply);
     } else {
       if (canspawnwithpokerus)
-        pokemon.getPersistentData().putBoolean("pokerus", apply);
+        pokemon.getPersistentData().putBoolean(POKERUS_TAG, apply);
     }
     if (CobbleUtils.config.isDebug() && apply) {
       CobbleUtils.LOGGER.info("Applying Pokerus to " + pokemon.getDisplayName());

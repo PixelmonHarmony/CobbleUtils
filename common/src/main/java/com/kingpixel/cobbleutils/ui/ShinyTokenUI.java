@@ -12,6 +12,7 @@ import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.UIUtils;
 import com.kingpixel.cobbleutils.util.Utils;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -23,6 +24,9 @@ import net.minecraft.world.item.Items;
 public class ShinyTokenUI {
   public static GooeyPage openmenu(Player player) {
     try {
+      player.sendSystemMessage(Component.translatable(
+        "cobblemon.type.bug", player
+      ));
       PlayerPartyStore partyStore = Cobblemon.INSTANCE.getStorage().getParty(player.getUUID());
 
       ChestTemplate templateBuilder = ChestTemplate.builder(4).build();
@@ -101,5 +105,9 @@ public class ShinyTokenUI {
       .title(AdventureTranslator.toNative(CobbleUtils.language.getTitlemenushinyoperation())).build();
 
     return page;
+  }
+
+  public static boolean haveShinyToken(Player player) {
+    return player.getInventory().contains(CobbleUtils.config.getShinytoken().getItemStack());
   }
 }

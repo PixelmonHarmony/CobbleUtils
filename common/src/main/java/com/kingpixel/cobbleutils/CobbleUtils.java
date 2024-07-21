@@ -4,8 +4,10 @@ import com.kingpixel.cobbleutils.Model.PlayerInfo;
 import com.kingpixel.cobbleutils.Model.RewardsData;
 import com.kingpixel.cobbleutils.command.CommandTree;
 import com.kingpixel.cobbleutils.config.*;
-import com.kingpixel.cobbleutils.events.*;
-import com.kingpixel.cobbleutils.events.features.PokemonBoss;
+import com.kingpixel.cobbleutils.events.BlockRightClickEvents;
+import com.kingpixel.cobbleutils.events.DropItemEvent;
+import com.kingpixel.cobbleutils.events.ItemRightClickEvents;
+import com.kingpixel.cobbleutils.events.features.FeaturesRegister;
 import com.kingpixel.cobbleutils.managers.PartyManager;
 import com.kingpixel.cobbleutils.managers.RewardsManager;
 import com.kingpixel.cobbleutils.party.command.CommandsParty;
@@ -108,6 +110,7 @@ public class CobbleUtils {
     LOGGER.info("§e| §6Pick Up: §cUnimplemented");
     LOGGER.info("§e| §6Party: §a" + CobbleUtils.config.isParty());
     LOGGER.info("§e| §6Rewards: §a" + CobbleUtils.config.isRewards());
+    LOGGER.info("§e| §6Pokerus: §a" + CobbleUtils.config.getPokerus().isActive());
     LOGGER.info("§e+-------------------------------+");
   }
 
@@ -161,11 +164,7 @@ public class CobbleUtils {
 
     // ? Add the event for fishing a pokemon
 
-    ScaleEvent.register();
-
-    PokerusEvents.register();
-
-    PokemonBoss.register();
+    FeaturesRegister.register();
 
     PlayerEvent.DROP_ITEM.register(DropItemEvent::register);
   }
@@ -177,18 +176,16 @@ public class CobbleUtils {
     }
     scheduledTasks.clear();
 
-    ScheduledFuture<?> alertreward = scheduler.scheduleAtFixedRate(() -> {
-      server.getPlayerList().getPlayers().forEach(player -> {
-        RewardsData rewardsData = rewardsManager.getRewardsData().get(player.getUUID());
-        if (RewardsUtils.hasRewards(player)) {
-          int amount = rewardsData.getCommands().size() + rewardsData.getItems().size() + rewardsData.getPokemons().size();
-          player.sendSystemMessage(AdventureTranslator.toNative(
-            language.getMessageHaveRewards().replace("%amount%", String.valueOf(amount))
-          ));
-        }
+    ScheduledFuture<?> alertreward = scheduler.scheduleAtFixedRate(() -> server.getPlayerList().getPlayers().forEach(player -> {
+      RewardsData rewardsData = rewardsManager.getRewardsData().get(player.getUUID());
+      if (RewardsUtils.hasRewards(player)) {
+        int amount = rewardsData.getCommands().size() + rewardsData.getItems().size() + rewardsData.getPokemons().size();
+        player.sendSystemMessage(AdventureTranslator.toNative(
+          language.getMessageHaveRewards().replace("%amount%", String.valueOf(amount))
+        ));
+      }
 
-      });
-    }, 0, CobbleUtils.config.getAlertreward(), TimeUnit.MINUTES);
+    }), 0, CobbleUtils.config.getAlertreward(), TimeUnit.MINUTES);
 
     scheduledTasks.add(alertreward);
   }

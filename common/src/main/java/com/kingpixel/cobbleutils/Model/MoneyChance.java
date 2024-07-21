@@ -19,5 +19,5 @@ public class MoneyChance {
     this.money = money;
     this.chance = chance;
   }
-  
+
 }

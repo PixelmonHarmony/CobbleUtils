@@ -4,6 +4,7 @@ import com.cobblemon.mod.common.api.abilities.Ability;
 import com.cobblemon.mod.common.api.moves.Move;
 import com.cobblemon.mod.common.api.pokemon.stats.Stat;
 import com.cobblemon.mod.common.api.pokemon.stats.Stats;
+import com.cobblemon.mod.common.api.types.ElementalType;
 import com.cobblemon.mod.common.pokeball.PokeBall;
 import com.cobblemon.mod.common.pokemon.*;
 import com.kingpixel.cobbleutils.CobbleUtils;
@@ -139,7 +140,8 @@ public class PokemonUtils {
         .replace("%types%", getType(pokemon))
         .replace("%rarity%", String.valueOf(getRarity(pokemon)))
         .replace("%breedable%", isBreedable(pokemon) ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
-        .replace("%pokerus%", isPokerus(pokemon) ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo());
+        .replace("%pokerus%", isPokerus(pokemon) ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
+        .replace("%friendship%", String.valueOf(pokemon.getFriendship()));
     }
 
     return message;
@@ -177,7 +179,7 @@ public class PokemonUtils {
       if (indexedMessage.contains("%")) {
         indexedMessage = indexedMessage.replace("%level" + i + "%", String.valueOf(pokemon.getLevel()))
           .replace("%nature" + i + "%", getNatureTranslate(nature))
-          .replace("%pokemon" + i + "%", pokemon.getSpecies().getName())
+          .replace("%pokemon" + i + "%", getTranslatedName(pokemon))
           .replace("%shiny" + i + "%", pokemon.getShiny() ? CobbleUtils.language.getSymbolshiny() : "")
           .replace("%ability" + i + "%", getAbilityTranslate(pokemon.getAbility()))
           .replace("%ivshp" + i + "%", String.valueOf(pokemon.getIvs().get(Stats.HP)))
@@ -220,6 +222,14 @@ public class PokemonUtils {
 
     return message;
   }
+
+  /**
+   *
+   */
+  public static String getTranslatedName(Pokemon pokemon) {
+    return "<lang:cobblemon.species." + pokemon.getSpecies().showdownId() + ".name>";
+  }
+
 
   /**
    * Check if the pokemon is breedable
@@ -321,7 +331,7 @@ public class PokemonUtils {
    * @return The ability translation
    */
   public static String getAbilityTranslate(Ability ability) {
-    return Component.translatable("cobblemon.ability." + ability.getName()).getString();
+    return "<lang:cobblemon.ability." + ability.getName() + ">";
   }
 
   /**
@@ -332,7 +342,14 @@ public class PokemonUtils {
    * @return The nature translation
    */
   public static String getNatureTranslate(Nature nature) {
-    return Component.translatable("cobblemon.nature." + nature.getName().getPath()).getString();
+    return "<lang:cobblemon.nature." + nature.getName().getPath() + ">";
+  }
+
+  private static String getMoveColor(ElementalType type, String lang) {
+    if (type == null) return CobbleUtils.language.getNone();
+    String color = CobbleUtils.language.getMovecolor().getOrDefault(type.getName(), "");
+    if (color.contains("gradient")) return color + "<lang:" + lang + ">" + "</gradient>";
+    return color + "<lang:" + lang + ">";
   }
 
   /**
@@ -343,12 +360,12 @@ public class PokemonUtils {
    * @return The type of the pokemon
    */
   public static String getType(Pokemon pokemon) {
+
     StringBuilder s =
       new StringBuilder(CobbleUtils.language.getTypes().getOrDefault(pokemon.getPrimaryType().getName(), pokemon.getPrimaryType().getName()));
     if (pokemon.getSecondaryType() != null) {
-      s.append(" / ");
-      s.append(CobbleUtils.language.getTypes().getOrDefault(pokemon.getSecondaryType().getName(),
-        pokemon.getSecondaryType().getName()));
+      s.append(" &7/ ");
+      s.append(CobbleUtils.language.getTypes().getOrDefault(pokemon.getSecondaryType().getName(), pokemon.getSecondaryType().getName()));
     }
     return s.toString();
   }
@@ -362,7 +379,7 @@ public class PokemonUtils {
    */
   public static String getMoveTranslate(Move move) {
     if (move == null) return CobbleUtils.language.getNone();
-    return Component.translatable("cobblemon.move." + move.getName()).getString();
+    return getMoveColor(move.getType(), "cobblemon.move." + move.getName());
   }
 
   /**
@@ -376,19 +393,20 @@ public class PokemonUtils {
     if (stat == null) {
       return "";
     }
+
     switch (stat.getIdentifier().toLanguageKey()) {
       case "cobblemon.hp":
-        return Component.translatable("cobblemon.ui.stats.hp").getString();
+        return "<lang:cobblemon.ui.stats.hp>";
       case "cobblemon.attack":
-        return Component.translatable("cobblemon.ui.stats.atk").getString();
+        return "<lang:cobblemon.ui.stats.atk>";
       case "cobblemon.defence":
-        return Component.translatable("cobblemon.ui.stats.def").getString();
+        return "<lang:cobblemon.ui.stats.def>";
       case "cobblemon.special_attack":
-        return Component.translatable("cobblemon.ui.stats.sp_atk").getString();
+        return "<lang:cobblemon.ui.stats.sp_atk>";
       case "cobblemon.special_defence":
-        return Component.translatable("cobblemon.ui.stats.sp_def").getString();
+        return "<lang:cobblemon.ui.stats.sp_def>";
       case "cobblemon.speed":
-        return Component.translatable("cobblemon.ui.stats.speed").getString();
+        return "<lang:cobblemon.ui.stats.speed>";
       default:
         return "";
     }

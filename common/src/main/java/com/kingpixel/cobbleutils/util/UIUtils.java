@@ -26,6 +26,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import org.joml.Vector4f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,7 +58,7 @@ public class UIUtils {
     }
 
     return GooeyButton.builder()
-      .display(PokemonItem.from(pokemon))
+      .display(PokemonItem.from(pokemon, 1, new Vector4f(5, 5, 5, 5)))
       .title(AdventureTranslator.toNative(PokemonUtils.replace(CobbleUtils.language.getPokemonnameformat(), pokemon)))
       .lore(Component.class, AdventureTranslator.toNativeL(lorepokemon(pokemon)))
       .onClick(action -> actionpokemon.accept(new PokemonButtonAction(action, pokemon)))

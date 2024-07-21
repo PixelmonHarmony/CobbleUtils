@@ -2,7 +2,7 @@ package com.kingpixel.cobbleutils.command.admin.rewards;
 
 import ca.landonjw.gooeylibs2.api.UIManager;
 import com.kingpixel.cobbleutils.CobbleUtils;
-import com.kingpixel.cobbleutils.party.ui.RewardsUI;
+import com.kingpixel.cobbleutils.ui.RewardsUI;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.RewardsUtils;
 import com.mojang.brigadier.Command;

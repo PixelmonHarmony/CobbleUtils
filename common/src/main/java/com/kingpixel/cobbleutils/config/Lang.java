@@ -57,6 +57,7 @@ public class Lang {
 
   private Map<String, String> gender;
   private Map<String, String> forms;
+  private Map<String, String> movecolor;
   private Map<String, String> types;
   private ItemModel itemMoney;
   private ItemModel itemPc;
@@ -103,28 +104,29 @@ public class Lang {
     messageReceiveReward = "&aYou receive a reward!";
     messageReceiveMoney = "&aYou receive %amount%$!";
     lorepokemon = List.of(
-      "<#83dcde>Level: &f%level%",
-      "<#14b2dd>Type: &f%types%",
+      "<#83dcde><lang:cobblemon.ui.lv> &f%level%",
+      "<#14b2dd><lang:cobblemon.ui.info.type>: &f%types%",
       "<#4969dc>Gender: %gender%",
+      "<#D0A5DE><lang:cobblemon.ui.stats.friendship>: &f%friendship%",
       "<#ab8fdb>Legendary: %legendary%",
       "<#ab8fdb>Ultra Beast: %ultrabeast%",
       "<#de896f>Tradeable: &f%tradeable%",
       "<#b0eb59>Breedable: &f%breedable%",
-      "<#9be8c2>Nature: &f%nature% &f(&a↑%up%&f/&c↓%down%&f)",
-      "<#6fa7de>Ability: &f%ability%",
-      "<#83a7de>IVs: &e%ivs%&7/&e31",
-      " <#ee8339>HP: &f%ivshp% <#e84b48>Atk: &f%ivsatk% <#5d79e1>Def: &f%ivsdef%",
-      " <#40b5cd>Sp. Atk: &f%ivsspa% <#f59bc2>Sp. Def: &f%ivsspdef% <#69cd65>Spd: &f%ivsspeed%",
+      "<#9be8c2><lang:cobblemon.ui.info.nature>: &f%nature% &f(&a↑%up%&f/&c↓%down%&f)",
+      "<#6fa7de><lang:cobblemon.ui.info.ability>: &f%ability%",
+      "<#83a7de><lang:cobblemon.ui.stats.ivs>: &e%ivs%&7/&e31",
+      " <#ee8339><lang:cobblemon.ui.stats.hp>: &f%ivshp% <#e84b48><lang:cobblemon.ui.stats.atk>: &f%ivsatk% <#5d79e1><lang:cobblemon.ui.stats.def>: &f%ivsdef%",
+      " <#40b5cd><lang:cobblemon.ui.stats.sp_atk>: &f%ivsspa% <#f59bc2><lang:cobblemon.ui.stats.sp_def>: &f%ivsspdef% <#69cd65><lang:cobblemon.ui.stats.speed>: &f%ivsspeed%",
       "<#d3e38d>Pokerus: %pokerus%",
-      "<#de8397>EVs: &e%evs%&7/&e510",
-      " <#ee8339>HP: &f%evshp% <#e84b48>Atk: &f%evsatk% <#5d79e1>Def: &f%evsdef%",
-      " <#40b5cd>Sp. Atk: &f%evsspa% <#f59bc2>Sp. Def: &f%evsspdef% <#69cd65>Spd: &f%evsspeed%",
+      "<#de8397><lang:cobblemon.ui.stats.evs>: &e%evs%&7/&e510",
+      " <#ee8339><lang:cobblemon.ui.stats.hp>: &f%evshp% <#e84b48><lang:cobblemon.ui.stats.atk>: &f%evsatk% <#5d79e1><lang:cobblemon.ui.stats.def>: &f%evsdef%",
+      " <#40b5cd><lang:cobblemon.ui.stats.sp_atk>: &f%evsspa% <#f59bc2><lang:cobblemon.ui.stats.sp_def>: &f%evsspdef% <#69cd65><lang:cobblemon.ui.stats.speed>: &f%evsspeed%",
       "<#e35146>Ball: &f%ball%",
       "<#ecca18>Size: &f%size%",
-      "<#ecca18>Held Item: &f%item%",
+      "<#ecca18><lang:cobblemon.held_item>: &f%item%",
       "<#ecca18>Form: &f%form%",
-      "<#98eb59>Moves: &f%move1% - %move2% - %move3% - %move4%",
-      "<#b0eb59>Owner: &f%owner%"
+      "<#98eb59><lang:cobblemon.ui.moves>: &f%move1% &f- %move2% &f- %move3% &f- %move4%",
+      "<#b0eb59><lang:cobblemon.ui.info.original_trainer>: &f%owner%"
     );
     lorechance = List.of(
       "&7Chance: &e%chance%&f%"
@@ -162,6 +164,25 @@ public class Lang {
     types.put("ground", "<gradient:#B8860B:#D2B48C>Ground&7");
     types.put("psychic", "<gradient:#D74DE2:#DE77E7>Psychic&7");
     types.put("fairy", "<gradient:#9C38A5:#C06EC7>Fairy&7");
+    movecolor = new HashMap<>();
+    movecolor.put("normal", "<gradient:#939393:#C3C3C3>");
+    movecolor.put("steel", "<gradient:#706F6F:#6F6F6F>");
+    movecolor.put("poison", "<gradient:#B363CD:#D0A5DE>");
+    movecolor.put("electric", "<gradient:#E9E13B:#EAE8BA>");
+    movecolor.put("ice", "<gradient:#87CEEB:#00FFFF>");
+    movecolor.put("fighting", "<gradient:#D77361:#F1C0B7>");
+    movecolor.put("dragon", "<gradient:#8B72CF:#B9A8E7>");
+    movecolor.put("water", "<gradient:#5498C5:#9BC6E3>");
+    movecolor.put("rock", "<gradient:#D0953C:#E5BD80>");
+    movecolor.put("ghost", "<gradient:#4B0082:#9370DB>");
+    movecolor.put("bug", "<gradient:#A5CB60:#CBE0A5>");
+    movecolor.put("grass", "<gradient:#A5CB60:#CBE0A5>");
+    movecolor.put("flying", "<gradient:#C4E9ED:#E3F5F7>");
+    movecolor.put("dark", "<gradient:#000000:#303030>");
+    movecolor.put("fire", "<gradient:#E24D4D:#F69F9F>");
+    movecolor.put("ground", "<gradient:#B8860B:#D2B48C>");
+    movecolor.put("psychic", "<gradient:#D74DE2:#DE77E7>");
+    movecolor.put("fairy", "<gradient:#9C38A5:#C06EC7>");
     itemMoney = new ItemModel("cobblemon:relic_coin", "%amount% &ePokeDollars", List.of(""), 0);
     itemPc = new ItemModel("cobblemon:pc", "&bPC", List.of(""), 0);
     itemNoPokemon = new ItemModel("cobblemon:poke_ball", "<gradient:#E05858:#F09E9E>No Pokemon", List.of(""), 0);
@@ -205,6 +226,7 @@ public class Lang {
         none = lang.getNone();
         messageNotHaveRewards = lang.getMessageNotHaveRewards();
         nocooldown = lang.getNocooldown();
+        movecolor = lang.getMovecolor();
 
 
         // Messages
