@@ -2,6 +2,7 @@
 run
 build
 .idea
+.env
 common/run
 forge/run
 fabric/run
