@@ -29,6 +29,7 @@ public class PokemonBoss {
       if (entity instanceof PokemonEntity pokemonEntity) {
         if (((Mob) entity).isNoAi()) return EventResult.pass();
         Pokemon pokemon = pokemonEntity.getPokemon();
+        if (pokemon.getPersistentData().getBoolean(BOSS_TAG)) return EventResult.pass();
         if (pokemon.getShiny() || pokemon.isLegendary() || pokemon.isUltraBeast()) return EventResult.pass();
         if (pokemon.isPlayerOwned()) return EventResult.pass();
         BossChance bossChance = CobbleUtils.config.getBosses().getBossChance();

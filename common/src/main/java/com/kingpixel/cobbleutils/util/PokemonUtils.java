@@ -171,7 +171,7 @@ public class PokemonUtils {
       return message;
     }
 
-    for (int i = 0; i < pokemons.size(); i++) {
+    for (int i = 1; i <= pokemons.size(); i++) {
       Pokemon pokemon = pokemons.get(i);
       String indexedMessage = message;
 

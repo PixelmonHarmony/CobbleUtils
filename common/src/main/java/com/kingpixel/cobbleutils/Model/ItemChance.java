@@ -11,6 +11,7 @@ import com.kingpixel.cobbleutils.util.*;
 import lombok.Getter;
 import lombok.ToString;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
@@ -155,8 +156,15 @@ public class ItemChance {
       .build();
   }
 
-  // Private methods for internal use
 
+  /**
+   * Get the ItemStack of the reward based on its type.
+   *
+   * @param item   The item to get the ItemStack of.
+   * @param amount The amount of the item.
+   *
+   * @return The ItemStack of the reward.
+   */
   private static ItemStack getRewardItemStack(String item, int amount) {
     if (item.startsWith("pokemon:")) {
       return PokemonItem.from(PokemonProperties.Companion.parse(item.replace("pokemon:", "")));
@@ -182,11 +190,25 @@ public class ItemChance {
     }
   }
 
+  /**
+   * Get the Pokémon reward based on the item.
+   *
+   * @param item The item to get the Pokémon reward of.
+   *
+   * @return The Pokémon reward.
+   */
   private static Pokemon getRewardPokemon(String item) {
     String p = item.replace("pokemon:", "");
     return PokemonProperties.Companion.parse(p).create();
   }
 
+  /**
+   * Get the title of the item based on its type.
+   *
+   * @param itemChance The ItemChance model specifying the reward.
+   *
+   * @return The title of the item.
+   */
   private static String getTitle(ItemChance itemChance) {
     String item = itemChance.getItem();
     if (item.startsWith("pokemon:")) {
@@ -223,7 +245,66 @@ public class ItemChance {
     }
   }
 
+  /**
+   * Get the lore of the item based on its type.
+   *
+   * @param itemChance The ItemChance model specifying the reward.
+   *
+   * @return The lore of the item.
+   */
   private static List<String> getLore(ItemChance itemChance) {
     return CobbleUtils.language.getLorechance();
+  }
+
+  /**
+   * Get a random reward from a list of item chances and give it to the player.
+   *
+   * @param itemChances     The list of item chances to choose from.
+   * @param player          The player to give the reward to.
+   * @param numberOfRewards The number of rewards to give.
+   *
+   * @throws IllegalArgumentException If the list of item chances is empty or the number of rewards is less than or equal to zero.
+   */
+  public static void getRandomRewards(List<ItemChance> itemChances, ServerPlayer player, int numberOfRewards) {
+    if (itemChances == null || itemChances.isEmpty()) {
+      throw new IllegalArgumentException("The list of item chances cannot be empty");
+    }
+    if (numberOfRewards <= 0) {
+      throw new IllegalArgumentException("The number of rewards must be greater than zero");
+    }
+
+    for (int i = 0; i < numberOfRewards; i++) {
+      getRandomReward(itemChances, player);
+    }
+  }
+
+  /**
+   * Get a random reward from a list of item chances and give it to the player.
+   *
+   * @param itemChances The list of item chances to choose from.
+   * @param player      The player to give the reward to.
+   *
+   * @throws IllegalArgumentException If the list of item chances is empty.
+   */
+  public static void getRandomReward(List<ItemChance> itemChances, ServerPlayer player) {
+    if (itemChances == null || itemChances.isEmpty()) {
+      throw new IllegalArgumentException("The list of item chances cannot be empty");
+    }
+
+    int total = itemChances.stream().mapToInt(ItemChance::getChance).sum();
+    int random = Utils.RANDOM.nextInt(total);
+    int current = 0;
+
+    for (ItemChance itemChance : itemChances) {
+      current += itemChance.getChance();
+      if (random < current) {
+        try {
+          giveReward(player, itemChance);
+        } catch (NoPokemonStoreException e) {
+          e.printStackTrace();
+        }
+        break;
+      }
+    }
   }
 }

@@ -74,7 +74,7 @@ tasks.processResources {
 }
 
 tasks {
-    base.archivesName.set("${project.property("archives_base_name")}-forge")
+    base.archivesName.set("${project.property("mod_version")}/${project.property("archives_base_name")}-forge")
     processResources {
         inputs.property("version", project.version)
 

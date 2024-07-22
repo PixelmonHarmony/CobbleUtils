@@ -21,7 +21,7 @@ public class Boss {
   private final List<BossChance> bossChances;
 
   public Boss() {
-    this.active = true;
+    this.active = false;
     this.shiny = true;
     this.rarity = 8192;
     bossChances = List.of(new BossChance(), new BossChance("uncommon"));

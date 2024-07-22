@@ -213,7 +213,7 @@ public abstract class Utils {
   }
 
   public static ItemStack addThingsItemStack(ItemStack itemStack, ItemModel itemModel) {
-    itemStack.setHoverName(AdventureTranslator.toNative(itemModel.getDisplayname()));
+    itemStack.setHoverName(AdventureTranslator.toNative(itemModel.getDisplayname() != null ? itemModel.getDisplayname() : ""));
     if (itemModel.getCustomModelData() != 0)
       itemStack.getOrCreateTag().putInt("CustomModelData", itemModel.getCustomModelData());
     if (itemModel.getLore() != null && !itemModel.getLore().isEmpty()) {

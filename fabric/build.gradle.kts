@@ -31,7 +31,19 @@ dependencies {
     modImplementation("com.cobblemon:fabric:${property("cobblemon_version")}")
     modImplementation("net.fabricmc:fabric-loader:${property("fabric_loader_version")}")
     modApi("net.fabricmc.fabric-api:fabric-api:${property("fabric_version")}")
-
+    listOf(
+        "net.kyori:examination-api:1.3.0",
+        "net.kyori:examination-string:1.3.0",
+        "net.kyori:adventure-api:4.14.0",
+        "net.kyori:adventure-key:4.14.0",
+        "net.kyori:adventure-nbt:4.14.0",
+        "net.kyori:adventure-text-serializer-plain:4.14.0",
+        "net.kyori:adventure-text-serializer-legacy:4.14.0",
+        "net.kyori:adventure-text-serializer-gson:4.14.0",
+        "net.kyori:adventure-text-serializer-json:4.14.0",
+        "net.kyori:adventure-text-minimessage:4.14.0",
+        "net.kyori:adventure-text-logger-slf4j:4.14.0",
+    ).forEach { include(it) }
 
     "common"(project(":common", "namedElements")) { isTransitive = false }
     "shadowCommon"(project(":common", "transformProductionFabric")) { isTransitive = false }
@@ -56,7 +68,7 @@ tasks.processResources {
 
 
 tasks {
-    base.archivesName.set("${project.property("archives_base_name")}-fabric")
+    base.archivesName.set("${project.property("mod_version")}/${project.property("archives_base_name")}-fabric")
     processResources {
         inputs.property("version", project.version)
 

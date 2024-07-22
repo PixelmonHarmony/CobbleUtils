@@ -9,6 +9,11 @@
   ],
   "contact": {
   },
+  "entrypoints": {
+    "main": [
+      "com.kingpixel.cobbleutils.fabric.CobbleUtilsFabric"
+    ]
+  },
   "license": "${license}",
   "environment": "*",
   "depends": {
