@@ -6,9 +6,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.ItemModel;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.TagParser;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
@@ -213,13 +215,21 @@ public abstract class Utils {
   }
 
   public static ItemStack addThingsItemStack(ItemStack itemStack, ItemModel itemModel) {
-    itemStack.setHoverName(AdventureTranslator.toNative(itemModel.getDisplayname() != null ? itemModel.getDisplayname() : ""));
+    if (itemModel.getNbt() != null && !itemModel.getNbt().isEmpty()) {
+      try {
+        itemStack.setTag(TagParser.parseTag(itemModel.getNbt()));
+      } catch (CommandSyntaxException ignored) {
+      }
+    }
+    itemStack.setHoverName(AdventureTranslator.toNativeWithOutPrefix(itemModel.getDisplayname() != null ? itemModel.getDisplayname() :
+      "Please set a displayname for this item"));
     if (itemModel.getCustomModelData() != 0)
       itemStack.getOrCreateTag().putInt("CustomModelData", itemModel.getCustomModelData());
     if (itemModel.getLore() != null && !itemModel.getLore().isEmpty()) {
       ListTag nbtLore = new ListTag();
       List<Component> lorecomp = AdventureTranslator.toNativeL(itemModel.getLore());
       for (Component line : lorecomp) {
+        if (lorecomp.size() == 1 && line.getString().isEmpty()) continue;
         MutableComponent result = Component.empty()
           .setStyle(Style.EMPTY.withItalic(false))
           .append(line);

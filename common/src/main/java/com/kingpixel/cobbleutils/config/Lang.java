@@ -183,16 +183,18 @@ public class Lang {
     movecolor.put("ground", "<gradient:#B8860B:#D2B48C>");
     movecolor.put("psychic", "<gradient:#D74DE2:#DE77E7>");
     movecolor.put("fairy", "<gradient:#9C38A5:#C06EC7>");
-    itemMoney = new ItemModel("cobblemon:relic_coin", "%amount% &ePokeDollars", List.of(""), 0);
-    itemPc = new ItemModel("cobblemon:pc", "&bPC", List.of(""), 0);
-    itemNoPokemon = new ItemModel("cobblemon:poke_ball", "<gradient:#E05858:#F09E9E>No Pokemon", List.of(""), 0);
-    itemPrevious = new ItemModel("minecraft:arrow", "<gradient:#E0A457:#E9C79B>Previous", List.of(""), 0);
-    itemNext = new ItemModel("minecraft:arrow", "<gradient:#E0A457:#E9C79B>Next", List.of(""), 0);
-    itemClose = new ItemModel("minecraft:barrier", "<gradient:#E05858:#F09E9E>Close", List.of(""), 0);
-    itemCommand = new ItemModel("minecraft:command_block", "<gradient:#E0A457:#E9C79B>Command", List.of(""), 0);
-    itemConfirm = new ItemModel("minecraft:lime_stained_glass_pane", "<gradient:#4B9F4B:#7DC97D>Confirm", List.of(""),
+    itemMoney = new ItemModel("cobblemon:relic_coin", "%amount% &ePokeDollars", List.of(), 0);
+    itemPc = new ItemModel("cobblemon:pc", "&bPC", List.of(
+      "&7Right click to open"
+    ), 0);
+    itemNoPokemon = new ItemModel("cobblemon:poke_ball", "<gradient:#E05858:#F09E9E>No Pokemon", List.of(), 0);
+    itemPrevious = new ItemModel("minecraft:arrow", "<gradient:#E0A457:#E9C79B>Previous", List.of(), 0);
+    itemNext = new ItemModel("minecraft:arrow", "<gradient:#E0A457:#E9C79B>Next", List.of(), 0);
+    itemClose = new ItemModel("minecraft:barrier", "<gradient:#E05858:#F09E9E>Close", List.of(), 0);
+    itemCommand = new ItemModel("minecraft:command_block", "<gradient:#E0A457:#E9C79B>Command", List.of(), 0);
+    itemConfirm = new ItemModel("minecraft:lime_stained_glass_pane", "<gradient:#4B9F4B:#7DC97D>Confirm", List.of(),
       0);
-    itemCancel = new ItemModel("minecraft:red_stained_glass_pane", "<gradient:#E05858:#F09E9E>Cancel", List.of(""), 0);
+    itemCancel = new ItemModel("minecraft:red_stained_glass_pane", "<gradient:#E05858:#F09E9E>Cancel", List.of(), 0);
   }
 
   /**

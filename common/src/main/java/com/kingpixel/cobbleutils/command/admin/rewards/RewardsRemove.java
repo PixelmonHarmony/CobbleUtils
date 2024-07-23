@@ -25,7 +25,7 @@ public class RewardsRemove implements Command<CommandSourceStack> {
             .requires(source -> source.hasPermission(2))
             .executes(context -> {
               if (!context.getSource().isPlayer()) {
-                CobbleUtils.LOGGER.info("Only players can claim rewards!");
+                CobbleUtils.LOGGER.info("Only players can remove rewards!");
                 return 0;
               }
               Player player = context.getSource().getPlayerOrException();

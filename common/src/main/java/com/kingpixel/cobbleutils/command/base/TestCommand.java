@@ -60,6 +60,14 @@ public class TestCommand implements Command<CommandSourceStack> {
               return 1;
             })
         )
+        .then(
+          Commands.literal("arrayspokemonsizes")
+            .requires(source -> source.hasPermission(2))
+            .executes(context -> {
+
+              return 1;
+            })
+        )
     );
   }
 

@@ -30,6 +30,7 @@ public class ItemModel {
   private String displayname;
   private List<String> lore = new ArrayList<>();
   private int CustomModelData = 0;
+  private String nbt;
 
 
   public ItemModel(String item, String displayname, List<String> lore) {
@@ -51,6 +52,15 @@ public class ItemModel {
     this.displayname = displayname;
     this.lore = lore;
     CustomModelData = customModelData;
+  }
+
+  public ItemModel(Integer slot, String item, String displayname, List<String> lore, int customModelData, String nbt) {
+    this.slot = slot;
+    this.item = item;
+    this.displayname = displayname;
+    this.lore = lore;
+    CustomModelData = customModelData;
+    this.nbt = nbt;
   }
 
   public ItemModel(ItemModel itemMoney) {

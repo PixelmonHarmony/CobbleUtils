@@ -307,4 +307,22 @@ public class ItemChance {
       }
     }
   }
+
+  /**
+   * Get a random reward from a list of item chances and give it to the player.
+   *
+   * @param itemChances The list of item chances to choose from.
+   * @param player      The player to give the reward to.
+   *
+   * @return The ItemChance model specifying the reward.
+   */
+  public static void getAllRewards(List<ItemChance> itemChances, ServerPlayer player) {
+    for (ItemChance itemChance : itemChances) {
+      try {
+        giveReward(player, itemChance);
+      } catch (NoPokemonStoreException e) {
+        e.printStackTrace();
+      }
+    }
+  }
 }

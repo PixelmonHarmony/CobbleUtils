@@ -18,8 +18,15 @@ dependencies {
     modImplementation("dev.architectury:architectury:${property("architectury_version")}")
     modImplementation("ca.landonjw.gooeylibs:api:${property("gooeylibs_version")}")
     modImplementation("com.cobblemon:mod:${property("cobblemon_version")}")
+
+    // PlaceholderAPI
+    modImplementation("eu.pb4:placeholder-api:${property("placeholder_api_version_fabricandforge")}")
+    modImplementation("me.clip:placeholderapi:${property("placeholder_api_version_spigot")}")
+
     annotationProcessor("org.projectlombok:lombok:1.18.20")
     implementation("org.projectlombok:lombok:1.18.20")
+
+    // Kyori Adventure
     modImplementation("net.kyori:examination-api:1.3.0")
     modImplementation("net.kyori:examination-string:1.3.0")
     modImplementation("net.kyori:adventure-api:4.14.0")

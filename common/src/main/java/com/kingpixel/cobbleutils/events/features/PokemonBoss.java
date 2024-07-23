@@ -34,6 +34,7 @@ public class PokemonBoss {
         if (pokemon.isPlayerOwned()) return EventResult.pass();
         BossChance bossChance = CobbleUtils.config.getBosses().getBossChance();
         if (bossChance == null) return EventResult.pass();
+
         pokemon.setLevel(Utils.RANDOM.nextInt(bossChance.getMinlevel(), bossChance.getMaxlevel()));
         pokemon.setShiny(CobbleUtils.config.getBosses().isShiny());
         pokemon.setScaleModifier(Utils.RANDOM.nextFloat(bossChance.getMinsize(), bossChance.getMaxsize()));

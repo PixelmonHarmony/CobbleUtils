@@ -6,14 +6,18 @@ import com.cobblemon.mod.common.pokemon.FormData;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.cobblemon.mod.common.pokemon.Species;
 import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.util.events.ArraysPokemonEvent;
+import lombok.Getter;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Getter
 public class ArraysPokemons {
-  public static ArrayList<Species> pokemons = new ArrayList<>();
-  public static ArrayList<Species> legendarys = new ArrayList<>();
-  public static ArrayList<Species> ultraBeasts = new ArrayList<>();
+  public static List<Species> pokemons = new ArrayList<>();
+  public static List<Species> legendarys = new ArrayList<>();
+  public static List<Species> ultraBeasts = new ArrayList<>();
+  public static List<Species> all = new ArrayList<>();
 
   /**
    * Initialize the Pokémon arrays
@@ -21,9 +25,7 @@ public class ArraysPokemons {
   public static void init() {
     Collection<Species> species = PokemonSpecies.INSTANCE.getSpecies();
     Set<String> pokeBlacklist = new HashSet<>();
-    CobbleUtils.config.getBlacklist().forEach(pokemonData -> {
-      pokeBlacklist.add(pokemonData.getPokename());
-    });
+    CobbleUtils.config.getBlacklist().forEach(pokemonData -> pokeBlacklist.add(pokemonData.getPokename()));
 
     List<Species> filteredSpecies = species.stream()
       .filter(species1 -> species1.getNationalPokedexNumber() != 9999)
@@ -44,16 +46,31 @@ public class ArraysPokemons {
         }
       }));
 
-    pokemons = new ArrayList<>(sortedSpecies.getOrDefault("normal", Collections.emptyList()).stream()
+    pokemons = new ArrayList<>(sortedSpecies.getOrDefault("normal", new ArrayList<>()).stream()
       .filter(species1 -> CobbleUtils.spawnRates.getRarity(species1) != -1)
+      .sorted(Comparator.comparingInt(Species::getNationalPokedexNumber))
       .toList());
-    legendarys = new ArrayList<>(sortedSpecies.getOrDefault("legendary", Collections.emptyList()));
-    ultraBeasts = new ArrayList<>(sortedSpecies.getOrDefault("ultrabeast", Collections.emptyList()));
+    legendarys = new ArrayList<>(sortedSpecies.getOrDefault("legendary", new ArrayList<>()).stream()
+      .sorted(Comparator.comparingInt(Species::getNationalPokedexNumber))
+      .toList());
+    ultraBeasts = new ArrayList<>(sortedSpecies.getOrDefault("ultrabeast", new ArrayList<>()).stream()
+      .sorted(Comparator.comparingInt(Species::getNationalPokedexNumber))
+      .toList());
+
+    all = new ArrayList<>(pokemons);
+    all.addAll(legendarys);
+    all.addAll(ultraBeasts);
+    all = all.stream()
+      .sorted(Comparator.comparingInt(Species::getNationalPokedexNumber))
+      .toList();
+
+    ArraysPokemonEvent.FINISH_GENERATE_POKEMONS.emit(all);
 
     if (CobbleUtils.config.isDebug()) {
       CobbleUtils.LOGGER.info("Pokemons normal: " + pokemons.size());
       CobbleUtils.LOGGER.info("Pokemons legendary: " + legendarys.size());
       CobbleUtils.LOGGER.info("Pokemons ultrabeast: " + ultraBeasts.size());
+      CobbleUtils.LOGGER.info("All Pokemons: " + all.size());
     }
   }
 

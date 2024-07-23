@@ -14,6 +14,7 @@ pluginManagement {
             name = "sonatype-oss-snapshots1"
             url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
         }
+        maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
         gradlePluginPortal()
         mavenCentral()
         mavenLocal()

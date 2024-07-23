@@ -8,6 +8,7 @@ import com.kingpixel.cobbleutils.command.admin.random.RandomPokemon;
 import com.kingpixel.cobbleutils.command.admin.rewards.*;
 import com.kingpixel.cobbleutils.command.base.EndBattle;
 import com.kingpixel.cobbleutils.command.base.TestCommand;
+import com.kingpixel.cobbleutils.command.test.Test;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandBuildContext;
@@ -73,6 +74,11 @@ public class CommandTree {
         RewardsRemove.register(dispatcher, base);
         RewardsReload.register(dispatcher, base);
       }
+    }
+
+    if (CobbleUtils.config.isDebug()) {
+      // /cobbleutils Test
+      Test.register(dispatcher, Commands.literal("cobbleutils"));
     }
 
   }
