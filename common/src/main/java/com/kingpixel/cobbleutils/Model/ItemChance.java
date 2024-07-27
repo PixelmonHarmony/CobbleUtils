@@ -8,8 +8,10 @@ import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.options.ImpactorItem;
 import com.kingpixel.cobbleutils.util.*;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import lombok.Getter;
 import lombok.ToString;
+import net.minecraft.nbt.TagParser;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -18,6 +20,7 @@ import net.minecraft.world.item.ItemStack;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.PatternSyntaxException;
 
 /**
  * Represents an item chance model with methods to handle rewards.
@@ -36,6 +39,25 @@ public class ItemChance {
   public ItemChance(String item, int chance) {
     this.item = item;
     this.chance = chance;
+  }
+
+  /**
+   * Get the default item chances.
+   * <p>
+   * Give a default List<ItemChance> for example configurations.
+   *
+   * @return The default item chances.
+   */
+  public static List<ItemChance> defaultItemChances() {
+    List<ItemChance> itemChances = new ArrayList<>();
+    itemChances.add(new ItemChance("minecraft:dirt", 100));
+    itemChances.add(new ItemChance("item:8:minecraft:dirt", 100));
+    itemChances.add(new ItemChance("item:8:minecraft:dirt#{CustomModelData:1}", 100));
+    itemChances.add(new ItemChance("pokemon:zorua hisuian", 100));
+    itemChances.add(new ItemChance("command:give %player% minecraft:dirt", 100));
+    itemChances.add(new ItemChance("money:100", 100));
+    itemChances.add(new ItemChance("money:tokens:100", 100));
+    return itemChances;
   }
 
   /**
@@ -115,6 +137,20 @@ public class ItemChance {
           .replace("%amount%", String.valueOf(money))
           .replace("%currency%", currency));
       }
+    } else if (item.startsWith("item:")) {
+      ItemStack itemStack;
+      String[] split = item.split("#", 2);
+      String[] itemSplit = split[0].split(":");
+      String iditem = itemSplit[2] + ":" + itemSplit[3];
+      itemStack = Utils.parseItemId(iditem, Integer.parseInt(itemSplit[1]));
+      if (split.length > 1) {
+        try {
+          itemStack.setTag(TagParser.parseTag(split[1]));
+        } catch (PatternSyntaxException | CommandSyntaxException | ArrayIndexOutOfBoundsException ignored) {
+        }
+      }
+
+      return RewardsUtils.saveRewardItemStack(player, itemStack);
     } else {
       return RewardsUtils.saveRewardItemStack(player, Utils.parseItemId(item, amount));
     }
@@ -185,6 +221,19 @@ public class ItemChance {
         ImpactorItem impactorItem = CobbleUtils.config.getImpactorEconomy().getItemsCommands().get(currency);
         return impactorItem.getItem().getItemStack();
       }
+    } else if (item.startsWith("item:")) {
+      ItemStack itemStack;
+      String[] split = item.split("#", 2);
+      String[] itemSplit = split[0].split(":");
+      String iditem = itemSplit[2] + ":" + itemSplit[3];
+      itemStack = Utils.parseItemId(iditem, Integer.parseInt(itemSplit[1]));
+      if (split.length > 1) {
+        try {
+          itemStack.setTag(TagParser.parseTag(split[1]));
+        } catch (PatternSyntaxException | CommandSyntaxException | ArrayIndexOutOfBoundsException ignored) {
+        }
+      }
+      return itemStack;
     } else {
       return Utils.parseItemId(item, amount);
     }
@@ -222,7 +271,7 @@ public class ItemChance {
           return entry.getValue().getDisplayname();
         }
       }
-      return command; // Return the original command if no match found
+      return command;
     } else if (item.startsWith("money:")) {
       int money;
       String title;
@@ -240,8 +289,26 @@ public class ItemChance {
 
       }
       return title;
+    } else if (item.startsWith("item:")) {
+      ItemStack itemStack;
+      String[] split = item.split("#", 2);
+      String[] itemSplit = split[0].split(":");
+      String iditem = itemSplit[2] + ":" + itemSplit[3];
+      itemStack = Utils.parseItemId(iditem, Integer.parseInt(itemSplit[1]));
+      if (split.length > 1) {
+        try {
+          itemStack.setTag(TagParser.parseTag(split[1]));
+          if (itemStack.getTag().contains("display")) {
+            return ItemUtils.getNameItem(itemStack);
+          } else {
+            return ItemUtils.getTranslatedName(itemStack);
+          }
+        } catch (PatternSyntaxException | CommandSyntaxException | ArrayIndexOutOfBoundsException ignored) {
+        }
+      }
+      return ItemUtils.getTranslatedName(itemStack);
     } else {
-      return ItemUtils.getNameItem(item);
+      return ItemUtils.getTranslatedName(Utils.parseItemId(item));
     }
   }
 

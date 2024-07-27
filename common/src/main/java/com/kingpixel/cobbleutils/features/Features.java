@@ -1,5 +1,6 @@
 package com.kingpixel.cobbleutils.features;
 
+import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.features.breeding.Breeding;
 
 /**
@@ -7,6 +8,8 @@ import com.kingpixel.cobbleutils.features.breeding.Breeding;
  */
 public class Features {
   public static void register() {
-    Breeding.register();
+    if (CobbleUtils.breedconfig.isActive()) {
+      Breeding.register();
+    }
   }
 }

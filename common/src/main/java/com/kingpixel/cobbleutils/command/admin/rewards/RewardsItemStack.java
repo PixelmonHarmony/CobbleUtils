@@ -13,12 +13,8 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.item.ItemArgument;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Carlos Varas Alonso - 28/06/2024 10:51
@@ -45,9 +41,7 @@ public class RewardsItemStack implements Command<CommandSourceStack> {
                           }
                           Player player = EntityArgument.getPlayer(context, "player");
                           ItemStack itemStack = ItemArgument.getItem(context, "item").createItemStack(1, false);
-                          if (saveItem(context, player, itemStack, 1)) {
-                            context.getSource().getPlayer().sendSystemMessage(Component.literal("Item saved!"));
-                          }
+                          RewardsUtils.saveRewardItemStack(player, itemStack);
                           return 1;
                         })
                         .then(
@@ -56,13 +50,7 @@ public class RewardsItemStack implements Command<CommandSourceStack> {
                               Player player = EntityArgument.getPlayer(context, "player");
                               Integer amount = IntegerArgumentType.getInteger(context, "amount");
                               ItemStack itemStack = ItemArgument.getItem(context, "item").createItemStack(amount, false);
-                              if (saveItem(context, player, itemStack, amount)) {
-                                if (context.getSource().isPlayer()) {
-                                  context.getSource().getPlayer().sendSystemMessage(Component.literal("Item saved!"));
-                                } else {
-                                  CobbleUtils.LOGGER.info("Item saved!");
-                                }
-                              }
+                              RewardsUtils.saveRewardItemStack(player, itemStack);
                               return 1;
                             })
                         )
@@ -71,28 +59,6 @@ public class RewardsItemStack implements Command<CommandSourceStack> {
             )
         )
     );
-  }
-
-
-  private static boolean saveItem(CommandContext<CommandSourceStack> context, Player player, ItemStack itemStack, int i) throws CommandSyntaxException {
-    itemStack.setCount(i);
-
-    if (itemStack.getCount() > itemStack.getMaxStackSize()) {
-      List<ItemStack> itemStacks = new ArrayList<>();
-      while (itemStack.getCount() > itemStack.getMaxStackSize()) {
-        ItemStack itemStack1 = itemStack.copy();
-        itemStack1.setCount(itemStack.getMaxStackSize());
-        itemStacks.add(itemStack1);
-        itemStack.setCount(itemStack.getCount() - itemStack.getMaxStackSize());
-      }
-      RewardsUtils.saveRewardItemStack(player, itemStacks);
-      return true;
-    }
-    if (itemStack != null) {
-      RewardsUtils.saveRewardItemStack(player, itemStack);
-      return true;
-    }
-    return false;
   }
 
   @Override public int run(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {

@@ -1,5 +1,6 @@
 package com.kingpixel.cobbleutils.util;
 
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
 /**
@@ -11,6 +12,14 @@ public class ItemUtils {
   }
 
   public static String getNameItem(ItemStack itemStack) {
-    return itemStack.getHoverName().getString();
+    if (itemStack.getTag() == null) return getTranslatedName(itemStack);
+    if (itemStack.getTag().contains("display")) {
+      return itemStack.getHoverName().getString();
+    }
+    return getTranslatedName(itemStack);
+  }
+
+  public static String getTranslatedName(ItemStack itemStack) {
+    return Component.translatable("<lang:" + itemStack.getDescriptionId() + ">").getString();
   }
 }

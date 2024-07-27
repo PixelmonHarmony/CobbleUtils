@@ -27,8 +27,8 @@ public class BossChance {
     this.chance = 0.1;
     this.minlevel = 105;
     this.maxlevel = 110;
-    this.minsize = 1;
-    this.maxsize = 5;
+    this.minsize = 2.5f;
+    this.maxsize = 5.0f;
     this.amountrewards = 1;
     this.rewards = List.of(new ItemChance());
   }

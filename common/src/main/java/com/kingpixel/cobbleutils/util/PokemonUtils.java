@@ -98,12 +98,19 @@ public class PokemonUtils {
       return message;
     }
 
+    if (message.contains("%lorepokemon%")) {
+      StringBuilder loreStringBuilder = new StringBuilder();
+      CobbleUtils.language.getLorepokemon().forEach(lore -> loreStringBuilder.append(lore).append("\n"));
+
+      String lorepokemon = loreStringBuilder.toString();
+      message = message.replace("%lorepokemon%", lorepokemon);
+    }
 
     Nature nature = pokemon.getNature();
 
     if (message.contains("%")) {
-      message = message.replace("%level%",
-          String.valueOf(pokemon.getLevel()))
+      message = message
+        .replace("%level%", String.valueOf(pokemon.getLevel()))
         .replace("%nature%", getNatureTranslate(nature))
         .replace("%pokemon%", pokemon.getSpecies().getName())
         .replace("%shiny%", pokemon.getShiny() ? CobbleUtils.language.getSymbolshiny() : "")
@@ -121,7 +128,7 @@ public class PokemonUtils {
         .replace("%evsspdef%", String.valueOf(pokemon.getEvs().get(Stats.SPECIAL_DEFENCE)))
         .replace("%evsspeed%", String.valueOf(pokemon.getEvs().get(Stats.SPEED)))
         .replace("%legendary%", pokemon.isLegendary() ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
-        .replace("%item%", pokemon.heldItem().getHoverName().getString())
+        .replace("%item%", ItemUtils.getTranslatedName(pokemon.heldItem()))
         .replace("%size%", getSize(pokemon))
         .replace("%form%", CobbleUtils.language.getForms().getOrDefault(pokemon.getForm().getName(), pokemon.getForm().getName()))
         .replace("%up%", getStatTranslate(nature.getIncreasedStat()))

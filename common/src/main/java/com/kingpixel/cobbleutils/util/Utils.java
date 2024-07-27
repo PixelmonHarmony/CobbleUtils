@@ -161,6 +161,14 @@ public abstract class Utils {
     }
   }
 
+  public static void broadcastMessage(Component message) {
+    MinecraftServer server = CobbleUtils.server;
+    ArrayList<ServerPlayer> players = new ArrayList<>(server.getPlayerList().getPlayers());
+    for (ServerPlayer pl : players) {
+      pl.sendSystemMessage(message);
+    }
+  }
+
   public static ItemStack parseItemId(String id) {
     CompoundTag tag = new CompoundTag();
     tag.putString("id", id);

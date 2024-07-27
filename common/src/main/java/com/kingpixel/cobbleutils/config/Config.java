@@ -43,6 +43,8 @@ public class Config {
   private int alertreward;
   private float minpokemonsize;
   private float maxpokemonsize;
+  private String pokeshout;
+  private String pokeshoutall;
   private Pokerus pokerus;
   private Boss bosses;
   private ImpactorEconomy impactorEconomy;
@@ -80,6 +82,8 @@ public class Config {
     minpokemonsize = 0.01f;
     maxpokemonsize = 10f;
     alertreward = 15;
+    pokeshout = "cupokeshout";
+    pokeshoutall = "cupokeshoutall";
     pokerus = new Pokerus();
     bosses = new Boss();
     impactorEconomy = new ImpactorEconomy();
@@ -134,6 +138,8 @@ public class Config {
             sizeChance.setItem(new ItemModel("minecraft:stone", "Stone", List.of()));
           }
         });
+        pokeshout = config.getPokeshout();
+        pokeshoutall = config.getPokeshoutall();
         pokerus = config.getPokerus();
         party = config.isParty();
         rewards = config.isRewards();

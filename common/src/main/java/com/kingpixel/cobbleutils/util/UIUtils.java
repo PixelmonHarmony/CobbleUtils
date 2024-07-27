@@ -68,6 +68,27 @@ public class UIUtils {
   /**
    * Create a button with the pokemon data
    *
+   * @param actionConfirm The action to do when the button is clicked
+   * @param closeaction   The action to do when the button is clicked
+   *
+   * @return The button with the pokemon data
+   */
+  public static GooeyPage confirmMenu(Consumer<ButtonAction> actionConfirm, Consumer<ButtonAction> closeaction) {
+    ChestTemplate template = ChestTemplate.builder(3).build();
+    template.fill(GooeyButton.builder()
+        .display(Utils.parseItemId(CobbleUtils.config.getFill())).build())
+      .rectangle(0, 0, 2, 2, new PlaceholderButton())
+      .set(1, 1, getConfirmButton(actionConfirm))
+      .set(1, 2, getCancelButton(closeaction));
+    return GooeyPage.builder()
+      .template(template)
+      .title(AdventureTranslator.toNative(CobbleUtils.language.getTitleconfirm()))
+      .build();
+  }
+
+  /**
+   * Create a button with the pokemon data
+   *
    * @param pokemon       The pokemon to get the data
    * @param lore          The lore to replace
    * @param add           If add the default lore

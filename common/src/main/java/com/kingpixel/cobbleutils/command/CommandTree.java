@@ -7,6 +7,8 @@ import com.kingpixel.cobbleutils.command.admin.random.RandomMoney;
 import com.kingpixel.cobbleutils.command.admin.random.RandomPokemon;
 import com.kingpixel.cobbleutils.command.admin.rewards.*;
 import com.kingpixel.cobbleutils.command.base.EndBattle;
+import com.kingpixel.cobbleutils.command.base.PokeShout;
+import com.kingpixel.cobbleutils.command.base.PokeShoutAll;
 import com.kingpixel.cobbleutils.command.base.TestCommand;
 import com.kingpixel.cobbleutils.command.test.Test;
 import com.mojang.brigadier.CommandDispatcher;
@@ -26,7 +28,11 @@ public class CommandTree {
 
     if (CobbleUtils.config.isDebug()) {
       TestCommand.register(dispatcher, Commands.literal("cobbleutils"));
+      Test.register(dispatcher, Commands.literal("cobbleutils"));
     }
+
+    PokeShout.register(dispatcher, Commands.literal(CobbleUtils.config.getPokeshout()));
+    PokeShoutAll.register(dispatcher, Commands.literal(CobbleUtils.config.getPokeshoutall()));
 
     for (String literal : CobbleUtils.config.getCommmandplugin()) {
       LiteralArgumentBuilder<CommandSourceStack> base = Commands.literal(literal);
@@ -60,6 +66,9 @@ public class CommandTree {
 
       // /cobbleutils breedable <slot> <breedable>
       BreedableCommand.register(dispatcher, base);
+
+      // /cobbleutils egg <pokemon>
+      EggCommand.register(dispatcher, base);
     }
 
     // Rewards
@@ -74,11 +83,6 @@ public class CommandTree {
         RewardsRemove.register(dispatcher, base);
         RewardsReload.register(dispatcher, base);
       }
-    }
-
-    if (CobbleUtils.config.isDebug()) {
-      // /cobbleutils Test
-      Test.register(dispatcher, Commands.literal("cobbleutils"));
     }
 
   }

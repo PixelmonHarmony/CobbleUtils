@@ -8,11 +8,13 @@ import com.kingpixel.cobbleutils.events.BlockRightClickEvents;
 import com.kingpixel.cobbleutils.events.DropItemEvent;
 import com.kingpixel.cobbleutils.events.ItemRightClickEvents;
 import com.kingpixel.cobbleutils.events.features.FeaturesRegister;
+import com.kingpixel.cobbleutils.features.Features;
 import com.kingpixel.cobbleutils.managers.PartyManager;
 import com.kingpixel.cobbleutils.managers.RewardsManager;
 import com.kingpixel.cobbleutils.party.command.CommandsParty;
 import com.kingpixel.cobbleutils.party.config.PartyConfig;
 import com.kingpixel.cobbleutils.party.config.PartyLang;
+import com.kingpixel.cobbleutils.party.event.CreatePartyEvent;
 import com.kingpixel.cobbleutils.party.models.UserParty;
 import com.kingpixel.cobbleutils.party.util.PartyPlaceholder;
 import com.kingpixel.cobbleutils.util.*;
@@ -35,10 +37,12 @@ public class CobbleUtils {
   public static final String PATH_PARTY_LANG = PATH_PARTY + "lang/";
   public static final String PATH_PARTY_DATA = PATH_PARTY + "data/";
   public static final String PATH_REWARDS_DATA = PATH + "/rewards/";
+  public static final String PATH_BREED = PATH + "/breed/";
   public static final UtilsLogger LOGGER = new UtilsLogger();
   public static final String MOD_NAME = "CobbleUtils";
   public static MinecraftServer server;
   public static Config config = new Config();
+  public static com.kingpixel.cobbleutils.features.breeding.config.Config breedconfig = new com.kingpixel.cobbleutils.features.breeding.config.Config();
   public static Lang language = new Lang();
   public static PoolMoney poolMoney = new PoolMoney();
   public static PoolItems poolItems = new PoolItems();
@@ -66,6 +70,7 @@ public class CobbleUtils {
     PartyPlaceholder.register();
     sign();
     tasks();
+    Features.register();
   }
 
   private static void checks() {
@@ -76,11 +81,13 @@ public class CobbleUtils {
     Utils.createDirectoryIfNeeded(PATH_PARTY_LANG);
     Utils.createDirectoryIfNeeded(PATH_PARTY_DATA);
     Utils.createDirectoryIfNeeded(PATH_REWARDS_DATA);
+    Utils.createDirectoryIfNeeded(PATH_BREED);
   }
 
 
   private static void files() {
     config.init();
+    breedconfig.init();
     language.init();
     poolItems.init();
     poolPokemons.init();
@@ -93,7 +100,7 @@ public class CobbleUtils {
     LOGGER.info("§e+-------------------------------+");
     LOGGER.info("§e| §6CobbleUtils");
     LOGGER.info("§e+-------------------------------+");
-    LOGGER.info("§e| §6Version: §e" + "1.0.8");
+    LOGGER.info("§e| §6Version: §e" + "1.0.9");
     LOGGER.info("§e| §6Author: §eZonary123");
     LOGGER.info("§e| §6Website: §9https://github.com/Zonary123/CobbleUtils");
     LOGGER.info("§e| §6Discord: §9https://discord.com/invite/fKNc7FnXpa");
@@ -115,7 +122,6 @@ public class CobbleUtils {
   }
 
   private static void events() {
-    files();
     Utils.removeFiles(PATH_PARTY_DATA);
 
     LifecycleEvent.SERVER_STARTED.register(server -> load());
@@ -123,6 +129,10 @@ public class CobbleUtils {
     CommandRegistrationEvent.EVENT.register((dispatcher, registry, selection) -> {
       CommandTree.register(dispatcher, registry);
       CommandsParty.register(dispatcher, registry);
+    });
+
+    CreatePartyEvent.CREATE_PARTY_EVENT.register((player, partyName) -> {
+      
     });
 
     LifecycleEvent.SERVER_STOPPING.register(server -> {

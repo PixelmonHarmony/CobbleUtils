@@ -29,6 +29,7 @@ import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.sounds.SoundSource;
 import org.jetbrains.annotations.Nullable;
 
@@ -154,6 +155,10 @@ public class AdventureTranslator {
       .replace("§o", "<italic>")
       .replace("§r", "<reset>");
     return displayname;
+  }
+
+  public static MutableComponent toNativeComponent(String messageContent) {
+    return (MutableComponent) miniMessage.deserialize(replaceNative(messageContent));
   }
 }
 
