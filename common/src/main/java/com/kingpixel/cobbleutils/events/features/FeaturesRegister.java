@@ -1,5 +1,6 @@
 package com.kingpixel.cobbleutils.events.features;
 
+import com.kingpixel.cobbleutils.events.PickedUpEvent;
 import com.kingpixel.cobbleutils.events.ScaleEvent;
 
 /**
@@ -11,5 +12,6 @@ public class FeaturesRegister {
     PokerusEvents.register();
     PokeballThrow.register();
     ScaleEvent.register();
+    PickedUpEvent.register();
   }
 }

@@ -14,7 +14,6 @@ import com.kingpixel.cobbleutils.managers.RewardsManager;
 import com.kingpixel.cobbleutils.party.command.CommandsParty;
 import com.kingpixel.cobbleutils.party.config.PartyConfig;
 import com.kingpixel.cobbleutils.party.config.PartyLang;
-import com.kingpixel.cobbleutils.party.event.CreatePartyEvent;
 import com.kingpixel.cobbleutils.party.models.UserParty;
 import com.kingpixel.cobbleutils.party.util.PartyPlaceholder;
 import com.kingpixel.cobbleutils.util.*;
@@ -100,7 +99,7 @@ public class CobbleUtils {
     LOGGER.info("§e+-------------------------------+");
     LOGGER.info("§e| §6CobbleUtils");
     LOGGER.info("§e+-------------------------------+");
-    LOGGER.info("§e| §6Version: §e" + "1.0.9");
+    LOGGER.info("§e| §6Version: §e" + "1.1.0");
     LOGGER.info("§e| §6Author: §eZonary123");
     LOGGER.info("§e| §6Website: §9https://github.com/Zonary123/CobbleUtils");
     LOGGER.info("§e| §6Discord: §9https://discord.com/invite/fKNc7FnXpa");
@@ -131,9 +130,6 @@ public class CobbleUtils {
       CommandsParty.register(dispatcher, registry);
     });
 
-    CreatePartyEvent.CREATE_PARTY_EVENT.register((player, partyName) -> {
-      
-    });
 
     LifecycleEvent.SERVER_STOPPING.register(server -> {
       scheduledTasks.forEach(task -> task.cancel(true));

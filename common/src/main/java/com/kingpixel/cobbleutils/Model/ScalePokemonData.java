@@ -148,6 +148,7 @@ public class ScalePokemonData {
    */
   public boolean existSize(Pokemon pokemon) {
     String size = pokemon.getPersistentData().getString("size");
+    if (size.isEmpty()) return false;
     return getScalePokemonData(pokemon).getSizes().stream().anyMatch(sizeChanceWithoutItem -> sizeChanceWithoutItem.getId().equalsIgnoreCase(size));
   }
 

@@ -48,6 +48,7 @@ public class Config {
   private Pokerus pokerus;
   private Boss bosses;
   private ImpactorEconomy impactorEconomy;
+  private String defaultsize;
   private List<SizeChance> pokemonsizes;
   private List<ScalePokemonData> specifiedSizes;
   private List<PokemonData> shinytokenBlacklist;
@@ -87,6 +88,7 @@ public class Config {
     pokerus = new Pokerus();
     bosses = new Boss();
     impactorEconomy = new ImpactorEconomy();
+    defaultsize = "Normal";
     pokemonsizes = List.of(
       new SizeChance("Tiny", 0.5f, 5),
       new SizeChance("Small", 0.75f, 15),
@@ -138,6 +140,7 @@ public class Config {
             sizeChance.setItem(new ItemModel("minecraft:stone", "Stone", List.of()));
           }
         });
+        defaultsize = config.getDefaultsize();
         pokeshout = config.getPokeshout();
         pokeshoutall = config.getPokeshoutall();
         pokerus = config.getPokerus();
