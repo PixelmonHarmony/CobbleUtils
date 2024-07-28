@@ -121,7 +121,7 @@ public class ItemChance {
         ));
         return RewardsUtils.saveRewardCommand(player, CobbleUtils.config.getEcocommand()
           .replace("%player%", player.getName().getString())
-          .replace("%amount%", String.valueOf(amount)));
+          .replace("%amount%", String.valueOf(money)));
       } else {
         money = Integer.parseInt(item.split(":")[2]);
         String currency = item.split(":")[1];

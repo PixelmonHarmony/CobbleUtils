@@ -17,6 +17,7 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -257,5 +258,12 @@ public abstract class Utils {
         CobbleUtils.LOGGER.error("Failed to create directory: " + directoryPath);
       }
     }
+  }
+
+  public static ItemStack getHead(String replace, int amount) {
+    ItemStack itemStack = Items.PLAYER_HEAD.getDefaultInstance();
+    itemStack.getOrCreateTag().putString("SkullOwner", replace);
+    itemStack.setCount(amount);
+    return itemStack;
   }
 }

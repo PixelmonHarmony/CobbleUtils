@@ -26,17 +26,16 @@ public class CommandTree {
     CommandDispatcher<CommandSourceStack> dispatcher,
     CommandBuildContext registry) {
 
-    if (CobbleUtils.config.isDebug()) {
-      TestCommand.register(dispatcher, Commands.literal("cobbleutils"));
-      Test.register(dispatcher, Commands.literal("cobbleutils"));
-    }
 
     PokeShout.register(dispatcher, Commands.literal(CobbleUtils.config.getPokeshout()));
     PokeShoutAll.register(dispatcher, Commands.literal(CobbleUtils.config.getPokeshoutall()));
 
     for (String literal : CobbleUtils.config.getCommmandplugin()) {
       LiteralArgumentBuilder<CommandSourceStack> base = Commands.literal(literal);
-
+      if (CobbleUtils.config.isDebug()) {
+        TestCommand.register(dispatcher, base);
+        Test.register(dispatcher, base);
+      }
       // /cobbleutils scale <scale> <slot> and /cobbleutils scale <scale> <slot> <player>
       PokemonSize.register(dispatcher, base);
 

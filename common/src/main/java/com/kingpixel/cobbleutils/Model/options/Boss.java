@@ -2,7 +2,9 @@ package com.kingpixel.cobbleutils.Model.options;
 
 import com.kingpixel.cobbleutils.Model.ItemChance;
 import com.kingpixel.cobbleutils.util.Utils;
+import lombok.Data;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -12,12 +14,14 @@ import java.util.List;
  * @author Carlos Varas Alonso - 20/07/2024 9:06
  */
 @Getter
+@Setter
 @ToString
+@Data
 public class Boss {
-  private final boolean active;
-  private final boolean shiny;
-  private final int rarity;
-  private final List<BossChance> bossChances;
+  private boolean active;
+  private boolean shiny;
+  private int rarity;
+  private List<BossChance> bossChances;
 
   public Boss() {
     this.active = false;
@@ -27,7 +31,7 @@ public class Boss {
   }
 
   public Boss(List<BossChance> bossChances) {
-    this.active = true;
+    this.active = false;
     this.shiny = true;
     this.rarity = 8192;
     this.bossChances = bossChances;
@@ -68,4 +72,5 @@ public class Boss {
       ItemChance.getRandomRewards(bossChance.getRewards(), player, bossChance.getAmountrewards());
     }
   }
+
 }

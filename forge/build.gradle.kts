@@ -1,8 +1,13 @@
+import com.github.jengelman.gradle.plugins.shadow.transformers.ServiceFileTransformer
+
 plugins {
     id("dev.architectury.loom")
     id("architectury-plugin")
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
+val common: Configuration by configurations.creating
+val shadowCommon: Configuration by configurations.creating
+//val developmentForge: Configuration by configurations.getting
 
 architectury {
     platformSetupLoomIde()
@@ -10,19 +15,16 @@ architectury {
 }
 
 configurations {
-    create("common")
-    create("shadowCommon")
+    //create("common")
+    //create("shadowCommon")
     compileClasspath.get().extendsFrom(configurations["common"])
     runtimeClasspath.get().extendsFrom(configurations["common"])
     getByName("developmentForge").extendsFrom(configurations["common"])
 }
 
 loom {
-
     enableTransitiveAccessWideners.set(true)
     silentMojangMappingsLicense()
-
-
 }
 
 dependencies {
@@ -39,24 +41,35 @@ dependencies {
 
     implementation("thedarkcolour:kotlinforforge:4.4.0")
 
-    listOf(
-        "net.kyori:adventure-api:4.14.0",
-        "net.kyori:adventure-key:4.14.0",
-        "net.kyori:adventure-text-serializer-plain:4.14.0",
-        "net.kyori:adventure-text-serializer-legacy:4.14.0",
-        "net.kyori:adventure-text-minimessage:4.14.0",
-        "net.kyori:examination-api:1.3.0",
-        "net.kyori:examination-string:1.3.0",
-        "net.kyori:adventure-nbt:4.14.0",
-        "net.kyori:adventure-text-serializer-json:4.14.0",
-        "net.kyori:adventure-text-logger-slf4j:4.14.0",
-        "net.kyori:adventure-platform-api:4.3.0",
-        "net.kyori:adventure-text-serializer-ansi:4.14.0",
-        "net.kyori:adventure-text-serializer-gson:4.14.0",
+    implementation("net.kyori:adventure-text-serializer-gson:4.14.0")
+    implementation("net.kyori:adventure-api:4.14.0")
+    implementation("net.kyori:adventure-key:4.14.0")
+    implementation("net.kyori:adventure-text-serializer-plain:4.14.0")
+    implementation("net.kyori:adventure-text-serializer-legacy:4.14.0")
+    implementation("net.kyori:adventure-text-minimessage:4.14.0")
+    implementation("net.kyori:examination-api:1.3.0")
+    implementation("net.kyori:examination-string:1.3.0")
+    implementation("net.kyori:adventure-nbt:4.14.0")
+    implementation("net.kyori:adventure-text-serializer-json:4.14.0")
+    implementation("net.kyori:adventure-text-logger-slf4j:4.14.0")
+    implementation("net.kyori:adventure-platform-api:4.3.0")
+    implementation("net.kyori:adventure-text-serializer-ansi:4.14.0")
+    implementation("net.kyori:adventure-text-serializer-gson:4.14.0")
 
-        ).forEach { include(it) }
-
-
+    shadowCommon("net.kyori:adventure-text-serializer-gson:4.14.0")
+    shadowCommon("net.kyori:adventure-api:4.14.0")
+    shadowCommon("net.kyori:adventure-key:4.14.0")
+    shadowCommon("net.kyori:adventure-text-serializer-plain:4.14.0")
+    shadowCommon("net.kyori:adventure-text-serializer-legacy:4.14.0")
+    shadowCommon("net.kyori:adventure-text-minimessage:4.14.0")
+    shadowCommon("net.kyori:examination-api:1.3.0")
+    shadowCommon("net.kyori:examination-string:1.3.0")
+    shadowCommon("net.kyori:adventure-nbt:4.14.0")
+    shadowCommon("net.kyori:adventure-text-serializer-json:4.14.0")
+    shadowCommon("net.kyori:adventure-text-logger-slf4j:4.14.0")
+    shadowCommon("net.kyori:adventure-platform-api:4.3.0")
+    shadowCommon("net.kyori:adventure-text-serializer-ansi:4.14.0")
+    shadowCommon("net.kyori:adventure-text-serializer-gson:4.14.0")
 }
 
 tasks.processResources {
@@ -90,7 +103,16 @@ tasks {
 
     shadowJar {
         exclude("fabric.mod.json")
+        exclude("architectury.common.json")
+        exclude("com/google/gson/**/*")
+        exclude("org/intellij/**/*")
+        exclude("org/jetbrains/**/*")
         exclude("generations/gg/generations/core/generationscore/forge/datagen/**")
+        relocate("net.kyori", "com.kingpixel.cobbleutils.kyori")
+        relocate("org.slf4j", "com.kingpixel.cobbleutils.slf4j")
+
+        transformers.add(ServiceFileTransformer())
+
         configurations = listOf(project.configurations.getByName("shadowCommon"))
         archiveClassifier.set("dev-shadow")
     }
@@ -98,7 +120,10 @@ tasks {
     remapJar {
         inputFile.set(shadowJar.get().archiveFile)
         dependsOn(shadowJar)
+
     }
 
-    jar.get().archiveClassifier.set("dev")
+    jar {
+        archiveClassifier.set("dev")
+    }
 }

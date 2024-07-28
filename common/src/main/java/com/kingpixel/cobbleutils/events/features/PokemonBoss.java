@@ -33,9 +33,9 @@ public class PokemonBoss {
           Pokemon pokemon = pokemonEntity.getPokemon();
           if (pokemon.getShiny() || pokemon.isLegendary() || pokemon.isUltraBeast()) return EventResult.pass();
           if (pokemon.isPlayerOwned()) return EventResult.pass();
-          PokemonProperties.Companion.parse("uncatchable=yes").apply(pokemon);
           BossChance bossChance = CobbleUtils.config.getBosses().getBossChance();
           if (bossChance == null) return EventResult.pass();
+          PokemonProperties.Companion.parse("uncatchable=yes").apply(pokemon);
           pokemon.setLevel(Utils.RANDOM.nextInt(bossChance.getMinlevel(), bossChance.getMaxlevel()));
           pokemon.getPersistentData().putString(BOSS_RARITY_TAG, bossChance.getRarity());
           pokemon.getPersistentData().putBoolean(BOSS_TAG, true);

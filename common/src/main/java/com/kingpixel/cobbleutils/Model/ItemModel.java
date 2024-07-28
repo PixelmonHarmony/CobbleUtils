@@ -122,6 +122,8 @@ public class ItemModel {
         }
       }
       return Utils.parseItemId("minecraft:command_block", amount);
+    } else if (itemModel.getItem().startsWith("head:")) {
+      return Utils.getHead(itemModel.getItem().replace("head:", ""), amount);
     } else {
       return Utils.parseItemModel(itemModel, amount);
     }

@@ -83,8 +83,8 @@ public class Config {
     minpokemonsize = 0.01f;
     maxpokemonsize = 10f;
     alertreward = 15;
-    pokeshout = "cupokeshout";
-    pokeshoutall = "cupokeshoutall";
+    pokeshout = "pokeshoutplus";
+    pokeshoutall = "pokeshoutplusall";
     pokerus = new Pokerus();
     bosses = new Boss();
     impactorEconomy = new ImpactorEconomy();
@@ -135,11 +135,6 @@ public class Config {
         maxpokemonsize = config.getMaxpokemonsize();
         pokemonsizes = config.getPokemonsizes();
         solveSizeRandom = config.isSolveSizeRandom();
-        pokemonsizes.forEach(sizeChance -> {
-          if (sizeChance.getItem() == null) {
-            sizeChance.setItem(new ItemModel("minecraft:stone", "Stone", List.of()));
-          }
-        });
         defaultsize = config.getDefaultsize();
         pokeshout = config.getPokeshout();
         pokeshoutall = config.getPokeshoutall();

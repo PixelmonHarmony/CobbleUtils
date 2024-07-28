@@ -160,7 +160,8 @@ public class CobbleUtilities {
       player.sendSystemMessage(AdventureTranslator.toNative("Invalid type."));
       return false;
     }
-    String comando = CobbleUtils.config.getEcocommand().replace("%amount%", String.valueOf(money))
+    String comando = CobbleUtils.config.getEcocommand()
+      .replace("%amount%", String.valueOf(money))
       .replace("%player%", player.getGameProfile().getName());
     return executeCommand(comando);
   }

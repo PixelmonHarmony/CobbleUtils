@@ -105,21 +105,24 @@ public class CobbleUtils {
     LOGGER.info("§e| §6Support: §9https://github.com/Zonary123/CobbleUtils/issues");
     LOGGER.info("§e| &dDonate: §9https://ko-fi.com/zonary123");
     LOGGER.info("§e+-------------------------------+");
-    LOGGER.info("§e| §6Pokemons size: §a" + CobbleUtils.config.isRandomsize());
+    LOGGER.info("§e| §6Pokemons size: " + isActive(CobbleUtils.config.isRandomsize()));
     LOGGER.info("§e| §6Shulkers: §cUnimplemented");
-    LOGGER.info("§e| §6Fossil: §a" + CobbleUtils.config.isFossil());
+    LOGGER.info("§e| §6Fossil: " + isActive(CobbleUtils.config.isFossil()));
     LOGGER.info("§e| §6Shiny particles: §cUnimplemented");
     LOGGER.info("§e| §6Random item: §aImplemented");
     LOGGER.info("§e| §6Random money: §aImplemented");
     LOGGER.info("§e| §6Random pokemon: §aImplemented");
     LOGGER.info("§e| §6Pick Up: §cUnimplemented");
-    LOGGER.info("§e| §6Party: §a" + CobbleUtils.config.isParty());
-    LOGGER.info("§e| §6Rewards: §a" + CobbleUtils.config.isRewards());
-    LOGGER.info("§e| §6Pokerus: §a" + CobbleUtils.config.getPokerus().isActive());
+    LOGGER.info("§e| §6Party: " + isActive(CobbleUtils.config.isParty()));
+    LOGGER.info("§e| §6Rewards: " + isActive(CobbleUtils.config.isRewards()));
+    LOGGER.info("§e| §6Pokerus: " + isActive(CobbleUtils.config.getPokerus().isActive()));
+    LOGGER.info("§e| §6Breeding: " + isActive(CobbleUtils.breedconfig.isActive()));
+    LOGGER.info("§e| §6Bosses: " + isActive(CobbleUtils.config.getBosses().isActive()));
     LOGGER.info("§e+-------------------------------+");
   }
 
   private static void events() {
+    files();
     Utils.removeFiles(PATH_PARTY_DATA);
 
     LifecycleEvent.SERVER_STARTED.register(server -> load());
@@ -194,5 +197,13 @@ public class CobbleUtils {
     }), 0, CobbleUtils.config.getAlertreward(), TimeUnit.MINUTES);
 
     scheduledTasks.add(alertreward);
+  }
+
+  private static String isActive(boolean active) {
+    if (active) {
+      return "§aActive";
+    } else {
+      return "§cInactive";
+    }
   }
 }

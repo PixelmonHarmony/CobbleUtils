@@ -3,15 +3,16 @@ plugins {
     id("architectury-plugin")
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
-
+val common: Configuration by configurations.creating
+val shadowCommon: Configuration by configurations.creating
 architectury {
     platformSetupLoomIde()
     fabric()
 }
 
 configurations {
-    create("common")
-    create("shadowCommon")
+    //create("common")
+    //create("shadowCommon")
     compileClasspath.get().extendsFrom(configurations["common"])
     runtimeClasspath.get().extendsFrom(configurations["common"])
     getByName("developmentFabric").extendsFrom(configurations["common"])
@@ -31,7 +32,7 @@ dependencies {
     modImplementation("com.cobblemon:fabric:${property("cobblemon_version")}")
     modImplementation("net.fabricmc:fabric-loader:${property("fabric_loader_version")}")
     modApi("net.fabricmc.fabric-api:fabric-api:${property("fabric_version")}")
-    listOf(
+    /*listOf(
         "net.kyori:examination-api:1.3.0",
         "net.kyori:examination-string:1.3.0",
         "net.kyori:adventure-api:4.14.0",
@@ -43,10 +44,40 @@ dependencies {
         "net.kyori:adventure-text-serializer-json:4.14.0",
         "net.kyori:adventure-text-minimessage:4.14.0",
         "net.kyori:adventure-text-logger-slf4j:4.14.0",
-    ).forEach { include(it) }
+    ).forEach { include(it) }*/
 
     "common"(project(":common", "namedElements")) { isTransitive = false }
     "shadowCommon"(project(":common", "transformProductionFabric")) { isTransitive = false }
+
+    implementation("net.kyori:adventure-text-serializer-gson:4.14.0")
+    implementation("net.kyori:adventure-api:4.14.0")
+    implementation("net.kyori:adventure-key:4.14.0")
+    implementation("net.kyori:adventure-text-serializer-plain:4.14.0")
+    implementation("net.kyori:adventure-text-serializer-legacy:4.14.0")
+    implementation("net.kyori:adventure-text-minimessage:4.14.0")
+    implementation("net.kyori:examination-api:1.3.0")
+    implementation("net.kyori:examination-string:1.3.0")
+    implementation("net.kyori:adventure-nbt:4.14.0")
+    implementation("net.kyori:adventure-text-serializer-json:4.14.0")
+    implementation("net.kyori:adventure-text-logger-slf4j:4.14.0")
+    implementation("net.kyori:adventure-platform-api:4.3.0")
+    implementation("net.kyori:adventure-text-serializer-ansi:4.14.0")
+    implementation("net.kyori:adventure-text-serializer-gson:4.14.0")
+
+    shadowCommon("net.kyori:adventure-text-serializer-gson:4.14.0")
+    shadowCommon("net.kyori:adventure-api:4.14.0")
+    shadowCommon("net.kyori:adventure-key:4.14.0")
+    shadowCommon("net.kyori:adventure-text-serializer-plain:4.14.0")
+    shadowCommon("net.kyori:adventure-text-serializer-legacy:4.14.0")
+    shadowCommon("net.kyori:adventure-text-minimessage:4.14.0")
+    shadowCommon("net.kyori:examination-api:1.3.0")
+    shadowCommon("net.kyori:examination-string:1.3.0")
+    shadowCommon("net.kyori:adventure-nbt:4.14.0")
+    shadowCommon("net.kyori:adventure-text-serializer-json:4.14.0")
+    shadowCommon("net.kyori:adventure-text-logger-slf4j:4.14.0")
+    shadowCommon("net.kyori:adventure-platform-api:4.3.0")
+    shadowCommon("net.kyori:adventure-text-serializer-ansi:4.14.0")
+    shadowCommon("net.kyori:adventure-text-serializer-gson:4.14.0")
 }
 
 tasks.processResources {

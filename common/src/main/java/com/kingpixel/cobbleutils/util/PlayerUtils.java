@@ -1,7 +1,10 @@
 package com.kingpixel.cobbleutils.util;
 
 import com.kingpixel.cobbleutils.CobbleUtils;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 import java.util.Date;
 
@@ -57,5 +60,11 @@ public class PlayerUtils {
     return result.toString().trim();
   }
 
+
+  public static ItemStack getHeadItem(ServerPlayer player) {
+    ItemStack itemStack = Items.PLAYER_HEAD.getDefaultInstance();
+    itemStack.getOrCreateTag().putString("SkullOwner", player.getGameProfile().getName());
+    return itemStack;
+  }
 
 }

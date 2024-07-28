@@ -2,10 +2,7 @@ package com.kingpixel.cobbleutils.Model;
 
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.cobblemon.mod.common.pokemon.Species;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 /**
  * @author Carlos Varas Alonso - 15/07/2024 1:35
@@ -14,6 +11,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @EqualsAndHashCode
+@Data
 public class PokemonData {
   private String pokename;
   private String form;

@@ -22,6 +22,7 @@ public class PoolItems {
 
   public PoolItems() {
     randomitems = Map.of(
+      "default", ItemChance.defaultItemChances(),
       "pokeballs", List.of(new ItemChance("cobblemon:poke_ball", 100)),
       "fossil", List.of(new ItemChance("cobblemon:helix_fossil", 100), new ItemChance("cobblemon:dome_fossil", 100))
     );

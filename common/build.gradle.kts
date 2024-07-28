@@ -1,14 +1,15 @@
 plugins {
     id("dev.architectury.loom")
     id("architectury-plugin")
-}
 
+}
 architectury {
     common("forge", "fabric")
     platformSetupLoomIde()
 }
 
 dependencies {
+
     minecraft("net.minecraft:minecraft:${property("minecraft_version")}")
     mappings(loom.officialMojangMappings())
     modCompileOnly("com.cobblemon:mod:${property("cobblemon_version")}")
@@ -34,8 +35,9 @@ dependencies {
     api("net.kyori:adventure-nbt:4.14.0")
     api("net.kyori:adventure-text-serializer-plain:4.14.0")
     api("net.kyori:adventure-text-serializer-legacy:4.14.0")
-    api("net.kyori:adventure-text-serializer-gson:4.14.0")
     api("net.kyori:adventure-text-serializer-json:4.14.0")
     api("net.kyori:adventure-text-minimessage:4.14.0")
     api("net.kyori:adventure-text-logger-slf4j:4.14.0")
+    api("net.kyori:adventure-text-serializer-gson:4.14.0")
 }
+

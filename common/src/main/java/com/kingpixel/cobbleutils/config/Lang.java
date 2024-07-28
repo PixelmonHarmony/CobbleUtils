@@ -137,13 +137,13 @@ public class Lang {
     );
     // Time
 
-    days = "&6%s &adays";
-    day = "&6%s &aday";
-    hours = "&6%s &ahours";
-    hour = "&6%s &ahour";
-    minutes = "&6%s &aminutes";
-    minute = "&6%s &aminute";
-    seconds = "&6%s &aseconds";
+    days = "&6%s &adays ";
+    day = "&6%s &aday ";
+    hours = "&6%s &ahours ";
+    hour = "&6%s &ahour ";
+    minutes = "&6%s &aminutes ";
+    minute = "&6%s &aminute ";
+    seconds = "&6%s &aseconds ";
     second = "&6%s &asecond";
 
     gender = Map.of("M", "&b♂", "F", "&d♀", "N", "&7⚲");
