@@ -2,8 +2,8 @@ package com.kingpixel.cobbleutils.events;
 
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.ui.ShinyTokenUI;
-import com.kingpixel.cobbleutils.util.Utils;
 import dev.architectury.event.CompoundEventResult;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -16,7 +16,9 @@ import net.minecraft.world.item.ItemStack;
 public class ItemRightClickEvents {
   public static CompoundEventResult register(Player player, InteractionHand hand) {
     ItemStack itemStack = player.getItemInHand(hand);
-    if (itemStack.hasTag() && itemStack.getTag().contains("shinytoken") && itemStack.getItem() == Utils.parseItemId(CobbleUtils.config.getShinytoken().getItem()).getItem()) {
+    CompoundTag tag = itemStack.getTag();
+    if (tag == null) return CompoundEventResult.pass();
+    if (itemStack.hasTag() && tag.contains("shinytoken") && itemStack.getItem() == CobbleUtils.config.getShinytoken().getItemStack().getItem()) {
       if (!CobbleUtils.config.isActiveshinytoken()) return CompoundEventResult.pass();
       ShinyTokenUI.openmenu(player);
     }

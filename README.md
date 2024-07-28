@@ -21,7 +21,10 @@ received a reward. Users can only retrieve rewards from this system; they cannot
 
 **ShinyToken** - Convert your Pokémon to shiny!
 
-**Egg Hatching** - Hatch eggs faster! (Coming soon)
+**Pokemons Bosses** - Fight against boss Pokémon that can give rewards!
+
+**Breeding** - Breed two Pokémon of the same species or with a Ditto to obtain an egg, which you will need to
+walk around the world to hatch! (Coming soon)
 
 **Safe Trade** - Trade Pokemons, Items, and Money with other players safely! (Coming soon)
 

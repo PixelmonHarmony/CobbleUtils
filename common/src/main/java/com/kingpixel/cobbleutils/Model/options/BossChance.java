@@ -20,6 +20,7 @@ public class BossChance {
   private final float minsize;
   private final float maxsize;
   private final int amountrewards;
+  private final boolean allrewards;
   private final List<ItemChance> rewards;
 
   public BossChance() {
@@ -30,6 +31,7 @@ public class BossChance {
     this.minsize = 2.5f;
     this.maxsize = 5.0f;
     this.amountrewards = 1;
+    this.allrewards = false;
     this.rewards = List.of(new ItemChance());
   }
 
@@ -41,6 +43,7 @@ public class BossChance {
     this.minsize = 1;
     this.maxsize = 100;
     this.amountrewards = 1;
+    this.allrewards = false;
     this.rewards = List.of(new ItemChance());
   }
 
@@ -53,5 +56,6 @@ public class BossChance {
     this.maxsize = maxsize;
     this.amountrewards = amountrewards;
     this.rewards = rewards;
+    this.allrewards = false;
   }
 }

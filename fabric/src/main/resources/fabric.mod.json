@@ -9,6 +9,9 @@
   ],
   "contact": {
   },
+  "mixins": [
+    "cobbleutils.mixins.json"
+  ],
   "entrypoints": {
     "main": [
       "com.kingpixel.cobbleutils.fabric.CobbleUtilsFabric"

@@ -1,6 +1,5 @@
 package com.kingpixel.cobbleutils.Model.options;
 
-import com.cobblemon.mod.common.api.storage.NoPokemonStoreException;
 import com.kingpixel.cobbleutils.Model.ItemChance;
 import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Getter;
@@ -60,19 +59,13 @@ public class Boss {
     return null;
   }
 
-  public void giveRewards(String bossrarity, ServerPlayer entity) {
+  public void giveRewards(String bossrarity, ServerPlayer player) {
     BossChance bossChance = getBossChance(bossrarity);
     if (bossChance == null) return;
-    for (int i = 0; i < bossChance.getAmountrewards(); i++) {
-      bossChance.getRewards().forEach(itemChance -> {
-        if (Utils.RANDOM.nextDouble() <= itemChance.getChance()) {
-          try {
-            ItemChance.giveReward(entity, itemChance);
-          } catch (NoPokemonStoreException e) {
-            throw new RuntimeException(e);
-          }
-        }
-      });
+    if (bossChance.isAllrewards()) {
+      ItemChance.getAllRewards(bossChance.getRewards(), player);
+    } else {
+      ItemChance.getRandomRewards(bossChance.getRewards(), player, bossChance.getAmountrewards());
     }
   }
 }

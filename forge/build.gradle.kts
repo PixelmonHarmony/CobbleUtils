@@ -44,18 +44,17 @@ dependencies {
         "net.kyori:adventure-key:4.14.0",
         "net.kyori:adventure-text-serializer-plain:4.14.0",
         "net.kyori:adventure-text-serializer-legacy:4.14.0",
-        "net.kyori:adventure-text-serializer-gson:4.14.0",
         "net.kyori:adventure-text-minimessage:4.14.0",
-        "net.kyori:adventure-text-logger-slf4j:4.14.0",
         "net.kyori:examination-api:1.3.0",
         "net.kyori:examination-string:1.3.0",
         "net.kyori:adventure-nbt:4.14.0",
         "net.kyori:adventure-text-serializer-json:4.14.0",
+        "net.kyori:adventure-text-logger-slf4j:4.14.0",
+        "net.kyori:adventure-platform-api:4.3.0",
+        "net.kyori:adventure-text-serializer-ansi:4.14.0",
+        "net.kyori:adventure-text-serializer-gson:4.14.0",
 
-        //"net.kyori:adventure-text-serializer-ansi:4.14.0",
-        //"net.kyori:adventure-platform-api:4.3.0",
-        //"com.google.code.gson:gson:2.10.1",
-    ).forEach { include(it) }
+        ).forEach { include(it) }
 
 
 }

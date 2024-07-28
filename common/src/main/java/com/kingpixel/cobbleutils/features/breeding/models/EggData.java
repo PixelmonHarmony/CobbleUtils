@@ -1,10 +1,13 @@
 package com.kingpixel.cobbleutils.features.breeding.models;
 
+import com.cobblemon.mod.common.api.types.ElementalType;
+import com.cobblemon.mod.common.api.types.ElementalTypes;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import net.minecraft.nbt.CompoundTag;
+
+import java.util.List;
 
 /**
  * @author Carlos Varas Alonso - 23/07/2024 23:01
@@ -16,38 +19,51 @@ public class EggData {
   private String species;
   private int level;
   private int steps;
+  private int cycles;
   private String nature;
   private String ability;
-  private String type;
-   
+  private List<ElementalType> type;
 
-  public EggData() {
-    this.species = "";
-    this.level = 0;
-    this.steps = 0;
-    this.nature = "";
-    this.ability = "";
-    this.type = "";
-  }
 
-  public EggData(String species, int level, int steps, String nature, String ability, String type) {
-    this.species = species;
-    this.level = level;
-    this.steps = steps;
-    this.nature = nature;
-    this.ability = ability;
-    this.type = type;
+  public void apply(Pokemon pokemon) {
+
   }
 
   public static EggData from(Pokemon pokemon) {
-    EggData egg = new EggData();
-    CompoundTag tag = pokemon.getPersistentData();
-    egg.setType(tag.getString("type"));
-    egg.setAbility(tag.getString("ability"));
-    egg.setNature(tag.getString("nature"));
-    egg.setSpecies(tag.getString("species"));
-    egg.setLevel(tag.getInt("level"));
-    egg.setSteps(tag.getInt("steps"));
-    return egg;
+    EggData eggData = new EggData();
+    eggData.setSpecies(pokemon.getPersistentData().getString("species"));
+    eggData.setLevel(pokemon.getPersistentData().getInt("level"));
+    eggData.setSteps(pokemon.getPersistentData().getInt("steps"));
+    eggData.setNature(pokemon.getPersistentData().getString("nature"));
+    eggData.setAbility(pokemon.getPersistentData().getString("ability"));
+    ElementalType type1 = ElementalTypes.INSTANCE.get(pokemon.getPersistentData().getString("type1"));
+    eggData.getType().add(type1);
+    ElementalType type2 = ElementalTypes.INSTANCE.get(pokemon.getPersistentData().getString("type2"));
+    if (type2 != null) eggData.getType().add(type2);
+
+    return eggData;
+  }
+
+  public void steps(Pokemon pokemon, int stepsremove) {
+    if (stepsremove == 0) return;
+    this.steps -= stepsremove;
+
+    if (steps <= 0) {
+      this.cycles--;
+      this.steps = getMaxStepsPerCycle();
+    }
+    updateSteps(pokemon);
+    if (this.steps <= 0 && this.cycles <= 0) {
+      apply(pokemon);
+    }
+  }
+
+  private int getMaxStepsPerCycle() {
+    return 200;
+  }
+
+  private void updateSteps(Pokemon pokemon) {
+    pokemon.getPersistentData().putInt("steps", this.steps);
+    pokemon.getPersistentData().putInt("cycles", this.cycles);
   }
 }

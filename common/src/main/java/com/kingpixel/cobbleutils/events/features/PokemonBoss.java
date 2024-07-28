@@ -66,8 +66,7 @@ public class PokemonBoss {
           if (pokemon.getPersistentData().getBoolean(BOSS_TAG)) {
             evt.getWinners().forEach(winner -> {
               if (winner instanceof PlayerBattleActor playerBattleActor) {
-                CobbleUtils.config.getBosses().giveRewards(pokemon.getPersistentData().getString(BOSS_RARITY_TAG),
-                  playerBattleActor.getEntity());
+                CobbleUtils.config.getBosses().giveRewards(pokemon.getPersistentData().getString(BOSS_RARITY_TAG), playerBattleActor.getEntity());
               }
             });
           }
