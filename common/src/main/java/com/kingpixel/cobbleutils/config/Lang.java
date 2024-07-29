@@ -20,6 +20,7 @@ public class Lang {
   private String titlepc;
   private String titleparty;
   private String titleconfirm;
+  private String AH;
   private String confirm;
   private String cancel;
   private String close;
@@ -93,9 +94,10 @@ public class Lang {
     no = "&c✘";
     symbolshiny = " &e⭐";
     nocooldown = "&cNo cooldown";
+    AH = "&f(&bAH&f)";
     none = "&cNone";
     coloritem = "<gradient:#cc7435:#e3ab84>";
-    pokemonnameformat = "&e%pokemon%%shiny% %gender% &f(&b%form%&f) &f(&b%level%&f)";
+    pokemonnameformat = "&e%pokemon%%shiny% %gender% &f(&b%form%&f) &f(&b%level%&f) %ah%";
     messageHaveRewards = "&aYou have rewards %amount%.";
     // Messages
     messagerandomitem = "&aYou get a &e%type% &arandomitem &f%item% &6%amount%&a!";
@@ -117,7 +119,7 @@ public class Lang {
       "<#de896f>Tradeable: &f%tradeable%",
       "<#b0eb59>Breedable: &f%breedable%",
       "<#9be8c2><lang:cobblemon.ui.info.nature>: &f%nature% &f(&a↑%up%&f/&c↓%down%&f)",
-      "<#6fa7de><lang:cobblemon.ui.info.ability>: &f%ability%",
+      "<#6fa7de><lang:cobblemon.ui.info.ability>: &f%ability% %ah%",
       "<#83a7de><lang:cobblemon.ui.stats.ivs>: &e%ivs%&7/&e31",
       " <#ee8339><lang:cobblemon.ui.stats.hp>: &f%ivshp% <#e84b48><lang:cobblemon.ui.stats.atk>: &f%ivsatk% <#5d79e1><lang:cobblemon.ui.stats.def>: &f%ivsdef%",
       " <#40b5cd><lang:cobblemon.ui.stats.sp_atk>: &f%ivsspa% <#f59bc2><lang:cobblemon.ui.stats.sp_def>: &f%ivsspdef% <#69cd65><lang:cobblemon.ui.stats.speed>: &f%ivsspeed%",
@@ -222,6 +224,7 @@ public class Lang {
         if (titlemenurewards == null) titlemenurewards = "&eRewards Menu";
         yes = lang.getYes();
         no = lang.getNo();
+        AH = lang.getAH();
         titlepc = lang.getTitlepc();
         messageReload = lang.getMessageReload();
         itemMoney = lang.getItemMoney();

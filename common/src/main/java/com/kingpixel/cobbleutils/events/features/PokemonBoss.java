@@ -9,6 +9,8 @@ import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.options.BossChance;
+import com.kingpixel.cobbleutils.Model.options.PokemonDataBoss;
+import com.kingpixel.cobbleutils.util.PokemonUtils;
 import com.kingpixel.cobbleutils.util.Utils;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.EntityEvent;
@@ -31,11 +33,13 @@ public class PokemonBoss {
         if (entity instanceof PokemonEntity pokemonEntity) {
           if (((Mob) entity).isNoAi()) return EventResult.pass();
           Pokemon pokemon = pokemonEntity.getPokemon();
-          if (pokemon.getShiny() || pokemon.isLegendary() || pokemon.isUltraBeast()) return EventResult.pass();
           if (pokemon.isPlayerOwned()) return EventResult.pass();
+          if (pokemon.getShiny() || pokemon.isLegendary() || pokemon.isUltraBeast() || PokemonUtils.getIvsAverage(pokemon.getIvs()) == 31)
+            return EventResult.pass();
           BossChance bossChance = CobbleUtils.config.getBosses().getBossChance();
           if (bossChance == null) return EventResult.pass();
-          PokemonProperties.Companion.parse("uncatchable=yes").apply(pokemon);
+          PokemonProperties.Companion.parse("uncatchable=yes " + PokemonDataBoss.getRandom(pokemon,
+            CobbleUtils.config.getBosses().getPokemonDataBosses())).apply(pokemon);
           pokemon.setLevel(Utils.RANDOM.nextInt(bossChance.getMinlevel(), bossChance.getMaxlevel()));
           pokemon.getPersistentData().putString(BOSS_RARITY_TAG, bossChance.getRarity());
           pokemon.getPersistentData().putBoolean(BOSS_TAG, true);

@@ -6,6 +6,7 @@ import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.*;
 import com.kingpixel.cobbleutils.Model.options.Boss;
 import com.kingpixel.cobbleutils.Model.options.ImpactorEconomy;
+import com.kingpixel.cobbleutils.Model.options.PokemonDataBoss;
 import com.kingpixel.cobbleutils.Model.options.Pokerus;
 import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Getter;
@@ -148,6 +149,9 @@ public class Config {
         alertreward = config.getAlertreward();
         itemsCommands = config.getItemsCommands();
         bosses = config.getBosses();
+        if (bosses.getPokemonDataBosses() == null) {
+          bosses.setPokemonDataBosses(List.of(new PokemonDataBoss()));
+        }
         impactorEconomy = config.getImpactorEconomy();
 
 

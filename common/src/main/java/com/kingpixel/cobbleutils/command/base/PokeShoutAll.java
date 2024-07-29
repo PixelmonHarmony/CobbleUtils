@@ -3,6 +3,7 @@ package com.kingpixel.cobbleutils.command.base;
 import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.storage.party.PlayerPartyStore;
 import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.managers.CobbleUtilsPermission;
 import com.kingpixel.cobbleutils.util.Utils;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
@@ -21,6 +22,8 @@ public class PokeShoutAll implements Command<CommandSourceStack> {
                               LiteralArgumentBuilder<CommandSourceStack> base) {
     dispatcher.register(
       base
+        .requires(source -> CobbleUtilsPermission.checkPermission(source, CobbleUtils.permission.USER_PERMISSION)
+          || CobbleUtilsPermission.checkPermission(source, CobbleUtils.permission.POKESHOUTALL_PERMISSION))
         .executes(context -> {
           if (!context.getSource().isPlayer()) {
             CobbleUtils.LOGGER.error("This command can only be executed by a player");

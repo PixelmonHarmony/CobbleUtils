@@ -3,6 +3,7 @@ package com.kingpixel.cobbleutils.command.base;
 import com.cobblemon.mod.common.command.argument.PartySlotArgumentType;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.managers.CobbleUtilsPermission;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.PlayerUtils;
 import com.kingpixel.cobbleutils.util.PokemonUtils;
@@ -28,6 +29,8 @@ public class PokeShout implements Command<CommandSourceStack> {
                               LiteralArgumentBuilder<CommandSourceStack> base) {
     dispatcher.register(
       base
+        .requires(source -> CobbleUtilsPermission.checkPermission(source, CobbleUtils.permission.USER_PERMISSION)
+          || CobbleUtilsPermission.checkPermission(source, CobbleUtils.permission.POKESHOUT_PERMISSION))
         .then(
           Commands.argument("slot", PartySlotArgumentType.Companion.partySlot())
             .executes(context -> {

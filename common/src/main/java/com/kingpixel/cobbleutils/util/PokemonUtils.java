@@ -1,12 +1,15 @@
 package com.kingpixel.cobbleutils.util;
 
 import com.cobblemon.mod.common.api.abilities.Ability;
+import com.cobblemon.mod.common.api.abilities.AbilityTemplate;
+import com.cobblemon.mod.common.api.abilities.PotentialAbility;
 import com.cobblemon.mod.common.api.moves.Move;
 import com.cobblemon.mod.common.api.pokemon.stats.Stat;
 import com.cobblemon.mod.common.api.pokemon.stats.Stats;
 import com.cobblemon.mod.common.api.types.ElementalType;
 import com.cobblemon.mod.common.pokeball.PokeBall;
 import com.cobblemon.mod.common.pokemon.*;
+import com.cobblemon.mod.common.pokemon.abilities.HiddenAbilityType;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.ScalePokemonData;
 import com.kingpixel.cobbleutils.Model.SizeChanceWithoutItem;
@@ -148,7 +151,8 @@ public class PokemonUtils {
         .replace("%rarity%", String.valueOf(getRarity(pokemon)))
         .replace("%breedable%", isBreedable(pokemon) ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
         .replace("%pokerus%", isPokerus(pokemon) ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
-        .replace("%friendship%", String.valueOf(pokemon.getFriendship()));
+        .replace("%friendship%", String.valueOf(pokemon.getFriendship()))
+        .replace("%ah%", haveAH(pokemon) ? CobbleUtils.language.getAH() : "");
     }
 
     return message;
@@ -485,4 +489,80 @@ public class PokemonUtils {
       .map(SizeChanceWithoutItem::getId)
       .orElse("Normal");
   }
+
+  /**
+   * Get the hidden ability of the pokemon
+   *
+   * @param pokemon The pokemon to get the hidden ability
+   *
+   * @return The hidden ability of the pokemon
+   */
+  public static Ability getAH(Pokemon pokemon) {
+    return getAH(pokemon.getSpecies());
+  }
+
+  /**
+   * Get the hidden ability of the species
+   *
+   * @param species The species to get the hidden ability
+   *
+   * @return The hidden ability of the species
+   */
+  public static Ability getAH(Species species) {
+    for (PotentialAbility ability : species.getAbilities()) {
+      if (ability.getType() instanceof HiddenAbilityType) {
+        return ability.getTemplate().create(true);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Check if the pokemon has the hidden ability
+   *
+   * @param pokemon The pokemon to check
+   *
+   * @return If the pokemon has the hidden ability
+   */
+  public static boolean haveAH(Pokemon pokemon) {
+    for (PotentialAbility ability : pokemon.getSpecies().getAbilities()) {
+      if (ability.getType() instanceof HiddenAbilityType) {
+        return ability.getTemplate().getName().equalsIgnoreCase(pokemon.getAbility().getName());
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Check if the pokemon has the hidden ability
+   *
+   * @param pokemon         The pokemon to check
+   * @param abilityTemplate The ability to check
+   *
+   * @return If the pokemon has the hidden ability
+   */
+  public static boolean isAH(Pokemon pokemon, AbilityTemplate abilityTemplate) {
+    return isAH(pokemon.getSpecies(), abilityTemplate.create(true));
+  }
+
+  /**
+   * Check if the species has the hidden ability
+   *
+   * @param species The species to check
+   * @param ability The ability to check
+   *
+   * @return If the species has the hidden ability
+   */
+  private static boolean isAH(Species species, Ability ability) {
+    for (PotentialAbility potentialAbility : species.getAbilities()) {
+      if (potentialAbility.getType() instanceof HiddenAbilityType) {
+        if (potentialAbility.getTemplate().create(true).getName().equalsIgnoreCase(ability.getName())) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+
 }

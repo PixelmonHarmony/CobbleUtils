@@ -9,6 +9,8 @@ import com.kingpixel.cobbleutils.events.DropItemEvent;
 import com.kingpixel.cobbleutils.events.ItemRightClickEvents;
 import com.kingpixel.cobbleutils.events.features.FeaturesRegister;
 import com.kingpixel.cobbleutils.features.Features;
+import com.kingpixel.cobbleutils.managers.CobbleUtilsPermission;
+import com.kingpixel.cobbleutils.managers.CobbleUtilsPermissionConfig;
 import com.kingpixel.cobbleutils.managers.PartyManager;
 import com.kingpixel.cobbleutils.managers.RewardsManager;
 import com.kingpixel.cobbleutils.party.command.CommandsParty;
@@ -47,6 +49,9 @@ public class CobbleUtils {
   public static PoolItems poolItems = new PoolItems();
   public static PoolPokemons poolPokemons = new PoolPokemons();
   public static SpawnRates spawnRates = new SpawnRates();
+
+  public static CobbleUtilsPermissionConfig permissionConfig = new CobbleUtilsPermissionConfig();
+  public static CobbleUtilsPermission permission = new CobbleUtilsPermission();
   // Party
   public static PartyConfig partyConfig = new PartyConfig();
   public static PartyLang partyLang = new PartyLang();
@@ -154,6 +159,7 @@ public class CobbleUtils {
 
     PlayerEvent.PLAYER_QUIT.register(player -> {
       UserParty userParty = partyManager.getUserParty().get(player.getUUID());
+      if (userParty == null) return;
       if (userParty.isHasParty()) {
         partyManager.leaveParty(partyManager.getUserParty().get(player.getUUID())
             .getPartyName(),

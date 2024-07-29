@@ -21,13 +21,16 @@ public class Boss {
   private boolean active;
   private boolean shiny;
   private int rarity;
+  private List<PokemonDataBoss> pokemonDataBosses;
   private List<BossChance> bossChances;
 
   public Boss() {
     this.active = false;
     this.shiny = true;
     this.rarity = 8192;
-    bossChances = List.of(new BossChance(), new BossChance("uncommon"));
+    this.pokemonDataBosses = List.of(new PokemonDataBoss());
+    this.bossChances = List.of(new BossChance(), new BossChance("uncommon"));
+
   }
 
   public Boss(List<BossChance> bossChances) {

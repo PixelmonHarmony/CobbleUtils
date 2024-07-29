@@ -5,6 +5,7 @@ import com.cobblemon.mod.common.command.argument.PartySlotArgumentType;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.google.gson.JsonObject;
 import com.kingpixel.cobbleutils.util.PlayerUtils;
+import com.kingpixel.cobbleutils.util.PokemonUtils;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
@@ -46,6 +47,23 @@ public class Test {
             player.sendSystemMessage(Component.literal(String.valueOf(player.getGameProfile().getId())));
             return 1;
           })
+      )
+    );
+
+    dispatcher.register(
+      base.then(
+        Commands.literal("ah")
+          .requires(commandSourceStack -> commandSourceStack.hasPermission(2))
+          .then(
+            Commands.argument("slot", PartySlotArgumentType.Companion.partySlot())
+              .executes(context -> {
+                if (!context.getSource().isPlayer()) return 0;
+                ServerPlayer player = context.getSource().getPlayerOrException();
+                Pokemon pokemon = PartySlotArgumentType.Companion.getPokemon(context, "slot");
+                PokemonUtils.getAH(pokemon);
+                return 1;
+              })
+          )
       )
     );
   }
