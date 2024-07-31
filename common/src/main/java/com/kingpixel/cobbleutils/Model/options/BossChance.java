@@ -24,6 +24,7 @@ public class BossChance {
   private float maxsize;
   private int amountrewards;
   private boolean allrewards;
+  private PokemonDataBoss pokemons;
   private List<ItemChance> rewards;
 
   public BossChance() {
@@ -35,6 +36,7 @@ public class BossChance {
     this.maxsize = 5.0f;
     this.amountrewards = 1;
     this.allrewards = false;
+    this.pokemons = new PokemonDataBoss();
     this.rewards = ItemChance.defaultItemChances();
   }
 
@@ -47,6 +49,7 @@ public class BossChance {
     this.maxsize = 5.0f;
     this.amountrewards = 1;
     this.allrewards = false;
+    this.pokemons = new PokemonDataBoss();
     this.rewards = ItemChance.defaultItemChances();
   }
 
@@ -59,6 +62,7 @@ public class BossChance {
     this.maxsize = maxsize;
     this.amountrewards = amountrewards;
     this.rewards = ItemChance.defaultItemChances();
+    this.pokemons = new PokemonDataBoss();
     this.allrewards = false;
   }
 

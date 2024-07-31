@@ -103,7 +103,7 @@ public class CobbleUtils {
     LOGGER.info("§e+-------------------------------+");
     LOGGER.info("§e| §6CobbleUtils");
     LOGGER.info("§e+-------------------------------+");
-    LOGGER.info("§e| §6Version: §e" + "1.1.0");
+    LOGGER.info("§e| §6Version: §e" + "1.1.1");
     LOGGER.info("§e| §6Author: §eZonary123");
     LOGGER.info("§e| §6Website: §9https://github.com/Zonary123/CobbleUtils");
     LOGGER.info("§e| §6Discord: §9https://discord.com/invite/fKNc7FnXpa");

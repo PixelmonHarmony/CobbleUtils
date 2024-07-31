@@ -1,5 +1,6 @@
 package com.kingpixel.cobbleutils.Model.options;
 
+import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.Model.ItemChance;
 import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Data;
@@ -8,6 +9,7 @@ import lombok.Setter;
 import lombok.ToString;
 import net.minecraft.server.level.ServerPlayer;
 
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -20,28 +22,40 @@ import java.util.List;
 public class Boss {
   private boolean active;
   private boolean shiny;
+  private boolean forceAspectBoss;
   private int rarity;
-  private List<PokemonDataBoss> pokemonDataBosses;
   private List<BossChance> bossChances;
 
   public Boss() {
     this.active = false;
     this.shiny = true;
+    this.forceAspectBoss = false;
     this.rarity = 8192;
-    this.pokemonDataBosses = List.of(new PokemonDataBoss());
     this.bossChances = List.of(new BossChance(), new BossChance("uncommon"));
-
   }
 
   public Boss(List<BossChance> bossChances) {
     this.active = false;
     this.shiny = true;
+    this.forceAspectBoss = false;
     this.rarity = 8192;
     this.bossChances = bossChances;
   }
 
   public BossChance getBossChance(String rarity) {
     return bossChances.stream().filter(bossChance -> bossChance.getRarity().equals(rarity)).findFirst().orElse(null);
+  }
+
+  public PokemonDataBoss getPokemonDataBoss(Pokemon pokemon) {
+    return bossChances.stream().map(BossChance::getPokemons).filter(pokemonDataBoss -> new HashSet<>(pokemonDataBoss.getPokemon()).contains(pokemon.showdownId()))
+      .findFirst()
+      .orElse(null);
+  }
+
+  public BossChance getBossChanceByRarity(Pokemon pokemon) {
+    return bossChances.stream().filter(bossChance -> bossChance.getPokemons().getPokemon().contains(pokemon.showdownId()))
+      .findFirst()
+      .orElse(null);
   }
 
   public BossChance getBossChance() {

@@ -149,9 +149,10 @@ public class Config {
         alertreward = config.getAlertreward();
         itemsCommands = config.getItemsCommands();
         bosses = config.getBosses();
-        if (bosses.getPokemonDataBosses() == null) {
-          bosses.setPokemonDataBosses(List.of(new PokemonDataBoss()));
-        }
+        if (bosses == null) bosses = new Boss();
+        bosses.getBossChances().forEach(bossChance -> {
+          if (bossChance.getPokemons() == null) bossChance.setPokemons(new PokemonDataBoss());
+        });
         impactorEconomy = config.getImpactorEconomy();
 
 

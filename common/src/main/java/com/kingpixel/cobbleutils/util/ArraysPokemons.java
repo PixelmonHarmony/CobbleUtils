@@ -74,6 +74,8 @@ public class ArraysPokemons {
     }
   }
 
+  
+
   /**
    * Check if the Pokémon has a form allowed
    *

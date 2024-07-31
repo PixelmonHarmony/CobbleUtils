@@ -24,6 +24,7 @@ import static com.kingpixel.cobbleutils.Model.CobbleUtilsTags.*;
  * @author Carlos Varas Alonso - 20/07/2024 9:04
  */
 public class PokemonBoss {
+  private static boolean boss = false;
 
   public static void register() {
     // ? Pokemon Boss
@@ -32,21 +33,32 @@ public class PokemonBoss {
         if (!CobbleUtils.config.getBosses().isActive()) return EventResult.pass();
         if (entity instanceof PokemonEntity pokemonEntity) {
           if (((Mob) entity).isNoAi()) return EventResult.pass();
+          if (((Mob) entity).isPersistenceRequired()) return EventResult.pass();
           Pokemon pokemon = pokemonEntity.getPokemon();
           if (pokemon.isPlayerOwned()) return EventResult.pass();
           if (pokemon.getShiny() || pokemon.isLegendary() || pokemon.isUltraBeast() || PokemonUtils.getIvsAverage(pokemon.getIvs()) == 31)
             return EventResult.pass();
           BossChance bossChance = CobbleUtils.config.getBosses().getBossChance();
-          if (bossChance == null) return EventResult.pass();
-          PokemonProperties.Companion.parse("uncatchable=yes " + PokemonDataBoss.getRandom(pokemon,
-            CobbleUtils.config.getBosses().getPokemonDataBosses())).apply(pokemon);
-          pokemon.setLevel(Utils.RANDOM.nextInt(bossChance.getMinlevel(), bossChance.getMaxlevel()));
-          pokemon.getPersistentData().putString(BOSS_RARITY_TAG, bossChance.getRarity());
-          pokemon.getPersistentData().putBoolean(BOSS_TAG, true);
-          pokemon.setNickname(Component.literal(bossChance.getRarity()));
-          pokemon.setShiny(CobbleUtils.config.getBosses().isShiny());
-          pokemon.getPersistentData().putString(SIZE_TAG, SIZE_CUSTOM_TAG);
-          pokemon.setScaleModifier(Utils.RANDOM.nextFloat(bossChance.getMinsize(), bossChance.getMaxsize()));
+          if (bossChance != null) {
+            boss = true;
+          }
+          PokemonDataBoss pokemonDataBoss = CobbleUtils.config.getBosses().getPokemonDataBoss(pokemon);
+          BossChance bossChanceByRarity = CobbleUtils.config.getBosses().getBossChanceByRarity(pokemon);
+          if (CobbleUtils.config.getBosses().isForceAspectBoss()) {
+            if (pokemonDataBoss == null) return EventResult.pass();
+            if (boss) {
+              PokemonProperties.Companion.parse("uncatchable=yes " + pokemonDataBoss.getFormsoraspects()).apply(pokemon);
+              apply(pokemon, bossChanceByRarity);
+              boss = false;
+              return EventResult.pass();
+            }
+          } else {
+            if (bossChance == null) return EventResult.pass();
+            PokemonProperties.Companion.parse("uncatchable=yes ").apply(pokemon);
+            apply(pokemon, bossChance);
+            boss = false;
+            return EventResult.pass();
+          }
         }
       } catch (Exception e) {
         e.printStackTrace();
@@ -78,5 +90,15 @@ public class PokemonBoss {
       });
       return Unit.INSTANCE;
     });
+  }
+
+  private static void apply(Pokemon pokemon, BossChance bossChance) {
+    pokemon.setLevel(Utils.RANDOM.nextInt(bossChance.getMinlevel(), bossChance.getMaxlevel()));
+    pokemon.getPersistentData().putString(BOSS_RARITY_TAG, bossChance.getRarity());
+    pokemon.getPersistentData().putBoolean(BOSS_TAG, true);
+    pokemon.setNickname(Component.literal(bossChance.getRarity()));
+    pokemon.setShiny(CobbleUtils.config.getBosses().isShiny());
+    pokemon.getPersistentData().putString(SIZE_TAG, SIZE_CUSTOM_TAG);
+    pokemon.setScaleModifier(Utils.RANDOM.nextFloat(bossChance.getMinsize(), bossChance.getMaxsize()));
   }
 }

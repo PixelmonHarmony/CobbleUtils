@@ -29,6 +29,7 @@ public class ScaleEvent {
         if (!CobbleUtils.config.isRandomsize()) return EventResult.pass();
         if (entity instanceof PokemonEntity pokemonEntity) {
           if (((Mob) entity).isNoAi()) return EventResult.pass();
+          if (((Mob) entity).isPersistenceRequired()) return EventResult.pass();
           Pokemon pokemon = pokemonEntity.getPokemon();
           if (pokemon.getPersistentData().getString(SIZE_TAG).equalsIgnoreCase(SIZE_CUSTOM_TAG))
             return EventResult.pass();
