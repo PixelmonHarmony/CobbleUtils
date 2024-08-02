@@ -131,6 +131,7 @@ public class RewardsUtils {
    * @return
    */
   public static boolean saveRewardPokemon(Player player, Pokemon pokemon) throws NoPokemonStoreException {
+    if (pokemon == null) return false;
     if (Cobblemon.INSTANCE.getStorage().getParty(player.getUUID()).add(pokemon)) {
       return true;
     }
@@ -163,6 +164,7 @@ public class RewardsUtils {
       }
     );
     for (Pokemon pokemon : pokemons) {
+      if (pokemon == null) continue;
       rewardsData.getPokemons().add(pokemon.saveToJSON(new JsonObject()));
     }
     rewardsData.writeInfo();

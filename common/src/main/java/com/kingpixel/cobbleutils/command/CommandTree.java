@@ -6,11 +6,10 @@ import com.kingpixel.cobbleutils.command.admin.random.RandomItem;
 import com.kingpixel.cobbleutils.command.admin.random.RandomMoney;
 import com.kingpixel.cobbleutils.command.admin.random.RandomPokemon;
 import com.kingpixel.cobbleutils.command.admin.rewards.*;
+import com.kingpixel.cobbleutils.command.base.EggInfoCommand;
 import com.kingpixel.cobbleutils.command.base.EndBattle;
 import com.kingpixel.cobbleutils.command.base.PokeShout;
 import com.kingpixel.cobbleutils.command.base.PokeShoutAll;
-import com.kingpixel.cobbleutils.command.base.TestCommand;
-import com.kingpixel.cobbleutils.command.test.Test;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandBuildContext;
@@ -32,10 +31,6 @@ public class CommandTree {
 
     for (String literal : CobbleUtils.config.getCommmandplugin()) {
       LiteralArgumentBuilder<CommandSourceStack> base = Commands.literal(literal);
-      if (CobbleUtils.config.isDebug()) {
-        TestCommand.register(dispatcher, base);
-        Test.register(dispatcher, base);
-      }
       // /cobbleutils scale <scale> <slot> and /cobbleutils scale <scale> <slot> <player>
       PokemonSize.register(dispatcher, base);
 
@@ -66,8 +61,15 @@ public class CommandTree {
       // /cobbleutils breedable <slot> <breedable>
       BreedableCommand.register(dispatcher, base);
 
-      // /cobbleutils egg <pokemon>
-      EggCommand.register(dispatcher, base);
+      if (CobbleUtils.breedconfig.isActive()) {
+        // /cobbleutils egg <pokemon>
+        EggCommand.register(dispatcher, base);
+
+        // /egginfo <slot>
+        EggInfoCommand.register(dispatcher, Commands.literal("egginfo"));
+      }
+
+
     }
 
     // Rewards
@@ -81,6 +83,15 @@ public class CommandTree {
         RewardsClaim.register(dispatcher, base);
         RewardsRemove.register(dispatcher, base);
         RewardsReload.register(dispatcher, base);
+      }
+    }
+
+    if (CobbleUtils.breedconfig.isActive()) {
+      for (String literal : CobbleUtils.breedconfig.getEggcommand()) {
+        LiteralArgumentBuilder<CommandSourceStack> base = Commands.literal(literal);
+
+        // /cobbleutils egg <pokemon>
+        //BreedCommand.register(dispatcher, base);
       }
     }
 

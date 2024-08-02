@@ -24,6 +24,10 @@ dependencies {
     modImplementation("eu.pb4:placeholder-api:${property("placeholder_api_version_fabricandforge")}")
     modImplementation("me.clip:placeholderapi:${property("placeholder_api_version_spigot")}")
 
+    // Database
+    api("org.mongodb:mongodb-driver-reactivestreams:5.1.2")
+    
+    // Lombok
     annotationProcessor("org.projectlombok:lombok:1.18.20")
     implementation("org.projectlombok:lombok:1.18.20")
 

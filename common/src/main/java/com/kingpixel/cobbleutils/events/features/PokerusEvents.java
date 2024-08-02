@@ -35,6 +35,7 @@ public class PokerusEvents {
       EntityEvent.ADD.register((entity, level) -> {
         if (!CobbleUtils.config.getPokerus().isActive()) return EventResult.pass();
         if (entity instanceof PokemonEntity pokemon) {
+          if (((Mob) entity).isPersistenceRequired()) return EventResult.pass();
           if (((Mob) entity).isNoAi()) return EventResult.pass();
           if (pokemon.getPokemon().isPlayerOwned()) return EventResult.pass();
           CobbleUtils.config.getPokerus().apply(pokemon.getPokemon(), false);

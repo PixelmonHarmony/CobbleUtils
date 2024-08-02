@@ -1,4 +1,0 @@
-{
-  "target": "net.fabricmc.fabric.mixin.event.interaction.ServerPlayNetworkHandlerMixin",
-  "package": "ServerPlayNetworkHandlerMixin"
-}

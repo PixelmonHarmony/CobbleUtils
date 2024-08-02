@@ -188,6 +188,9 @@ public class PokemonUtils {
       int index = i + 1;
       Nature nature = pokemon.getNature();
       if (indexedMessage.contains("%")) {
+        if (pokemon == null) {
+          continue;
+        }
         indexedMessage = indexedMessage.replace("%level" + index + "%", String.valueOf(pokemon.getLevel()))
           .replace("%nature" + index + "%", getNatureTranslate(nature))
           .replace("%pokemon" + index + "%", getTranslatedName(pokemon))

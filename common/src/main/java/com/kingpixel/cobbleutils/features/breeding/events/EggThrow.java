@@ -10,7 +10,10 @@ import kotlin.Unit;
 public class EggThrow {
   public static void register() {
     CobblemonEvents.POKEMON_SENT_PRE.subscribe(Priority.HIGHEST, (evt) -> {
-      if (evt.getPokemon().getSpecies().showdownId().equalsIgnoreCase("egg")) evt.cancel();
+      if (evt.getPokemon().getSpecies().showdownId().equalsIgnoreCase("egg")) {
+        evt.getPokemon().setCurrentHealth(0);
+        evt.cancel();
+      }
       return Unit.INSTANCE;
     });
   }

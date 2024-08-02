@@ -41,7 +41,11 @@ public class Reload implements Command<CommandSourceStack> {
   }
 
   @Override public int run(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-    CobbleUtils.load();
+    try {
+      CobbleUtils.load();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
     if (!context.getSource().isPlayer()) {
       CobbleUtils.server.sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.language.getMessageReload()));
       return 0;

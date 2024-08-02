@@ -39,6 +39,7 @@ public class CobbleUtils {
   public static final String PATH_PARTY_DATA = PATH_PARTY + "data/";
   public static final String PATH_REWARDS_DATA = PATH + "/rewards/";
   public static final String PATH_BREED = PATH + "/breed/";
+  public static final String PATH_BREED_DATA = PATH_BREED + "data/";
   public static final UtilsLogger LOGGER = new UtilsLogger();
   public static final String MOD_NAME = "CobbleUtils";
   public static MinecraftServer server;
@@ -85,6 +86,7 @@ public class CobbleUtils {
     Utils.createDirectoryIfNeeded(PATH_PARTY_DATA);
     Utils.createDirectoryIfNeeded(PATH_REWARDS_DATA);
     Utils.createDirectoryIfNeeded(PATH_BREED);
+    Utils.createDirectoryIfNeeded(PATH_BREED_DATA);
   }
 
 

@@ -32,6 +32,8 @@ public class ItemModel {
   private int CustomModelData = 0;
   private String nbt;
 
+  public ItemModel() {
+  }
 
   public ItemModel(String item, String displayname, List<String> lore) {
     this.item = item;

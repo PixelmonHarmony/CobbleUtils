@@ -23,6 +23,7 @@ public class ArraysPokemons {
    * Initialize the Pokémon arrays
    */
   public static void init() {
+    all = new ArrayList<>();
     Collection<Species> species = PokemonSpecies.INSTANCE.getSpecies();
     Set<String> pokeBlacklist = new HashSet<>();
     CobbleUtils.config.getBlacklist().forEach(pokemonData -> pokeBlacklist.add(pokemonData.getPokename()));
@@ -57,7 +58,7 @@ public class ArraysPokemons {
       .sorted(Comparator.comparingInt(Species::getNationalPokedexNumber))
       .toList());
 
-    all = new ArrayList<>(pokemons);
+    all.addAll(pokemons);
     all.addAll(legendarys);
     all.addAll(ultraBeasts);
     all = all.stream()
@@ -66,15 +67,8 @@ public class ArraysPokemons {
 
     ArraysPokemonEvent.FINISH_GENERATE_POKEMONS.emit(all);
 
-    if (CobbleUtils.config.isDebug()) {
-      CobbleUtils.LOGGER.info("Pokemons normal: " + pokemons.size());
-      CobbleUtils.LOGGER.info("Pokemons legendary: " + legendarys.size());
-      CobbleUtils.LOGGER.info("Pokemons ultrabeast: " + ultraBeasts.size());
-      CobbleUtils.LOGGER.info("All Pokemons: " + all.size());
-    }
   }
 
-  
 
   /**
    * Check if the Pokémon has a form allowed

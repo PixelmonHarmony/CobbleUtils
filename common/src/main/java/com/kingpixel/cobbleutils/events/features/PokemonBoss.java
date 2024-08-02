@@ -32,8 +32,8 @@ public class PokemonBoss {
       try {
         if (!CobbleUtils.config.getBosses().isActive()) return EventResult.pass();
         if (entity instanceof PokemonEntity pokemonEntity) {
-          if (((Mob) entity).isNoAi()) return EventResult.pass();
           if (((Mob) entity).isPersistenceRequired()) return EventResult.pass();
+          if (((Mob) entity).isNoAi()) return EventResult.pass();
           Pokemon pokemon = pokemonEntity.getPokemon();
           if (pokemon.isPlayerOwned()) return EventResult.pass();
           if (pokemon.getShiny() || pokemon.isLegendary() || pokemon.isUltraBeast() || PokemonUtils.getIvsAverage(pokemon.getIvs()) == 31)
