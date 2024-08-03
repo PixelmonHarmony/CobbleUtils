@@ -6,10 +6,9 @@ import ca.landonjw.gooeylibs2.api.button.GooeyButton;
 import ca.landonjw.gooeylibs2.api.page.GooeyPage;
 import ca.landonjw.gooeylibs2.api.template.types.ChestTemplate;
 import com.cobblemon.mod.common.Cobblemon;
-import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.item.PokemonItem;
+import com.cobblemon.mod.common.pokemon.Gender;
 import com.cobblemon.mod.common.pokemon.Pokemon;
-import com.google.gson.JsonObject;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.features.breeding.Breeding;
 import com.kingpixel.cobbleutils.features.breeding.models.PlotBreeding;
@@ -34,10 +33,7 @@ public class PlotBreedingManagerUI {
 
     GooeyButton male = createButton(pokemonmale, action -> {
       if (pokemonmale == null) {
-        Pokemon selected = PokemonProperties.Companion.parse("ditto").create();
-        Cobblemon.INSTANCE.getStorage().getParty(player).remove(selected);
-        plotBreeding.setMale(selected.saveToJSON(new JsonObject()));
-        Breeding.managerPlotEggs.writeInfo(player);
+        PlotSelectPokemonUI.selectPokemon(player, plotBreeding, Gender.MALE);
         return;
       }
       Cobblemon.INSTANCE.getStorage().getParty(player).add(pokemonmale);
@@ -48,10 +44,7 @@ public class PlotBreedingManagerUI {
 
     GooeyButton female = createButton(pokemonfemale, action -> {
       if (pokemonfemale == null) {
-        Pokemon selected = PokemonProperties.Companion.parse("ditto").create();
-        Cobblemon.INSTANCE.getStorage().getParty(player).remove(selected);
-        plotBreeding.setFemale(selected.saveToJSON(new JsonObject()));
-        Breeding.managerPlotEggs.writeInfo(player);
+        PlotSelectPokemonUI.selectPokemon(player, plotBreeding, Gender.FEMALE);
         return;
       }
       Cobblemon.INSTANCE.getStorage().getParty(player).add(pokemonfemale);

@@ -1,6 +1,7 @@
 package com.kingpixel.cobbleutils.features.breeding.models;
 
 import com.cobblemon.mod.common.api.storage.NoPokemonStoreException;
+import com.cobblemon.mod.common.pokemon.Gender;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.google.gson.JsonObject;
 import com.kingpixel.cobbleutils.CobbleUtils;
@@ -79,5 +80,13 @@ public class PlotBreeding {
 
   public Pokemon obtainFemale() {
     return (female == null ? null : Pokemon.Companion.loadFromJSON(female));
+  }
+
+  public void add(Pokemon pokemon, Gender gender) {
+    if (gender == Gender.MALE) {
+      addMale(pokemon);
+    } else if (gender == Gender.FEMALE) {
+      addFemale(pokemon);
+    }
   }
 }

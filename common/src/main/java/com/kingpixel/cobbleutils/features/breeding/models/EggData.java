@@ -6,6 +6,7 @@ import com.cobblemon.mod.common.api.abilities.AbilityTemplate;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.api.storage.NoPokemonStoreException;
 import com.cobblemon.mod.common.pokemon.FormData;
+import com.cobblemon.mod.common.pokemon.Gender;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.cobblemon.mod.common.pokemon.Species;
 import com.kingpixel.cobbleutils.CobbleUtils;
@@ -114,9 +115,8 @@ public class EggData {
     Pokemon male, Pokemon female, ServerPlayer player) throws NoPokemonStoreException {
     Pokemon egg = new Pokemon();
 
-    if (male.isLegendary() || male.isUltraBeast()) {
-      return null;
-    }
+    if (male.isLegendary() || male.isUltraBeast()) return null;
+
 
     if (male.showdownId().equalsIgnoreCase("ditto") && female.showdownId().equalsIgnoreCase("ditto")) {
       egg = EggData.pokemonToEgg(ArraysPokemons.getRandomPokemon(), true);
@@ -124,6 +124,8 @@ public class EggData {
       egg = EggData.pokemonToEgg(PokemonProperties.Companion.parse(female.showdownId()).create(), false);
     } else if (female.showdownId().equalsIgnoreCase("ditto")) {
       egg = EggData.pokemonToEgg(PokemonProperties.Companion.parse(male.showdownId()).create(), false);
+    } else if (male.showdownId().equalsIgnoreCase(female.showdownId()) && male.getGender() == Gender.MALE && female.getGender() == Gender.FEMALE) {
+      egg = EggData.pokemonToEgg(female, false);
     }
 
 
