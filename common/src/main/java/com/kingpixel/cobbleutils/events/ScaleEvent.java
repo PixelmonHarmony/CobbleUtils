@@ -33,7 +33,6 @@ public class ScaleEvent {
           Pokemon pokemon = pokemonEntity.getPokemon();
           if (pokemon.getPersistentData().getString(SIZE_TAG).equalsIgnoreCase(SIZE_CUSTOM_TAG))
             return EventResult.pass();
-          if (pokemon.getPersistentData().getBoolean(CobbleUtilsTags.BOSS_TAG)) return EventResult.pass();
           if (pokemon.isPlayerOwned()) {
             solveScale(pokemonEntity.getPokemon());
             return EventResult.pass();

@@ -5,6 +5,7 @@ import com.kingpixel.cobbleutils.features.breeding.events.EggThrow;
 import com.kingpixel.cobbleutils.features.breeding.events.PastureUI;
 import com.kingpixel.cobbleutils.features.breeding.events.WalkBreeding;
 import com.kingpixel.cobbleutils.features.breeding.manager.ManagerPlotEggs;
+import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.event.events.common.PlayerEvent;
 
 import java.util.concurrent.Executors;
@@ -24,15 +25,20 @@ public class Breeding {
     PlayerEvent.PLAYER_JOIN.register(managerPlotEggs::init);
     PlayerEvent.PLAYER_QUIT.register(managerPlotEggs::remove);
 
+    if (CobbleUtils.server != null) {
+      CobbleUtils.server.getPlayerList().getPlayers().forEach(managerPlotEggs::checking);
+    }
+
     scheduler.scheduleAtFixedRate(() -> {
         try {
           CobbleUtils.server.getPlayerList().getPlayers().forEach(managerPlotEggs::checking);
         } catch (Exception e) {
-          CobbleUtils.LOGGER.error("Error in ManagerPlotEggs: " + e.getMessage());
+          e.printStackTrace();
         }
       },
-      0, 5, TimeUnit.SECONDS);
+      0, 1, TimeUnit.MINUTES);
 
+    LifecycleEvent.SERVER_STOPPING.register(instance -> scheduler.shutdown());
   }
 
   private static void events() {

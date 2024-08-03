@@ -54,6 +54,7 @@ public class PokemonBoss {
             }
           } else {
             if (bossChance == null) return EventResult.pass();
+            if (CobbleUtils.config.getBosses().getBlacklist().contains(pokemon.showdownId())) return EventResult.pass();
             PokemonProperties.Companion.parse("uncatchable=yes ").apply(pokemon);
             apply(pokemon, bossChance);
             boss = false;

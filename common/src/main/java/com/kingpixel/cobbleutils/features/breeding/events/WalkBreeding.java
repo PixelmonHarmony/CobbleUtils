@@ -2,6 +2,7 @@ package com.kingpixel.cobbleutils.features.breeding.events;
 
 import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.storage.NoPokemonStoreException;
+import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.features.breeding.models.EggData;
 import dev.architectury.event.events.common.TickEvent;
 import net.minecraft.world.entity.Pose;
@@ -31,14 +32,20 @@ public class WalkBreeding {
             return;
           } else {
             Vec3 currentPosition = new Vec3(player.getX(), 0, player.getZ());
-            distanceMoved = (int) Math.min(999, currentPosition.distanceTo(lastPosition.get(player.getUUID())));
+            if (CobbleUtils.config.isDebug()) {
+              distanceMoved = 999;
+            } else {
+              distanceMoved = (int) Math.min(20, currentPosition.distanceTo(lastPosition.get(player.getUUID())));
+            }
             lastPosition.put(player.getUUID(), currentPosition);
           }
 
           Cobblemon.INSTANCE.getStorage().getParty(player.getUUID()).forEach(pokemon -> {
             if (!pokemon.showdownId().equalsIgnoreCase("egg")) return;
             pokemon.setCurrentHealth(0);
-            EggData.from(pokemon).steps(pokemon, distanceMoved);
+            EggData eggData = EggData.from(pokemon);
+            if (eggData == null) return;
+            eggData.steps(pokemon, distanceMoved);
           });
         } catch (NoPokemonStoreException e) {
           throw new RuntimeException(e);

@@ -2,6 +2,7 @@ package com.kingpixel.cobbleutils.command;
 
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.command.admin.*;
+import com.kingpixel.cobbleutils.command.admin.boss.SpawnBoss;
 import com.kingpixel.cobbleutils.command.admin.random.RandomItem;
 import com.kingpixel.cobbleutils.command.admin.random.RandomMoney;
 import com.kingpixel.cobbleutils.command.admin.random.RandomPokemon;
@@ -60,6 +61,10 @@ public class CommandTree {
 
       // /cobbleutils breedable <slot> <breedable>
       BreedableCommand.register(dispatcher, base);
+
+
+      // /cobbleutils boss <rarity> <coords>
+      SpawnBoss.register(dispatcher, base);
 
       if (CobbleUtils.breedconfig.isActive()) {
         // /cobbleutils egg <pokemon>

@@ -150,6 +150,7 @@ public class Config {
         itemsCommands = config.getItemsCommands();
         bosses = config.getBosses();
         if (bosses == null) bosses = new Boss();
+        if (bosses.getBlacklist() == null) bosses.setBlacklist(new ArrayList<>());
         bosses.getBossChances().forEach(bossChance -> {
           if (bossChance.getPokemons() == null) bossChance.setPokemons(new PokemonDataBoss());
         });

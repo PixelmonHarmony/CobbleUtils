@@ -2,7 +2,7 @@ package com.kingpixel.cobbleutils.command.admin;
 
 import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
-import com.cobblemon.mod.common.command.argument.PokemonArgumentType;
+import com.cobblemon.mod.common.command.argument.PokemonPropertiesArgumentType;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.cobblemon.mod.common.pokemon.Species;
 import com.kingpixel.cobbleutils.CobbleUtils;
@@ -28,23 +28,19 @@ public class EggCommand implements Command<CommandSourceStack> {
       Commands.literal("egg")
         .requires(source -> source.hasPermission(2))
         .then(
-          Commands.argument("pokemon", PokemonArgumentType.Companion.pokemon())
+          Commands.argument("pokemon", PokemonPropertiesArgumentType.Companion.properties())
             .executes(context -> {
               if (!context.getSource().isPlayer()) {
                 return 0;
               }
               ServerPlayer player = context.getSource().getPlayerOrException();
-              Species species = PokemonArgumentType.Companion.getPokemon(context, "pokemon");
-              Pokemon pokemon = PokemonProperties.Companion.parse(species.showdownId()).create();
+              Pokemon pokemon = PokemonPropertiesArgumentType.Companion.getPokemonProperties(context, "pokemon").create();
+              Species species = pokemon.getSpecies();
               Pokemon egg = PokemonProperties.Companion.parse("egg").create();
-
-              String type1 = pokemon.getPrimaryType().getName();
-              String type2 = pokemon.getSecondaryType() == null ? "" : pokemon.getSecondaryType().getName();
-
               egg.getPersistentData().putString("species", species.showdownId());
               egg.getPersistentData().putString("nature", pokemon.getNature().getName().getPath());
               egg.getPersistentData().putString("ability", pokemon.getAbility().getName());
-              egg.getPersistentData().putString("type", type1 + (type2.isEmpty() ? "" : "," + type2));
+              egg.getPersistentData().putString("form", pokemon.getForm().getAspects().isEmpty() ? "" : pokemon.getForm().getAspects().get(0));
               egg.getPersistentData().putInt("level", 1);
               if (CobbleUtils.config.isDebug()) {
                 egg.getPersistentData().putInt("steps", 0);

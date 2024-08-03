@@ -17,8 +17,8 @@ public class CobbleUtilsPermissionConfig {
 
   public class PermissionLevels {
     // User
-    @SerializedName("cobbleutils.pokeshout") public int COMMAND_POKESHOUT_PERMISSION_LEVEL = 0;
-    @SerializedName("cobbleutils.pokeshoutall") public int COMMAND_POKESHOUTALL_PERMISSION_LEVEL = 0;
-    @SerializedName("cobbleutils.user") public int COMMAND_USER_PERMISSION_LEVEL = 0;
+    @SerializedName("cobbleutils.pokeshout") public int COMMAND_POKESHOUT_PERMISSION_LEVEL = 1;
+    @SerializedName("cobbleutils.pokeshoutall") public int COMMAND_POKESHOUTALL_PERMISSION_LEVEL = 1;
+    @SerializedName("cobbleutils.user") public int COMMAND_USER_PERMISSION_LEVEL = 1;
   }
 }

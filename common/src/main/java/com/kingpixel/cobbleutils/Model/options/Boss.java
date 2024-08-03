@@ -24,13 +24,15 @@ public class Boss {
   private boolean shiny;
   private boolean forceAspectBoss;
   private int rarity;
+  private List<String> blacklist;
   private List<BossChance> bossChances;
 
   public Boss() {
-    this.active = false;
+    this.active = true;
     this.shiny = true;
     this.forceAspectBoss = false;
     this.rarity = 8192;
+    this.blacklist = List.of("ditto");
     this.bossChances = List.of(new BossChance(), new BossChance("uncommon"));
   }
 
@@ -39,6 +41,7 @@ public class Boss {
     this.shiny = true;
     this.forceAspectBoss = false;
     this.rarity = 8192;
+    this.blacklist = List.of("ditto");
     this.bossChances = bossChances;
   }
 
@@ -47,13 +50,16 @@ public class Boss {
   }
 
   public PokemonDataBoss getPokemonDataBoss(Pokemon pokemon) {
-    return bossChances.stream().map(BossChance::getPokemons).filter(pokemonDataBoss -> new HashSet<>(pokemonDataBoss.getPokemon()).contains(pokemon.showdownId()))
+    return bossChances.stream()
+      .map(BossChance::getPokemons)
+      .filter(pokemonDataBoss -> new HashSet<>(pokemonDataBoss.getPokemon()).contains(pokemon.showdownId()))
       .findFirst()
       .orElse(null);
   }
 
   public BossChance getBossChanceByRarity(Pokemon pokemon) {
-    return bossChances.stream().filter(bossChance -> bossChance.getPokemons().getPokemon().contains(pokemon.showdownId()))
+    return bossChances.stream()
+      .filter(bossChance -> bossChance.getPokemons().getPokemon().contains(pokemon.showdownId()))
       .findFirst()
       .orElse(null);
   }
