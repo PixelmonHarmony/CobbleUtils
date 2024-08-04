@@ -12,10 +12,15 @@ import java.util.concurrent.CompletableFuture;
 public class UtilsLogger {
   private Logger logger; // Log for the console.
 
+  public void warn(String s) {
+    logger.warn(s);
+  }
+
   // Enums used for the log file.
   private enum Level {
     INFO,
     ERROR,
+    WARN,
     FATAL
   }
 

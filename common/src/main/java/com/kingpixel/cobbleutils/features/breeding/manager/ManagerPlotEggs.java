@@ -88,7 +88,6 @@ public class ManagerPlotEggs {
 
   public void remove(ServerPlayer player) {
     writeInfo(player).join();
-    eggs.remove(player.getUUID());
   }
 
   public void checking(ServerPlayer player) {

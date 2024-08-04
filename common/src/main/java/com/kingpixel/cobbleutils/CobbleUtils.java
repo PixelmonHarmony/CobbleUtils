@@ -75,6 +75,7 @@ public class CobbleUtils {
     PartyPlaceholder.register();
     sign();
     tasks();
+    Features.register();
   }
 
   private static void checks() {
@@ -181,7 +182,6 @@ public class CobbleUtils {
     // ? Add the event for fishing a pokemon
 
     FeaturesRegister.register();
-    Features.register();
 
     PlayerEvent.DROP_ITEM.register(DropItemEvent::register);
   }

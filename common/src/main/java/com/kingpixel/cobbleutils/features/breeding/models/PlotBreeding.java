@@ -43,7 +43,7 @@ public class PlotBreeding {
       try {
         Pokemon pokemon = EggData.createEgg(Pokemon.Companion.loadFromJSON(male)
           , Pokemon.Companion.loadFromJSON(female),
-          player);
+          player, this);
         if (pokemon != null) {
           if (eggs.size() >= CobbleUtils.breedconfig.getMaxeggperplot()) return;
 
@@ -88,5 +88,6 @@ public class PlotBreeding {
     } else if (gender == Gender.FEMALE) {
       addFemale(pokemon);
     }
+
   }
 }
