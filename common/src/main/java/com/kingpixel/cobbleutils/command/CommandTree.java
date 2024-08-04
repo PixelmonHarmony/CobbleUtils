@@ -7,10 +7,7 @@ import com.kingpixel.cobbleutils.command.admin.random.RandomItem;
 import com.kingpixel.cobbleutils.command.admin.random.RandomMoney;
 import com.kingpixel.cobbleutils.command.admin.random.RandomPokemon;
 import com.kingpixel.cobbleutils.command.admin.rewards.*;
-import com.kingpixel.cobbleutils.command.base.EggInfoCommand;
-import com.kingpixel.cobbleutils.command.base.EndBattle;
-import com.kingpixel.cobbleutils.command.base.PokeShout;
-import com.kingpixel.cobbleutils.command.base.PokeShoutAll;
+import com.kingpixel.cobbleutils.command.base.*;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandBuildContext;
@@ -96,7 +93,7 @@ public class CommandTree {
         LiteralArgumentBuilder<CommandSourceStack> base = Commands.literal(literal);
 
         // /cobbleutils egg <pokemon>
-        //BreedCommand.register(dispatcher, base);
+        BreedCommand.register(dispatcher, base);
       }
     }
 

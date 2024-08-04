@@ -24,6 +24,7 @@ public class Config {
   private boolean active;
   private boolean autoclaim;
   private boolean changeuipasture;
+  private float multiplierShiny;
   private int cooldown;
   private int maxeggperplot;
   private int maxplots;
@@ -38,6 +39,7 @@ public class Config {
     this.active = true;
     this.autoclaim = false;
     this.changeuipasture = false;
+    this.multiplierShiny = 1.5f;
     this.cooldown = 30;
     this.maxeggperplot = 3;
     this.maxplots = 3;
@@ -64,6 +66,9 @@ public class Config {
         notcancreateEgg = config.getNotcancreateEgg();
         autoclaim = config.isAutoclaim();
         plotItem = config.getPlotItem();
+        multiplierShiny = config.getMultiplierShiny();
+        eggcommand = config.getEggcommand();
+
 
         String data = gson.toJson(this);
         CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(CobbleUtils.PATH_BREED, "config.json",

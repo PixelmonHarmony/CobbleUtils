@@ -10,7 +10,6 @@ public class Features {
   public static void register() {
     if (CobbleUtils.breedconfig.isActive()) {
       Breeding.register();
-
     }
   }
 }

@@ -114,18 +114,18 @@ public class EggData {
   public static Pokemon createEgg(
     Pokemon male, Pokemon female, ServerPlayer player) throws NoPokemonStoreException {
     Pokemon egg = new Pokemon();
-
+    if (male == null || female == null) return null;
     if (male.isLegendary() || male.isUltraBeast()) return null;
-
+    if (female.isLegendary() || female.isUltraBeast()) return null;
 
     if (male.showdownId().equalsIgnoreCase("ditto") && female.showdownId().equalsIgnoreCase("ditto")) {
-      egg = EggData.pokemonToEgg(ArraysPokemons.getRandomPokemon(), true);
+      egg = EggData.pokemonToEgg(male, female, ArraysPokemons.getRandomPokemon(), true);
     } else if (male.showdownId().equalsIgnoreCase("ditto")) {
-      egg = EggData.pokemonToEgg(PokemonProperties.Companion.parse(female.showdownId()).create(), false);
+      egg = EggData.pokemonToEgg(male, female, PokemonProperties.Companion.parse(female.showdownId()).create(), false);
     } else if (female.showdownId().equalsIgnoreCase("ditto")) {
-      egg = EggData.pokemonToEgg(PokemonProperties.Companion.parse(male.showdownId()).create(), false);
+      egg = EggData.pokemonToEgg(male, female, PokemonProperties.Companion.parse(male.showdownId()).create(), false);
     } else if (male.showdownId().equalsIgnoreCase(female.showdownId()) && male.getGender() == Gender.MALE && female.getGender() == Gender.FEMALE) {
-      egg = EggData.pokemonToEgg(female, false);
+      egg = EggData.pokemonToEgg(male, female, PokemonProperties.Companion.parse(female.showdownId()).create(), false);
     }
 
 
@@ -141,9 +141,30 @@ public class EggData {
     return egg;
   }
 
-  private static Pokemon pokemonToEgg(Pokemon pokemon, boolean dittos) {
+  private static Pokemon pokemonToEgg(Pokemon male, Pokemon female, Pokemon pokemon, boolean dittos) {
     Pokemon egg = PokemonProperties.Companion.parse("egg type_egg=" + pokemon.getSpecies().showdownId()).create();
     egg.setNature(pokemon.getNature());
+
+
+    // Shiny Rate
+    float shinyrate = Cobblemon.INSTANCE.getConfig().getShinyRate();
+
+    if (male.getShiny()) {
+      shinyrate /= CobbleUtils.breedconfig.getMultiplierShiny();
+    }
+
+    if (female.getShiny()) {
+      shinyrate /= CobbleUtils.breedconfig.getMultiplierShiny();
+    }
+
+    if (CobbleUtils.config.isDebug()) {
+      CobbleUtils.LOGGER.info("ShinyRate Egg: " + shinyrate);
+    }
+
+    if (Utils.RANDOM.nextInt((int) shinyrate) == 0) {
+      egg.setShiny(true);
+    }
+
     EggData.applyPersistent(egg, pokemon, dittos);
     return egg;
   }
