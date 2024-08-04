@@ -6,7 +6,6 @@ import com.cobblemon.mod.common.api.abilities.AbilityTemplate;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.api.storage.NoPokemonStoreException;
 import com.cobblemon.mod.common.pokemon.FormData;
-import com.cobblemon.mod.common.pokemon.Gender;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.cobblemon.mod.common.pokemon.Species;
 import com.kingpixel.cobbleutils.CobbleUtils;
@@ -113,21 +112,56 @@ public class EggData {
 
   public static Pokemon createEgg(
     Pokemon male, Pokemon female, ServerPlayer player) throws NoPokemonStoreException {
-    Pokemon egg = new Pokemon();
+    Pokemon egg;
     if (male == null || female == null) return null;
     if (male.isLegendary() || male.isUltraBeast()) return null;
     if (female.isLegendary() || female.isUltraBeast()) return null;
 
-    if (male.showdownId().equalsIgnoreCase("ditto") && female.showdownId().equalsIgnoreCase("ditto")) {
-      egg = EggData.pokemonToEgg(male, female, ArraysPokemons.getRandomPokemon(), true);
-    } else if (male.showdownId().equalsIgnoreCase("ditto")) {
-      egg = EggData.pokemonToEgg(male, female, PokemonProperties.Companion.parse(female.showdownId()).create(), false);
-    } else if (female.showdownId().equalsIgnoreCase("ditto")) {
-      egg = EggData.pokemonToEgg(male, female, PokemonProperties.Companion.parse(male.showdownId()).create(), false);
-    } else if (male.showdownId().equalsIgnoreCase(female.showdownId()) && male.getGender() == Gender.MALE && female.getGender() == Gender.FEMALE) {
-      egg = EggData.pokemonToEgg(male, female, PokemonProperties.Companion.parse(female.showdownId()).create(), false);
+    if (male.getSpecies().showdownId().equalsIgnoreCase("ditto") && female.getSpecies().showdownId().equalsIgnoreCase("ditto")) {
+      egg = EggData.pokemonToEgg(ArraysPokemons.getRandomPokemon(), true);
+      if (CobbleUtils.config.isDebug()) {
+        CobbleUtils.LOGGER.info("+--------------------------------+");
+        CobbleUtils.LOGGER.info("Ditto + Ditto");
+        CobbleUtils.LOGGER.info("Male: " + male.getSpecies().showdownId());
+        CobbleUtils.LOGGER.info("Female: " + female.getSpecies().showdownId());
+        CobbleUtils.LOGGER.info("Egg: " + egg.getPersistentData().getString("species"));
+        CobbleUtils.LOGGER.info("+--------------------------------+");
+      }
+    } else if (male.getSpecies().showdownId().equalsIgnoreCase("ditto")) {
+      egg = EggData.pokemonToEgg(female, false);
+      if (CobbleUtils.config.isDebug()) {
+        CobbleUtils.LOGGER.info("+--------------------------------+");
+        CobbleUtils.LOGGER.info("Ditto + Other");
+        CobbleUtils.LOGGER.info("Male: " + male.getSpecies().showdownId());
+        CobbleUtils.LOGGER.info("Female: " + female.getSpecies().showdownId());
+        CobbleUtils.LOGGER.info("Egg: " + egg.getPersistentData().getString("species"));
+        CobbleUtils.LOGGER.info("+--------------------------------+");
+      }
+    } else if (female.getSpecies().showdownId().equalsIgnoreCase("ditto")) {
+      egg = EggData.pokemonToEgg(male, false);
+      if (CobbleUtils.config.isDebug()) {
+        CobbleUtils.LOGGER.info("+--------------------------------+");
+        CobbleUtils.LOGGER.info("Other + Ditto");
+        CobbleUtils.LOGGER.info("Male: " + male.getSpecies().showdownId());
+        CobbleUtils.LOGGER.info("Female: " + female.getSpecies().showdownId());
+        CobbleUtils.LOGGER.info("Egg: " + egg.getPersistentData().getString("species"));
+        CobbleUtils.LOGGER.info("+--------------------------------+");
+      }
+    } else if (male.getSpecies().showdownId().equalsIgnoreCase(female.getSpecies().showdownId())) {
+      egg = EggData.pokemonToEgg(female, false);
+      if (CobbleUtils.config.isDebug()) {
+        CobbleUtils.LOGGER.info("+--------------------------------+");
+        CobbleUtils.LOGGER.info("Same + Same");
+        CobbleUtils.LOGGER.info("Male: " + male.getSpecies().showdownId());
+        CobbleUtils.LOGGER.info("Female: " + female.getSpecies().showdownId());
+        CobbleUtils.LOGGER.info("Egg: " + egg.getPersistentData().getString("species"));
+        CobbleUtils.LOGGER.info("+--------------------------------+");
+      }
+    } else {
+      return null;
     }
 
+    logic(male, female, egg);
 
     player.sendSystemMessage(
       AdventureBreeding.adventure(
@@ -141,11 +175,7 @@ public class EggData {
     return egg;
   }
 
-  private static Pokemon pokemonToEgg(Pokemon male, Pokemon female, Pokemon pokemon, boolean dittos) {
-    Pokemon egg = PokemonProperties.Companion.parse("egg type_egg=" + pokemon.getSpecies().showdownId()).create();
-    egg.setNature(pokemon.getNature());
-
-
+  private static void logic(Pokemon male, Pokemon female, Pokemon egg) {
     // Shiny Rate
     float shinyrate = Cobblemon.INSTANCE.getConfig().getShinyRate();
 
@@ -156,15 +186,18 @@ public class EggData {
     if (female.getShiny()) {
       shinyrate /= CobbleUtils.breedconfig.getMultiplierShiny();
     }
-
-    if (CobbleUtils.config.isDebug()) {
-      CobbleUtils.LOGGER.info("ShinyRate Egg: " + shinyrate);
-    }
-
     if (Utils.RANDOM.nextInt((int) shinyrate) == 0) {
       egg.setShiny(true);
     }
 
+    if (CobbleUtils.config.isDebug()) {
+      CobbleUtils.LOGGER.info("ShinyRate Egg: " + shinyrate);
+    }
+  }
+
+  private static Pokemon pokemonToEgg(Pokemon pokemon, boolean dittos) {
+    Pokemon egg = PokemonProperties.Companion.parse("egg type_egg=" + pokemon.getSpecies().showdownId()).create();
+    egg.setNature(pokemon.getNature());
     EggData.applyPersistent(egg, pokemon, dittos);
     return egg;
   }
@@ -207,11 +240,26 @@ public class EggData {
         egg.getPersistentData().putString("form", "");
       }
     } else {
-      List<String> aspects = pokemon.getForm().getAspects();
-      if (!aspects.isEmpty()) {
-        egg.getPersistentData().putString("form", aspects.get(0));
+      List<String> forms = pokemon.getForm().getAspects();
+      if (!forms.isEmpty()) {
+        egg.getPersistentData().putString("form", forms.get(0));
       } else {
         egg.getPersistentData().putString("form", "");
+      }
+      if (CobbleUtils.breedconfig.isObtainAspect()) {
+        if (egg.getPersistentData().getString("form").isEmpty()) {
+          List<String> aspects = pokemon.getAspects().stream().toList();
+          String form = aspects.isEmpty() ? "" : aspects.get(aspects.size() - 1);
+          int lastIndex = form.lastIndexOf('-');
+
+          if (lastIndex != -1) {
+            String modified = form.substring(0, lastIndex) + '=' + form.substring(lastIndex + 1);
+            System.out.println(modified); // Salida: tree=cherry
+          } else {
+            System.out.println(form); // En caso de que no haya ningún guion en la cadena
+          }
+          egg.getPersistentData().putString("form", form);
+        }
       }
     }
 

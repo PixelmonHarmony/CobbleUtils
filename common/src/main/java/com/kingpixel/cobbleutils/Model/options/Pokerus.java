@@ -47,6 +47,7 @@ public class Pokerus {
       CobbleUtils.LOGGER.info("Applying Pokerus to " + pokemon.getDisplayName());
     }
     pokemon.getPersistentData().putBoolean(POKERUS_TAG, apply);
+
   }
 
   public Pokemon apply(Pokemon pokemon, boolean battle) {

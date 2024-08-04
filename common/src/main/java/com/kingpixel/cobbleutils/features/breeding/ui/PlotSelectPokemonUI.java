@@ -14,10 +14,13 @@ import com.cobblemon.mod.common.api.storage.NoPokemonStoreException;
 import com.cobblemon.mod.common.item.PokemonItem;
 import com.cobblemon.mod.common.pokemon.Gender;
 import com.cobblemon.mod.common.pokemon.Pokemon;
+import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.features.breeding.Breeding;
 import com.kingpixel.cobbleutils.features.breeding.models.PlotBreeding;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.PokemonUtils;
 import com.kingpixel.cobbleutils.util.UIUtils;
+import com.kingpixel.cobbleutils.util.Utils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -30,7 +33,7 @@ import java.util.List;
 public class PlotSelectPokemonUI {
 
   public static void selectPokemon(ServerPlayer player, PlotBreeding plotBreeding, Gender gender) {
-    ChestTemplate template = ChestTemplate.builder(6).build();
+    ChestTemplate template = ChestTemplate.builder(CobbleUtils.breedconfig.getRowmenuselectpokemon()).build();
 
     List<Pokemon> pokemons = new ArrayList<>();
     try {
@@ -66,6 +69,7 @@ public class PlotSelectPokemonUI {
             throw new RuntimeException(e);
           }
           plotBreeding.add(pokemon, gender);
+          Breeding.managerPlotEggs.writeInfo(player);
           PlotBreedingManagerUI.open(player, plotBreeding);
         })
         .build();
@@ -86,6 +90,10 @@ public class PlotSelectPokemonUI {
     template.set(5, 0, back);
     template.set(5, 4, close);
     template.set(5, 8, next);
+    template.fill(GooeyButton.builder()
+      .display(Utils.parseItemId(CobbleUtils.config.getFill()))
+      .title("")
+      .build());
     template.rectangle(0, 0, 5, 9, new PlaceholderButton());
     template.fillFromList(buttons);
 

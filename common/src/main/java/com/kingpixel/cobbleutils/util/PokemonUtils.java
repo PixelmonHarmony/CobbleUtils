@@ -98,7 +98,7 @@ public class PokemonUtils {
    */
   public static String replace(String message, Pokemon pokemon) {
     if (pokemon == null) {
-      return message;
+      return message.replace("%pokemon%", CobbleUtils.language.getEmpty());
     }
 
     if (message.contains("%lorepokemon%")) {
@@ -134,6 +134,7 @@ public class PokemonUtils {
         .replace("%item%", ItemUtils.getTranslatedName(pokemon.heldItem()))
         .replace("%size%", getSize(pokemon))
         .replace("%form%", CobbleUtils.language.getForms().getOrDefault(pokemon.getForm().getName(), pokemon.getForm().getName()))
+        .replace("%aspect%", pokemon.getAspects().stream().toList().toString())
         .replace("%up%", getStatTranslate(nature.getIncreasedStat()))
         .replace("%down%", getStatTranslate(nature.getDecreasedStat()))
         .replace("%ball%", getPokeBallTranslate(pokemon.getCaughtBall()))
@@ -186,11 +187,12 @@ public class PokemonUtils {
       Pokemon pokemon = pokemons.get(i);
       String indexedMessage = message;
       int index = i + 1;
-      Nature nature = pokemon.getNature();
       if (indexedMessage.contains("%")) {
         if (pokemon == null) {
+          message.replace("%pokemon" + index + "%", CobbleUtils.language.getEmpty());
           continue;
         }
+        Nature nature = pokemon.getNature();
         indexedMessage = indexedMessage.replace("%level" + index + "%", String.valueOf(pokemon.getLevel()))
           .replace("%nature" + index + "%", getNatureTranslate(nature))
           .replace("%pokemon" + index + "%", getTranslatedName(pokemon))

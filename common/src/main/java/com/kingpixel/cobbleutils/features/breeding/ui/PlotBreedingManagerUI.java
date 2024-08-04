@@ -26,7 +26,7 @@ import java.util.function.Consumer;
  */
 public class PlotBreedingManagerUI {
   public static void open(ServerPlayer player, PlotBreeding plotBreeding) {
-    ChestTemplate template = ChestTemplate.builder(6).build();
+    ChestTemplate template = ChestTemplate.builder(CobbleUtils.breedconfig.getRowmenuplot()).build();
 
     Pokemon pokemonmale = plotBreeding.obtainMale();
     Pokemon pokemonfemale = plotBreeding.obtainFemale();
