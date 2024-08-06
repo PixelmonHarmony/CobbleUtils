@@ -1,6 +1,7 @@
 package com.kingpixel.cobbleutils.util;
 
 import com.cobblemon.mod.common.api.abilities.Ability;
+import com.cobblemon.mod.common.api.abilities.AbilityPool;
 import com.cobblemon.mod.common.api.abilities.AbilityTemplate;
 import com.cobblemon.mod.common.api.abilities.PotentialAbility;
 import com.cobblemon.mod.common.api.moves.Move;
@@ -569,5 +570,33 @@ public class PokemonUtils {
     return false;
   }
 
+  public static Ability getRandomAbility(Pokemon pokemon) {
+    return getRandomAbility(pokemon.getSpecies());
+  }
+
+
+  public static Ability getRandomAbility(Species species) {
+    AbilityPool abilities = species.getAbilities();
+    List<Ability> abilityList = new ArrayList<>();
+    Ability hiddenAbility = null;
+
+    for (PotentialAbility potentialAbility : abilities) {
+      if (potentialAbility.getType() instanceof HiddenAbilityType) {
+        hiddenAbility = potentialAbility.getTemplate().create(true);
+      } else {
+        abilityList.add(potentialAbility.getTemplate().create(true));
+      }
+    }
+
+    if (hiddenAbility != null && Utils.RANDOM.nextInt(1000) < 1) {
+      return hiddenAbility;
+    }
+
+    if (!abilityList.isEmpty()) {
+      return abilityList.get(Utils.RANDOM.nextInt(abilityList.size()));
+    }
+
+    return null;
+  }
 
 }

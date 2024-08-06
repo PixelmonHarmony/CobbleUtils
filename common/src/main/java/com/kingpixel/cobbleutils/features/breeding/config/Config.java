@@ -21,10 +21,16 @@ import java.util.concurrent.CompletableFuture;
 public class Config {
   private String prefix;
   private List<String> eggcommand;
+  private String titleselectplot;
+  private String titleplot;
+  private String titleselectpokemon;
   private boolean active;
   private boolean autoclaim;
   private boolean changeuipasture;
   private boolean obtainAspect;
+  private boolean methodmasuda;
+  private boolean ditto;
+  private boolean doubleditto;
   private float multiplierShiny;
   private int cooldown;
   private int maxeggperplot;
@@ -34,17 +40,28 @@ public class Config {
   private int rowmenuselectpokemon;
   private String createEgg;
   private String notcancreateEgg;
+  private String notdoubleditto;
+  private String notditto;
+  private String blacklisted;
   private ItemModel plotItem;
   private List<Integer> plotSlots;
+  private List<String> blacklist;
+  //private List<String> nationalities;
 
 
   public Config() {
     this.prefix = "&7[<##82d448>Breeding&7] &8»";
     this.eggcommand = List.of("breed", "egg");
+    this.titleselectplot = "Select Plot";
+    this.titleplot = "Plot";
+    this.titleselectpokemon = "Select Pokemon";
     this.active = true;
     this.autoclaim = false;
     this.obtainAspect = false;
     this.changeuipasture = false;
+    this.methodmasuda = false;
+    this.ditto = true;
+    this.doubleditto = true;
     this.multiplierShiny = 1.5f;
     this.cooldown = 30;
     this.maxeggperplot = 3;
@@ -69,6 +86,12 @@ public class Config {
       "<#64de7c>have created an egg <#ecca18>%egg%<#64de7c>!";
     this.notcancreateEgg = "%prefix% <#ecca18>%pokemon1% %shiny% <#d65549>and <#ecca18>%pokemon2% %shiny% &f(%form%&f) <#d65549>can't " +
       "create an egg!";
+    this.notdoubleditto = "%prefix% you can't use two dittos!";
+    this.notditto = "%prefix% you can't use a one ditto!";
+    this.blacklisted = "%prefix% <#ecca18>%pokemon% <#d65549>is blacklisted!";
+    this.blacklist = List.of("ditto", "magikarp");
+
+    //this.nationalities = List.of("es", "en", "fr", "de", "it", "pt", "jp", "ko", "zh", "ru");
   }
 
   public void init() {
@@ -80,6 +103,8 @@ public class Config {
         active = config.isActive();
         changeuipasture = config.isChangeuipasture();
         createEgg = config.getCreateEgg();
+        ditto = config.isDitto();
+        doubleditto = config.isDoubleditto();
         cooldown = config.getCooldown();
         maxeggperplot = config.getMaxeggperplot();
         maxplots = config.getMaxplots();
@@ -93,6 +118,11 @@ public class Config {
         rowmenuplot = config.getRowmenuplot();
         rowmenuselectplot = config.getRowmenuselectplot();
         rowmenuselectpokemon = config.getRowmenuselectpokemon();
+        methodmasuda = config.isMethodmasuda();
+        titleplot = config.getTitleplot();
+        titleselectplot = config.getTitleselectplot();
+        titleselectpokemon = config.getTitleselectpokemon();
+        //nationalities = config.getNationalities();
 
         String data = gson.toJson(this);
         CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(CobbleUtils.PATH_BREED, "config.json",

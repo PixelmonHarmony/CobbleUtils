@@ -5,9 +5,12 @@ package com.kingpixel.cobbleutils.properties;
  */
 
 import com.cobblemon.mod.common.api.properties.CustomPokemonPropertyType;
+import com.kingpixel.cobbleutils.CobbleUtils;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 public class ScalePropertyType implements CustomPokemonPropertyType<ScaleProperty> {
@@ -27,16 +30,18 @@ public class ScalePropertyType implements CustomPokemonPropertyType<ScalePropert
 
   @Override
   public ScaleProperty fromString(String value) {
-    return new ScaleProperty();
+    return new ScaleProperty(value);
   }
 
-  @Override
-  public @NotNull Set<String> examples() {
-    return Collections.emptySet();
+
+  @NotNull @Override public Collection<String> examples() {
+    Set<String> sizes = new HashSet<>();
+    CobbleUtils.config.getPokemonsizes().forEach(sizeChance -> sizes.add(String.valueOf(sizeChance.getSize())));
+    return sizes;
   }
 
   @Override public boolean getNeedsKey() {
-    return false;
+    return true;
   }
 }
 

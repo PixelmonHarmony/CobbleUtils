@@ -42,6 +42,15 @@ public class ScalePokemonData {
     this.sizes = sizes;
   }
 
+  public static SizeChanceWithoutItem getScalePokemonData(Pokemon pokemon, Float value) {
+    return getScalePokemonData(pokemon)
+      .getSizes()
+      .stream()
+      .filter(sizeChanceWithoutItem -> sizeChanceWithoutItem.getSize() >= value)
+      .findFirst()
+      .orElse(new SizeChanceWithoutItem());
+  }
+
 
   public String info() {
     return "Pokemon: " + pokemon + " Form: " + form;
@@ -136,7 +145,16 @@ public class ScalePokemonData {
    * @return SizeChanceWithoutItem with the id and size
    */
   public static SizeChanceWithoutItem getSize(Pokemon pokemon, String sizeId) {
-    return getScalePokemonData(pokemon).getSizes().stream().filter(sizeChanceWithoutItem -> sizeChanceWithoutItem.getId().equalsIgnoreCase(sizeId)).findFirst().orElse(new SizeChanceWithoutItem());
+    if (!sizeId.equalsIgnoreCase("aleatory")) {
+      return getScalePokemonData(pokemon)
+        .getSizes()
+        .stream()
+        .filter(sizeChanceWithoutItem -> sizeChanceWithoutItem.getId().equalsIgnoreCase(sizeId))
+        .findFirst()
+        .orElse(new SizeChanceWithoutItem());
+    } else {
+      return getScalePokemonData(pokemon).getRandomPokemonSize();
+    }
   }
 
   /**

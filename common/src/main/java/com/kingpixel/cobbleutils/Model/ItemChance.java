@@ -102,57 +102,69 @@ public class ItemChance {
    * @throws NoPokemonStoreException If there's an issue with storing Pokémon.
    */
   public static boolean giveReward(Player player, ItemChance itemChance, int amount) throws NoPokemonStoreException {
-    String item = itemChance.getItem();
-    CobbleUtils.LOGGER.info("ItemChance: " + item);
-    if (item.startsWith("pokemon:")) {
-      Pokemon pokemon = getRewardPokemon(item);
-      return RewardsUtils.saveRewardPokemon(player, pokemon);
-    } else if (item.startsWith("command:")) {
-      String command = item.replace("command:", "");
-      return RewardsUtils.saveRewardCommand(player, command);
-    } else if (item.startsWith("money:")) {
-      int money;
-      CobbleUtils.LOGGER.info("Logintud de money:" + item.split(":").length);
-      if (item.split(":").length < 3) {
-        money = Integer.parseInt(item.replace("money:", ""));
-        player.sendSystemMessage(AdventureTranslator.toNativeWithOutPrefix(
-          CobbleUtils.language.getMessageReceiveMoney()
-            .replace("%amount%", String.valueOf(money))
-        ));
-        return RewardsUtils.saveRewardCommand(player, CobbleUtils.config.getEcocommand()
-          .replace("%player%", player.getName().getString())
-          .replace("%amount%", String.valueOf(money)));
-      } else {
-        money = Integer.parseInt(item.split(":")[2]);
-        String currency = item.split(":")[1];
-        String command = CobbleUtils.config.getImpactorEconomy().getEcocommand();
-        ImpactorItem impactorItem = CobbleUtils.config.getImpactorEconomy().getItemsCommands().get(currency);
-        player.sendSystemMessage(AdventureTranslator.toNativeWithOutPrefix(
-          impactorItem.getMessage()
-            .replace("%amount%", String.valueOf(money))
-        ));
+    try {
+      String item = itemChance.getItem();
+      CobbleUtils.LOGGER.info("ItemChance: " + item);
+      if (item.startsWith("pokemon:")) {
+        Pokemon pokemon = getRewardPokemon(item);
+        return RewardsUtils.saveRewardPokemon(player, pokemon);
+      } else if (item.startsWith("command:")) {
+        String command = item.replace("command:", "");
+        return RewardsUtils.saveRewardCommand(player, command);
+      } else if (item.startsWith("money:")) {
+        int money;
+        CobbleUtils.LOGGER.info("Logintud de money:" + item.split(":").length);
+        if (item.split(":").length < 3) {
+          money = Integer.parseInt(item.replace("money:", ""));
+          player.sendSystemMessage(AdventureTranslator.toNativeWithOutPrefix(
+            CobbleUtils.language.getMessageReceiveMoney()
+              .replace("%amount%", String.valueOf(money))
+          ));
+          return RewardsUtils.saveRewardCommand(player, CobbleUtils.config.getEcocommand()
+            .replace("%player%", player.getGameProfile().getName())
+            .replace("%amount%", String.valueOf(money)));
+        } else {
+          money = Integer.parseInt(item.split(":")[2]);
+          String currency = item.split(":")[1];
+          String command = CobbleUtils.config.getImpactorEconomy().getEcocommand();
+          ImpactorItem impactorItem = CobbleUtils.config.getImpactorEconomy().getItemsCommands().get(currency);
+          player.sendSystemMessage(AdventureTranslator.toNativeWithOutPrefix(
+            impactorItem.getMessage()
+              .replace("%amount%", String.valueOf(money))
+          ));
 
-        return RewardsUtils.saveRewardCommand(player, command
-          .replace("%player%", "player")
-          .replace("%amount%", String.valueOf(money))
-          .replace("%currency%", currency));
-      }
-    } else if (item.startsWith("item:")) {
-      ItemStack itemStack;
-      String[] split = item.split("#", 2);
-      String[] itemSplit = split[0].split(":");
-      String iditem = itemSplit[2] + ":" + itemSplit[3];
-      itemStack = Utils.parseItemId(iditem, Integer.parseInt(itemSplit[1]));
-      if (split.length > 1) {
-        try {
-          itemStack.setTag(TagParser.parseTag(split[1]));
-        } catch (PatternSyntaxException | CommandSyntaxException | ArrayIndexOutOfBoundsException ignored) {
+          command = command
+            .replace("%player%", player.getGameProfile().getName())
+            .replace("%amount%", String.valueOf(money))
+            .replace("%currency%", currency);
+
+          if (CobbleUtils.config.isDebug()) {
+            CobbleUtils.LOGGER.info("Command: " + command);
+          }
+
+          return RewardsUtils.saveRewardCommand(player, command);
         }
-      }
+      } else if (item.startsWith("item:")) {
+        ItemStack itemStack;
+        String[] split = item.split("#", 2);
+        String[] itemSplit = split[0].split(":");
+        String iditem = itemSplit[2] + ":" + itemSplit[3];
+        itemStack = Utils.parseItemId(iditem, Integer.parseInt(itemSplit[1]));
+        if (split.length > 1) {
+          try {
+            itemStack.setTag(TagParser.parseTag(split[1]));
+          } catch (PatternSyntaxException | CommandSyntaxException | ArrayIndexOutOfBoundsException ignored) {
+          }
+        }
 
-      return RewardsUtils.saveRewardItemStack(player, itemStack);
-    } else {
-      return RewardsUtils.saveRewardItemStack(player, Utils.parseItemId(item, amount));
+        return RewardsUtils.saveRewardItemStack(player, itemStack);
+      } else {
+        return RewardsUtils.saveRewardItemStack(player, Utils.parseItemId(item, amount));
+      }
+    } catch (Exception e) {
+      CobbleUtils.LOGGER.error("Error al dar la recompensa: " + e.getMessage());
+      e.printStackTrace();
+      return false;
     }
   }
 

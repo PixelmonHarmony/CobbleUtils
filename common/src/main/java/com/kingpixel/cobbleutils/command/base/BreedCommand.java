@@ -24,7 +24,7 @@ public class BreedCommand implements Command<CommandSourceStack> {
             return 0;
           }
           ServerPlayer player = context.getSource().getPlayerOrException();
-          if (Cobblemon.INSTANCE.getBattleRegistry().getBattleByParticipatingPlayer(player) == null) {
+          if (Cobblemon.INSTANCE.getBattleRegistry().getBattleByParticipatingPlayer(player) != null) {
             return 0;
           }
           PlotBreedingUI.open(player);

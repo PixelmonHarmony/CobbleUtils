@@ -90,4 +90,12 @@ public class PlotBreeding {
     }
 
   }
+
+  public Pokemon obtainOtherGender(Gender gender) {
+    if (gender == Gender.FEMALE) {
+      return obtainMale();
+    } else {
+      return obtainFemale();
+    }
+  }
 }

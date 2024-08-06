@@ -184,6 +184,7 @@ public class CobbleUtils {
     FeaturesRegister.register();
 
     PlayerEvent.DROP_ITEM.register(DropItemEvent::register);
+
   }
 
 
@@ -201,7 +202,6 @@ public class CobbleUtils {
           language.getMessageHaveRewards().replace("%amount%", String.valueOf(amount))
         ));
       }
-
     }), 0, CobbleUtils.config.getAlertreward(), TimeUnit.MINUTES);
 
     scheduledTasks.add(alertreward);

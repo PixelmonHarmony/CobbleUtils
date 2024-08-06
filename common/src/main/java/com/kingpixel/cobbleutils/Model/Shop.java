@@ -17,7 +17,7 @@ import java.util.List;
 @Data
 public class Shop {
   private String title;
-  private String rows;
+  private int rows;
   private String currency;
   private TemplateType templateType;
   private List<SellItem> products;

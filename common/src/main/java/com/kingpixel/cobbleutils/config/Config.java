@@ -9,7 +9,9 @@ import com.kingpixel.cobbleutils.Model.options.ImpactorEconomy;
 import com.kingpixel.cobbleutils.Model.options.PokemonDataBoss;
 import com.kingpixel.cobbleutils.Model.options.Pokerus;
 import com.kingpixel.cobbleutils.util.Utils;
+import lombok.Data;
 import lombok.Getter;
+import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,6 +24,8 @@ import java.util.concurrent.CompletableFuture;
  * @author Carlos Varas Alonso - 29/04/2024 0:14
  */
 @Getter
+@Data
+@ToString
 public class Config {
   private boolean debug;
   private String prefix;
@@ -149,12 +153,13 @@ public class Config {
         alertreward = config.getAlertreward();
         itemsCommands = config.getItemsCommands();
         bosses = config.getBosses();
+        impactorEconomy = config.getImpactorEconomy();
+
         if (bosses == null) bosses = new Boss();
         if (bosses.getBlacklist() == null) bosses.setBlacklist(new ArrayList<>());
         bosses.getBossChances().forEach(bossChance -> {
           if (bossChance.getPokemons() == null) bossChance.setPokemons(new PokemonDataBoss());
         });
-        impactorEconomy = config.getImpactorEconomy();
 
 
         shinytokenBlacklist = config.getShinytokenBlacklist();

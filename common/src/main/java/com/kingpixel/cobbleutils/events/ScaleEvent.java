@@ -2,7 +2,9 @@ package com.kingpixel.cobbleutils.events;
 
 import com.cobblemon.mod.common.api.Priority;
 import com.cobblemon.mod.common.api.events.CobblemonEvents;
+import com.cobblemon.mod.common.api.properties.CustomPokemonProperty;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
+import com.cobblemon.mod.common.platform.events.PlatformEvents;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.CobbleUtilsTags;
@@ -33,22 +35,6 @@ public class ScaleEvent {
       scalePokemon(evt.getPokemon());
       return Unit.INSTANCE;
     });
-/*      EntityEvent.ADD.register((entity, level) -> {
-        if (!CobbleUtils.config.isRandomsize()) return EventResult.pass();
-        if (entity instanceof PokemonEntity pokemonEntity) {
-          if (((Mob) entity).isPersistenceRequired()) return EventResult.pass();
-          if (((Mob) entity).isNoAi()) return EventResult.pass();
-          Pokemon pokemon = pokemonEntity.getPokemon();
-          if (pokemon.getPersistentData().getString(SIZE_TAG).equalsIgnoreCase(SIZE_CUSTOM_TAG))
-            return EventResult.pass();
-          if (pokemon.isPlayerOwned()) {
-            solveScale(pokemonEntity.getPokemon());
-            return EventResult.pass();
-          }
-          scalePokemon(pokemonEntity.getPokemon());
-        }
-        return EventResult.pass();
-      });*/
     CobblemonEvents.POKEMON_ENTITY_SPAWN.subscribe(Priority.HIGH, (evt) -> {
       if (!CobbleUtils.config.isRandomsize()) return Unit.INSTANCE;
       PokemonEntity pokemonEntity = evt.getEntity();
@@ -64,11 +50,17 @@ public class ScaleEvent {
       return Unit.INSTANCE;
     });
 
-/*    PlatformEvents.SERVER_STARTED.subscribe(Priority.NORMAL, (evt) -> {
+    CobblemonEvents.POKEMON_SENT_POST.subscribe(Priority.NORMAL, (evt) -> {
+      if (!CobbleUtils.config.isRandomsize()) return Unit.INSTANCE;
+      solveScale(evt.getPokemon());
+      return Unit.INSTANCE;
+    });
+
+    PlatformEvents.SERVER_STARTED.subscribe(Priority.NORMAL, (evt) -> {
       CustomPokemonProperty.Companion.register(ScalePropertyType);
       CustomPokemonProperty.Companion.register(SizePropertyType);
       return Unit.INSTANCE;
-    });*/
+    });
 
 
   }

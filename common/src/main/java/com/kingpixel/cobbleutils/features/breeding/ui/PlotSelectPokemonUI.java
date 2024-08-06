@@ -39,14 +39,15 @@ public class PlotSelectPokemonUI {
     List<Pokemon> pokemons = new ArrayList<>();
     try {
       Cobblemon.INSTANCE.getStorage().getParty(player).forEach(pokemon -> {
-        if (pokemon.getSpecies().showdownId().equalsIgnoreCase("egg")) return;
+        if (isBlacklist(player, pokemon, plotBreeding, gender)) return;
         if (pokemon.getGender() == gender || pokemon.getGender() == Gender.GENDERLESS) {
           pokemons.add(pokemon);
         }
       });
       Cobblemon.INSTANCE.getStorage().getPC(player.getUUID()).forEach(pokemon -> {
-        if (pokemon.getSpecies().showdownId().equalsIgnoreCase("egg")) return;
+        if (isBlacklist(player, pokemon, plotBreeding, gender)) return;
         if (pokemon.getGender() == gender || pokemon.getGender() == Gender.GENDERLESS) {
+
           pokemons.add(pokemon);
         }
       });
@@ -103,5 +104,36 @@ public class PlotSelectPokemonUI {
     LinkedPage.Builder linkedPageBuilder = LinkedPage.builder().title(AdventureTranslator.toNative("Select a Pokemon"));
     GooeyPage page = PaginationHelper.createPagesFromPlaceholders(template, buttons, linkedPageBuilder);
     UIManager.openUIForcefully(player, page);
+  }
+
+  private static boolean isBlacklist(ServerPlayer player, Pokemon pokemon, PlotBreeding plotBreeding, Gender gender) {
+    if (pokemon.getSpecies().showdownId().equalsIgnoreCase("egg")) return true;
+    if (CobbleUtils.breedconfig.getBlacklist().contains(pokemon.getSpecies().showdownId())) {
+      /*player.sendSystemMessage(
+        AdventureBreeding.adventure(
+          PokemonUtils.replace(
+            CobbleUtils.breedconfig.getBlacklisted()
+            , pokemon
+          )
+        )
+      );*/
+      return true;
+    }
+    if (!CobbleUtils.breedconfig.isDoubleditto()) {
+      /*player.sendSystemMessage(
+        AdventureBreeding.adventure(
+          PokemonUtils.replace(
+            CobbleUtils.breedconfig.getNotdoubleditto()
+            , pokemon
+          )
+        )
+      );*/
+      return true;
+    }
+    Pokemon isDitto = plotBreeding.obtainOtherGender(gender);
+    if (isDitto != null && isDitto.getSpecies().showdownId().equalsIgnoreCase("ditto")) {
+      return !CobbleUtils.breedconfig.isDitto();
+    }
+    return false;
   }
 }

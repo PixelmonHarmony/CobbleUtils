@@ -18,12 +18,10 @@ import kotlin.Unit;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Mob;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.kingpixel.cobbleutils.Model.CobbleUtilsTags.POKERUS_INFECTED_TAG;
 import static com.kingpixel.cobbleutils.Model.CobbleUtilsTags.POKERUS_TAG;
 
 /**
@@ -41,6 +39,16 @@ public class PokerusEvents {
           CobbleUtils.config.getPokerus().apply(pokemon.getPokemon(), false);
         }
         return EventResult.pass();
+      });
+
+      CobblemonEvents.POKEMON_SENT_POST.subscribe(Priority.NORMAL, (evt) -> {
+        Pokemon pokemon = evt.getPokemon();
+        if (pokemon.getPersistentData().getLong(POKERUS_TAG) < new Date().getTime()) {
+          pokemon.getPersistentData().remove(POKERUS_TAG);
+          pokemon.getPersistentData().putBoolean(POKERUS_INFECTED_TAG, true);
+          CobbleUtils.config.getPokerus().apply(pokemon, false);
+        }
+        return Unit.INSTANCE;
       });
 
       CobblemonEvents.BATTLE_FAINTED.subscribe(Priority.NORMAL, (evt) -> {

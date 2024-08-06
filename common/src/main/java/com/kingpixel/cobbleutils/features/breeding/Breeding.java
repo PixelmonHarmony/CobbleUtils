@@ -23,7 +23,7 @@ public class Breeding {
     events();
 
     PlayerEvent.PLAYER_JOIN.register(managerPlotEggs::init);
-    PlayerEvent.PLAYER_QUIT.register(managerPlotEggs::remove);
+    //PlayerEvent.PLAYER_QUIT.register(managerPlotEggs::remove);
 
     if (CobbleUtils.server != null) {
       CobbleUtils.server.getPlayerList().getPlayers().forEach(managerPlotEggs::checking);

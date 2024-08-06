@@ -29,11 +29,19 @@ public class EggInfoCommand implements Command<CommandSourceStack> {
             }
             ServerPlayer player = context.getSource().getPlayerOrException();
             Pokemon pokemon = PartySlotArgumentType.Companion.getPokemon(context, "slot");
-            player.sendSystemMessage(
-              AdventureTranslator.toNative(
-                "Egg Info: " + EggData.from(pokemon).getInfo()
-              )
-            );
+            if (pokemon.getSpecies().showdownId().equalsIgnoreCase("egg")) {
+              player.sendSystemMessage(
+                AdventureTranslator.toNative(
+                  "Egg Info: " + EggData.from(pokemon).getInfo()
+                )
+              );
+            } else {
+              player.sendSystemMessage(
+                AdventureTranslator.toNative(
+                  "This is not an egg"
+                )
+              );
+            }
             return 0;
           })
       )
