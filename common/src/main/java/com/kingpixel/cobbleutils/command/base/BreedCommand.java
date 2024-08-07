@@ -8,6 +8,8 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.server.level.ServerPlayer;
 
 /**
@@ -29,7 +31,20 @@ public class BreedCommand implements Command<CommandSourceStack> {
           }
           PlotBreedingUI.open(player);
           return 1;
-        })
+        }).then(
+        Commands.argument("player", EntityArgument.players())
+          .requires(source -> source.hasPermission(2))
+          .executes(
+            context -> {
+              ServerPlayer player = EntityArgument.getPlayer(context, "player");
+              if (Cobblemon.INSTANCE.getBattleRegistry().getBattleByParticipatingPlayer(player) != null) {
+                return 0;
+              }
+              PlotBreedingUI.open(player);
+              return 1;
+            }
+          )
+      )
     );
 
   }

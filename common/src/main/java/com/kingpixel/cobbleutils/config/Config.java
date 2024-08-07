@@ -30,6 +30,7 @@ public class Config {
   private boolean debug;
   private String prefix;
   private String lang;
+  private DataBaseConfig database;
   private String fill;
   private String ecocommand;
   private List<String> commandrewards;
@@ -115,6 +116,8 @@ public class Config {
     rarity.put("uncommon", 2.5);
     rarity.put("rare", 0.3);
     rarity.put("epic", 0.1);
+    database = new DataBaseConfig();
+
     specifiedSizes = new ArrayList<>();
     specifiedSizes.add(new ScalePokemonData("ditto", "normal", SizeChanceWithoutItem.transform(pokemonsizes)));
     specifiedSizes.add(new ScalePokemonData("zorua", "hisui", SizeChanceWithoutItem.transform(pokemonsizes)));
@@ -135,6 +138,7 @@ public class Config {
         shulkers = config.isShulkers();
         fossil = config.isFossil();
         pickup = config.isPickup();
+        database = config.getDatabase();
         shinyparticle = config.isShinyparticle();
         minpokemonsize = config.getMinpokemonsize();
         maxpokemonsize = config.getMaxpokemonsize();

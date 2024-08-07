@@ -27,6 +27,8 @@ import net.minecraft.server.level.ServerPlayer;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.kingpixel.cobbleutils.Model.CobbleUtilsTags.BREEDABLE_TAG;
+
 /**
  * @author Carlos Varas Alonso - 02/08/2024 18:54
  */
@@ -39,12 +41,14 @@ public class PlotSelectPokemonUI {
     List<Pokemon> pokemons = new ArrayList<>();
     try {
       Cobblemon.INSTANCE.getStorage().getParty(player).forEach(pokemon -> {
+        if (pokemon.getPersistentData().getBoolean(BREEDABLE_TAG)) return;
         if (isBlacklist(player, pokemon, plotBreeding, gender)) return;
         if (pokemon.getGender() == gender || pokemon.getGender() == Gender.GENDERLESS) {
           pokemons.add(pokemon);
         }
       });
       Cobblemon.INSTANCE.getStorage().getPC(player.getUUID()).forEach(pokemon -> {
+        if (pokemon.getPersistentData().getBoolean(BREEDABLE_TAG)) return;
         if (isBlacklist(player, pokemon, plotBreeding, gender)) return;
         if (pokemon.getGender() == gender || pokemon.getGender() == Gender.GENDERLESS) {
 

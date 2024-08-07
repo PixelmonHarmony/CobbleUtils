@@ -65,9 +65,6 @@ public class WalkBreeding {
             if (duplicate) {
               distanceMoved.set(distanceMoved.get() * 2);
             }
-            if (CobbleUtils.config.isDebug()) {
-              CobbleUtils.LOGGER.info("Distance: " + distanceMoved.get());
-            }
             eggData.steps(pokemon, distanceMoved.get());
           });
         } catch (NoPokemonStoreException e) {

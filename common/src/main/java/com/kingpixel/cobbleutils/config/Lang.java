@@ -13,6 +13,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Getter
 public class Lang {
+  private String prefixShop;
   // Messages
   private String titlemenushiny;
   private String titlemenushinyoperation;
@@ -45,6 +46,8 @@ public class Lang {
   private String messageReceiveReward;
   private String messageReceiveMoney;
   private String messagePokeShout;
+  private String messageBought;
+  private String messageNotHaveMoney;
   private String coloritem;
   private List<String> lorepokemon;
   private List<String> lorechance;
@@ -76,6 +79,7 @@ public class Lang {
    * Constructor to generate a file if one doesn't exist.
    */
   public Lang() {
+    prefixShop = "&eShop";
     confirm = "&aConfirm";
     cancel = "&cCancel";
     close = "&cClose";
@@ -200,6 +204,10 @@ public class Lang {
     itemConfirm = new ItemModel("minecraft:lime_stained_glass_pane", "<gradient:#4B9F4B:#7DC97D>Confirm", List.of(),
       0);
     itemCancel = new ItemModel("minecraft:red_stained_glass_pane", "<gradient:#E05858:#F09E9E>Cancel", List.of(), 0);
+    this.messageNotHaveMoney = "%prefix% <gradient:#e33636:#f08181>You don't have enough money. The price is %price% " +
+      "and " +
+      "you have %bal% Tokens.</gradient>";
+    this.messageBought = "%prefix% <gradient:#3693ba:#9cdcf7>You spend &e%price%</gradient>";
   }
 
   /**
@@ -251,10 +259,15 @@ public class Lang {
 
         coloritem = lang.getColoritem();
         // Time
-        seconds = lang.getSeconds();
-        minutes = lang.getMinutes();
-        hours = lang.getHours();
         days = lang.getDays();
+        day = lang.getDay();
+        hours = lang.getHours();
+        hour = lang.getHour();
+        minutes = lang.getMinutes();
+        minute = lang.getMinute();
+        seconds = lang.getSeconds();
+        second = lang.getSecond();
+
         gender = lang.getGender();
         forms = lang.getForms();
         itemPc = lang.getItemPc();
@@ -269,7 +282,8 @@ public class Lang {
         itemNoPokemon = lang.getItemNoPokemon();
         itemConfirm = lang.getItemConfirm();
         itemCancel = lang.getItemCancel();
-
+        messageNotHaveMoney = lang.getMessageNotHaveMoney();
+        messageBought = lang.getMessageBought();
 
         String data = gson.toJson(this);
         CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(CobbleUtils.PATH_LANG, CobbleUtils.config.getLang() +

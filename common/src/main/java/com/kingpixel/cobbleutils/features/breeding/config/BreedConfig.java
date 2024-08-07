@@ -18,12 +18,13 @@ import java.util.concurrent.CompletableFuture;
 @Getter
 @ToString
 @Data
-public class Config {
+public class BreedConfig {
   private String prefix;
   private List<String> eggcommand;
   private String titleselectplot;
   private String titleplot;
   private String titleselectpokemon;
+  private String nameEgg;
   private boolean active;
   private boolean autoclaim;
   private boolean changeuipasture;
@@ -31,6 +32,7 @@ public class Config {
   private boolean methodmasuda;
   private boolean ditto;
   private boolean doubleditto;
+  private boolean spawnEggWorld;
   private float multiplierShiny;
   private int cooldown;
   private int maxeggperplot;
@@ -38,6 +40,7 @@ public class Config {
   private int rowmenuselectplot;
   private int rowmenuplot;
   private int rowmenuselectpokemon;
+  private int percentagespawnegg;
   private String createEgg;
   private String notcancreateEgg;
   private String notdoubleditto;
@@ -49,12 +52,13 @@ public class Config {
   //private List<String> nationalities;
 
 
-  public Config() {
+  public BreedConfig() {
     this.prefix = "&7[<##82d448>Breeding&7] &8»";
     this.eggcommand = List.of("breed", "egg");
     this.titleselectplot = "Select Plot";
     this.titleplot = "Plot";
     this.titleselectpokemon = "Select Pokemon";
+    this.nameEgg = "Abandoned Egg";
     this.active = true;
     this.autoclaim = false;
     this.obtainAspect = false;
@@ -62,6 +66,7 @@ public class Config {
     this.methodmasuda = false;
     this.ditto = true;
     this.doubleditto = true;
+    this.spawnEggWorld = false;
     this.multiplierShiny = 1.5f;
     this.cooldown = 30;
     this.maxeggperplot = 3;
@@ -69,6 +74,7 @@ public class Config {
     this.rowmenuselectplot = 6;
     this.rowmenuplot = 6;
     this.rowmenuselectpokemon = 6;
+    this.percentagespawnegg = 5;
     this.plotItem = new ItemModel(0, "minecraft:turtle_egg", "Plot", List.of(
       "pokemon1: %pokemon1%",
       "pokemon2: %pokemon2%"
@@ -98,7 +104,7 @@ public class Config {
     CompletableFuture<Boolean> futureRead = Utils.readFileAsync(CobbleUtils.PATH_BREED, "config.json",
       el -> {
         Gson gson = Utils.newGson();
-        Config config = gson.fromJson(el, Config.class);
+        BreedConfig config = gson.fromJson(el, BreedConfig.class);
         prefix = config.getPrefix();
         active = config.isActive();
         changeuipasture = config.isChangeuipasture();
@@ -110,9 +116,16 @@ public class Config {
         maxplots = config.getMaxplots();
         notcancreateEgg = config.getNotcancreateEgg();
         autoclaim = config.isAutoclaim();
+        notdoubleditto = config.getNotdoubleditto();
+        notditto = config.getNotditto();
+        spawnEggWorld = config.isSpawnEggWorld();
+        blacklist = config.getBlacklist();
+        blacklisted = config.getBlacklisted();
+        percentagespawnegg = config.getPercentagespawnegg();
         plotItem = config.getPlotItem();
         multiplierShiny = config.getMultiplierShiny();
         eggcommand = config.getEggcommand();
+        nameEgg = config.getNameEgg();
         obtainAspect = config.isObtainAspect();
         plotSlots = config.getPlotSlots();
         rowmenuplot = config.getRowmenuplot();
@@ -122,6 +135,7 @@ public class Config {
         titleplot = config.getTitleplot();
         titleselectplot = config.getTitleselectplot();
         titleselectpokemon = config.getTitleselectpokemon();
+
         //nationalities = config.getNationalities();
 
         String data = gson.toJson(this);

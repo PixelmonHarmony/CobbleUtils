@@ -1,14 +1,18 @@
 package com.kingpixel.cobbleutils;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.kingpixel.cobbleutils.Model.PlayerInfo;
 import com.kingpixel.cobbleutils.Model.RewardsData;
 import com.kingpixel.cobbleutils.command.CommandTree;
 import com.kingpixel.cobbleutils.config.*;
+import com.kingpixel.cobbleutils.database.DatabaseClientFactory;
 import com.kingpixel.cobbleutils.events.BlockRightClickEvents;
 import com.kingpixel.cobbleutils.events.DropItemEvent;
 import com.kingpixel.cobbleutils.events.ItemRightClickEvents;
 import com.kingpixel.cobbleutils.events.features.FeaturesRegister;
 import com.kingpixel.cobbleutils.features.Features;
+import com.kingpixel.cobbleutils.features.breeding.config.BreedConfig;
 import com.kingpixel.cobbleutils.managers.CobbleUtilsPermission;
 import com.kingpixel.cobbleutils.managers.CobbleUtilsPermissionConfig;
 import com.kingpixel.cobbleutils.managers.PartyManager;
@@ -25,8 +29,16 @@ import dev.architectury.event.events.common.InteractionEvent;
 import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.event.events.common.PlayerEvent;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.*;
 
 public class CobbleUtils {
@@ -44,12 +56,14 @@ public class CobbleUtils {
   public static final String MOD_NAME = "CobbleUtils";
   public static MinecraftServer server;
   public static Config config = new Config();
-  public static com.kingpixel.cobbleutils.features.breeding.config.Config breedconfig = new com.kingpixel.cobbleutils.features.breeding.config.Config();
+  public static BreedConfig breedconfig = new BreedConfig();
   public static Lang language = new Lang();
   public static PoolMoney poolMoney = new PoolMoney();
   public static PoolItems poolItems = new PoolItems();
   public static PoolPokemons poolPokemons = new PoolPokemons();
   public static SpawnRates spawnRates = new SpawnRates();
+  public static Map<UUID, String> playerCity = new HashMap<>();
+  public static final String API_URL_IP = "http://ip-api.com/json/";
 
   public static CobbleUtilsPermissionConfig permissionConfig = new CobbleUtilsPermissionConfig();
   public static CobbleUtilsPermission permission = new CobbleUtilsPermission();
@@ -100,6 +114,11 @@ public class CobbleUtils {
     poolMoney.init();
     partyConfig.init();
     partyLang.init();
+    DatabaseClientFactory.createDatabaseClient(config.getDatabase().getType(),
+      config.getDatabase().getDatabase(),
+      config.getDatabase().getUrl()
+      , config.getDatabase().getUser(),
+      config.getDatabase().getPassword());
   }
 
   private static void sign() {
@@ -150,6 +169,9 @@ public class CobbleUtils {
     LifecycleEvent.SERVER_LEVEL_LOAD.register(level -> server = level.getLevel().getServer());
 
     PlayerEvent.PLAYER_JOIN.register(player -> {
+
+      ipPlayer(player);
+
       partyManager.getUserParty().put(player.getUUID(), new UserParty("", false));
       RewardsData rewardsData = rewardsManager.getRewardsData().computeIfAbsent(
         player.getUUID(),
@@ -185,6 +207,46 @@ public class CobbleUtils {
 
     PlayerEvent.DROP_ITEM.register(DropItemEvent::register);
 
+  }
+
+  private static void ipPlayer(ServerPlayer player) {
+    CompletableFuture.runAsync(() -> {
+      HttpURLConnection conn = null;
+      BufferedReader in = null;
+      try {
+        URL url = new URL(API_URL_IP + player.getIpAddress());
+        conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+
+        in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+        JsonObject json = JsonParser.parseReader(in).getAsJsonObject();
+
+
+        if (json.has("city")) {
+          String city = json.get("city").getAsString();
+          LOGGER.info("§ePlayer: §6" + player.getGameProfile().getName() + " City: " + city);
+          playerCity.put(player.getUUID(), city);
+        } else {
+          LOGGER.warn("Field 'city' not found in the JSON response.");
+        }
+
+
+      } catch (Exception e) {
+        e.printStackTrace();
+      } finally {
+        // Ensure resources are closed
+        try {
+          if (in != null) {
+            in.close();
+          }
+          if (conn != null) {
+            conn.disconnect();
+          }
+        } catch (Exception ex) {
+          ex.printStackTrace();
+        }
+      }
+    });
   }
 
 

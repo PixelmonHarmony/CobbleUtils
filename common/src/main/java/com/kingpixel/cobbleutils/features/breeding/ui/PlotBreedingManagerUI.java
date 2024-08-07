@@ -58,8 +58,16 @@ public class PlotBreedingManagerUI {
       open(player, plotBreeding);
     });
 
+    Pokemon pokemonegg = null;
+
+    if (!plotBreeding.getEggs().isEmpty()) {
+      pokemonegg = Pokemon.Companion.loadFromJSON(plotBreeding.getEggs().get(0));
+    } else {
+      pokemonegg = PokemonProperties.Companion.parse("egg").create();
+    }
+
     GooeyButton egg = GooeyButton.builder()
-      .display(PokemonItem.from(PokemonProperties.Companion.parse("egg"),
+      .display(PokemonItem.from(pokemonegg,
         plotBreeding.getEggs().size()))
       .title("Eggs")
       .onClick(action -> {

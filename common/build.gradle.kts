@@ -26,10 +26,13 @@ dependencies {
 
     // Database
     api("org.mongodb:mongodb-driver-reactivestreams:5.1.2")
-    
+
     // Lombok
     annotationProcessor("org.projectlombok:lombok:1.18.20")
     implementation("org.projectlombok:lombok:1.18.20")
+
+    // Impactor
+    implementation("net.impactdev.impactor.api:economy:${property("impactor_version")}")
 
     // Kyori Adventure
     api("net.kyori:examination-api:1.3.0")

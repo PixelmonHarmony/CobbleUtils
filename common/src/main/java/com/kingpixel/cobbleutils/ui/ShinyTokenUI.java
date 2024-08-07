@@ -27,6 +27,7 @@ public class ShinyTokenUI {
 
       ChestTemplate templateBuilder = ChestTemplate.builder(4).build();
 
+
       for (int i = 0; i < partyStore.size(); i++) {
         GooeyButton slot;
         Pokemon pokemon = partyStore.get(i);

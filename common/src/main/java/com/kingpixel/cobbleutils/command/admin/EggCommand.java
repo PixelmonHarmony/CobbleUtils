@@ -36,7 +36,7 @@ public class EggCommand implements Command<CommandSourceStack> {
               ServerPlayer player = context.getSource().getPlayerOrException();
               Pokemon pokemon = PokemonPropertiesArgumentType.Companion.getPokemonProperties(context, "pokemon").create();
               Species species = pokemon.getSpecies();
-              Pokemon egg = PokemonProperties.Companion.parse("egg").create();
+              Pokemon egg = PokemonProperties.Companion.parse("egg type_egg=" + pokemon.showdownId()).create();
               egg.getPersistentData().putString("species", species.showdownId());
               egg.getPersistentData().putString("nature", pokemon.getNature().getName().getPath());
               egg.getPersistentData().putString("ability", pokemon.getAbility().getName());

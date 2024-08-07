@@ -10,6 +10,7 @@ import com.cobblemon.mod.common.api.pokemon.Natures;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.api.pokemon.stats.Stats;
 import com.cobblemon.mod.common.api.storage.NoPokemonStoreException;
+import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.item.CobblemonItem;
 import com.cobblemon.mod.common.pokemon.FormData;
 import com.cobblemon.mod.common.pokemon.Pokemon;
@@ -26,7 +27,11 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.levelgen.Heightmap;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -47,6 +52,48 @@ public class EggData {
   private String ability;
   private String size;
   private String form;
+
+  public static void spawnEgg(ChunkAccess chunkAccess, ServerLevel level) {
+    try {
+      // Generar una posición aleatoria dentro del chunk
+      int offsetX = Utils.RANDOM.nextInt(16);
+      int offsetZ = Utils.RANDOM.nextInt(16);
+
+      // Obtener las coordenadas globales del chunk y sumar los offsets
+      int worldX = chunkAccess.getPos().getWorldPosition().getX() + offsetX;
+      int worldZ = chunkAccess.getPos().getWorldPosition().getZ() + offsetZ;
+
+      // Obtener la altura en las coordenadas globales
+      int worldY = level.getHeight(Heightmap.Types.MOTION_BLOCKING, worldX, worldZ);
+
+      // Verificar que la altura no sea menor que -60
+      if (worldY < -60) return;
+
+      // Crear y configurar el huevo
+      PokemonEntity egg = createEgg(ArraysPokemons.getRandomPokemon(), level);
+      PokemonProperties.Companion.parse("uncatchable=true").apply(egg.getPokemon());
+      egg.getPokemon().getPersistentData().putBoolean("EggSpawned", true);
+
+      // Log de depuración
+      if (CobbleUtils.config.isDebug()) {
+        CobbleUtils.LOGGER.info("Egg Spawned at: [" + worldX + ", " + worldY + ", " + worldZ + "]");
+      }
+
+      egg.getPokemon().setNickname(Component.literal(CobbleUtils.breedconfig.getNameEgg()));
+      // Configurar el huevo
+      egg.setPersistenceRequired();
+      egg.setInvulnerable(true);
+      egg.setNoAi(true);
+      egg.setPos(worldX, worldY, worldZ);
+      egg.setNoGravity(false); // Esto puede ser redundante ya que la gravedad es habilitada por defecto
+
+      // Añadir el huevo al nivel
+      level.addFreshEntity(egg);
+    } catch (Exception e) {
+      CobbleUtils.LOGGER.error("Error spawning egg: " + e.getMessage());
+      e.printStackTrace();
+    }
+  }
 
 
   public void EggToPokemon(Pokemon pokemon) {
@@ -141,44 +188,12 @@ public class EggData {
 
     if (male.getSpecies().showdownId().equalsIgnoreCase("ditto") && female.getSpecies().showdownId().equalsIgnoreCase("ditto")) {
       egg = EggData.pokemonToEgg(ArraysPokemons.getRandomPokemon(), true);
-      if (CobbleUtils.config.isDebug()) {
-        CobbleUtils.LOGGER.info("+--------------------------------+");
-        CobbleUtils.LOGGER.info("Ditto + Ditto");
-        CobbleUtils.LOGGER.info("Male: " + male.getSpecies().showdownId());
-        CobbleUtils.LOGGER.info("Female: " + female.getSpecies().showdownId());
-        CobbleUtils.LOGGER.info("Egg: " + egg.getPersistentData().getString("species"));
-        CobbleUtils.LOGGER.info("+--------------------------------+");
-      }
     } else if (male.getSpecies().showdownId().equalsIgnoreCase("ditto")) {
       egg = EggData.pokemonToEgg(female, false);
-      if (CobbleUtils.config.isDebug()) {
-        CobbleUtils.LOGGER.info("+--------------------------------+");
-        CobbleUtils.LOGGER.info("Ditto + Other");
-        CobbleUtils.LOGGER.info("Male: " + male.getSpecies().showdownId());
-        CobbleUtils.LOGGER.info("Female: " + female.getSpecies().showdownId());
-        CobbleUtils.LOGGER.info("Egg: " + egg.getPersistentData().getString("species"));
-        CobbleUtils.LOGGER.info("+--------------------------------+");
-      }
     } else if (female.getSpecies().showdownId().equalsIgnoreCase("ditto")) {
       egg = EggData.pokemonToEgg(male, false);
-      if (CobbleUtils.config.isDebug()) {
-        CobbleUtils.LOGGER.info("+--------------------------------+");
-        CobbleUtils.LOGGER.info("Other + Ditto");
-        CobbleUtils.LOGGER.info("Male: " + male.getSpecies().showdownId());
-        CobbleUtils.LOGGER.info("Female: " + female.getSpecies().showdownId());
-        CobbleUtils.LOGGER.info("Egg: " + egg.getPersistentData().getString("species"));
-        CobbleUtils.LOGGER.info("+--------------------------------+");
-      }
     } else if (male.getSpecies().showdownId().equalsIgnoreCase(female.getSpecies().showdownId())) {
       egg = EggData.pokemonToEgg(female, false);
-      if (CobbleUtils.config.isDebug()) {
-        CobbleUtils.LOGGER.info("+--------------------------------+");
-        CobbleUtils.LOGGER.info("Same + Same");
-        CobbleUtils.LOGGER.info("Male: " + male.getSpecies().showdownId());
-        CobbleUtils.LOGGER.info("Female: " + female.getSpecies().showdownId());
-        CobbleUtils.LOGGER.info("Egg: " + egg.getPersistentData().getString("species"));
-        CobbleUtils.LOGGER.info("+--------------------------------+");
-      }
     } else {
       return null;
     }
@@ -237,10 +252,6 @@ public class EggData {
       if (Utils.RANDOM.nextInt((int) shinyrate) == 0) {
         egg.setShiny(true);
       }
-    }
-
-    if (CobbleUtils.config.isDebug()) {
-      CobbleUtils.LOGGER.info("ShinyRate Egg: " + shinyrate);
     }
   }
 
@@ -342,41 +353,11 @@ public class EggData {
     }
   }
 
-  /*public static void applyIvs(Pokemon parent, Pokemon egg, int amount) {
-    Stats[] stats = Stats.values();
-    Set<Stats> statsSet = new HashSet<>();
-
-    List<Stats> validStats = Arrays.stream(stats)
-      .filter(stat -> stat != Stats.EVASION && stat != Stats.ACCURACY)
-      .toList();
-
-    while (statsSet.size() < amount && !validStats.isEmpty()) {
-      Stats stat = validStats.get(Utils.RANDOM.nextInt(validStats.size()));
-      if (statsSet.add(stat)) {
-        Integer ivValue = parent.getIvs().get(stat);
-        if (ivValue != null) {
-          if (CobbleUtils.config.isDebug()) {
-            CobbleUtils.LOGGER.info("Stat: " + stat);
-          }
-          egg.setIV(stat, ivValue);
-        } else {
-          if (CobbleUtils.config.isDebug()) {
-            CobbleUtils.LOGGER.warn("IV value for stat " + stat + " is null");
-          }
-        }
-      }
-    }
-
-    for (Stats stat : validStats) {
-      if (!statsSet.contains(stat)) {
-        int randomIvValue = Utils.RANDOM.nextInt(32);
-        if (CobbleUtils.config.isDebug()) {
-          CobbleUtils.LOGGER.info("Randomizing IV for stat: " + stat + " with value: " + randomIvValue);
-        }
-        egg.setIV(stat, randomIvValue);
-      }
-    }
-  }*/
+  private static PokemonEntity createEgg(Pokemon pokemon, Level level) {
+    PokemonEntity egg = PokemonProperties.Companion.parse("egg type_egg=" + pokemon.showdownId()).createEntity(level);
+    EggData.applyPersistent(egg.getPokemon(), pokemon, pokemon.getSpecies().showdownId(), false);
+    return egg;
+  }
 
 
   private static Pokemon pokemonToEgg(Pokemon pokemon, boolean dittos) {
@@ -445,9 +426,7 @@ public class EggData {
 
           if (lastIndex != -1) {
             String modified = form.substring(0, lastIndex) + '=' + form.substring(lastIndex + 1);
-            System.out.println(modified); // Salida: tree=cherry
-          } else {
-            System.out.println(form); // En caso de que no haya ningún guion en la cadena
+            form = modified;
           }
           egg.getPersistentData().putString("form", form);
         }
@@ -455,13 +434,8 @@ public class EggData {
     }
 
     egg.getPersistentData().putInt("level", 1);
-    if (CobbleUtils.config.isDebug()) {
-      egg.getPersistentData().putInt("cycles", 0);
-      egg.getPersistentData().putInt("steps", 0);
-    } else {
-      egg.getPersistentData().putInt("steps", 200);
-      egg.getPersistentData().putInt("cycles", pokemon.getSpecies().getEggCycles());
-    }
+    egg.getPersistentData().putInt("steps", 200);
+    egg.getPersistentData().putInt("cycles", pokemon.getSpecies().getEggCycles());
 
     egg.setScaleModifier(ScalePokemonData.getScalePokemonData(pokemon).getRandomPokemonSize().getSize());
     if (dittos) {
