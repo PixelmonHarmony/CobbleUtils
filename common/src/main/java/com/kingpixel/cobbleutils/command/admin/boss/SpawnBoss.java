@@ -15,10 +15,12 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.DimensionArgument;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.coordinates.Vec3Argument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 import static com.kingpixel.cobbleutils.Model.CobbleUtilsTags.SIZE_CUSTOM_TAG;
@@ -38,9 +40,7 @@ public class SpawnBoss implements Command<CommandSourceStack> {
           .then(
             Commands.argument("boss", StringArgumentType.string())
               .suggests((context, builder) -> {
-                CobbleUtils.config.getBosses().getBossChances().forEach(bossChance -> {
-                  builder.suggest(bossChance.getRarity());
-                });
+                CobbleUtils.config.getBosses().getBossChances().forEach(bossChance -> builder.suggest(bossChance.getRarity()));
                 return builder.buildFuture();
               })
               .executes(context -> {
@@ -49,7 +49,7 @@ public class SpawnBoss implements Command<CommandSourceStack> {
                 }
                 ServerPlayer player = context.getSource().getPlayerOrException();
                 String boss = StringArgumentType.getString(context, "boss");
-                spawnBoss(boss, player, player.position());
+                spawnBoss(boss, player.level(), player.position());
                 return 1;
               }).then(
                 Commands.literal("user")
@@ -59,7 +59,7 @@ public class SpawnBoss implements Command<CommandSourceStack> {
                         ServerPlayer player = EntityArgument.getPlayer(context, "player");
                         Vec3 pos = player.position();
                         String boss = StringArgumentType.getString(context, "boss");
-                        spawnBoss(boss, player, pos);
+                        spawnBoss(boss, player.level(), pos);
                         return 1;
                       })
                   )
@@ -67,13 +67,16 @@ public class SpawnBoss implements Command<CommandSourceStack> {
                 Commands.literal("coords")
                   .then(
                     Commands.argument("pos", Vec3Argument.vec3())
-                      .executes(context -> {
-                        ServerPlayer player = context.getSource().getPlayerOrException();
-                        Vec3 pos = Vec3Argument.getVec3(context, "pos");
-                        String boss = StringArgumentType.getString(context, "boss");
-                        spawnBoss(boss, player, pos);
-                        return 1;
-                      })
+                      .then(
+                        Commands.argument("world", DimensionArgument.dimension())
+                          .executes(context -> {
+                            Vec3 pos = Vec3Argument.getVec3(context, "pos");
+                            String boss = StringArgumentType.getString(context, "boss");
+                            Level level = DimensionArgument.getDimension(context, "world");
+                            spawnBoss(boss, level, pos);
+                            return 1;
+                          })
+                      )
                   )
               )
           )
@@ -82,27 +85,35 @@ public class SpawnBoss implements Command<CommandSourceStack> {
 
   }
 
-  private static void spawnBoss(String boss, ServerPlayer player, Vec3 pos) {
+  private static void spawnBoss(String boss, Level level, Vec3 pos) {
     BossChance bossChance = CobbleUtils.config.getBosses().getBossChance(boss);
     if (bossChance == null) return;
 
-    PokemonEntity pokemonEntity = null;
+    PokemonEntity pokemonEntity;
     if (CobbleUtils.config.getBosses().isForceAspectBoss()) {
       int n = Utils.RANDOM.nextInt(bossChance.getPokemons().getPokemon().size());
-      pokemonEntity = PokemonProperties.Companion.parse(bossChance.getPokemons().getPokemon().get(n) + bossChance.getPokemons().getFormsoraspects()).createEntity(player.level());
+      pokemonEntity = PokemonProperties.Companion.parse(bossChance.getPokemons().getPokemon().get(n) + bossChance.getPokemons().getFormsoraspects()).createEntity(level);
     } else {
-      pokemonEntity = PokemonProperties.Companion.parse("random uncatchable=yes").createEntity(player.level());
+      pokemonEntity = PokemonProperties.Companion.parse("random uncatchable=yes").createEntity(level);
     }
     Pokemon pokemon = pokemonEntity.getPokemon();
     pokemon.getPersistentData().putBoolean(CobbleUtilsTags.BOSS_TAG, true);
     pokemon.getPersistentData().putString(CobbleUtilsTags.BOSS_RARITY_TAG, bossChance.getRarity());
     pokemon.getPersistentData().putString(SIZE_TAG, SIZE_CUSTOM_TAG);
-    pokemon.setScaleModifier(Utils.RANDOM.nextFloat(bossChance.getMinsize(), bossChance.getMaxsize()));
+    if (bossChance.getMinsize() != bossChance.getMaxsize()) {
+      pokemon.setScaleModifier(Utils.RANDOM.nextFloat(bossChance.getMinsize(), bossChance.getMaxsize()));
+    } else {
+      pokemon.setScaleModifier(bossChance.getMinsize());
+    }
     pokemon.setShiny(CobbleUtils.config.getBosses().isShiny());
     pokemon.setNickname(Component.literal(bossChance.getRarity()));
-    pokemon.setLevel(Utils.RANDOM.nextInt(bossChance.getMinlevel(), bossChance.getMaxlevel()));
+    if (bossChance.getMinlevel() != bossChance.getMaxlevel()) {
+      pokemon.setLevel(Utils.RANDOM.nextInt(bossChance.getMinlevel(), bossChance.getMaxlevel()));
+    } else {
+      pokemon.setLevel(bossChance.getMinlevel());
+    }
     pokemonEntity.setPos(pos.x, pos.y, pos.z);
-    player.level().addFreshEntity(pokemonEntity);
+    level.addFreshEntity(pokemonEntity);
   }
 
   @Override

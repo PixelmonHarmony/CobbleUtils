@@ -25,7 +25,7 @@ public class WalkBreeding {
   public static void register() {
 
     TickEvent.PLAYER_POST.register(player -> {
-      if (!player.hasPose(Pose.FALL_FLYING) && !player.isInvulnerable() && !player.isCreative() && !player.isSpectator()) {
+      if (!player.hasPose(Pose.FALL_FLYING)) {
         ticks.compute(player.getUUID(), (uuid, integer) -> integer == null ? 1 : integer + 1);
         if (ticks.get(player.getUUID()) % 20 != 0) return;
         AtomicInteger distanceMoved = new AtomicInteger();

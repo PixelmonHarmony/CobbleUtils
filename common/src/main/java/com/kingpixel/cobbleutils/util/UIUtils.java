@@ -75,11 +75,12 @@ public class UIUtils {
    */
   public static GooeyPage confirmMenu(Consumer<ButtonAction> actionConfirm, Consumer<ButtonAction> closeaction) {
     ChestTemplate template = ChestTemplate.builder(3).build();
-    template.fill(GooeyButton.builder()
-        .display(Utils.parseItemId(CobbleUtils.config.getFill())).build())
-      .rectangle(0, 0, 2, 2, new PlaceholderButton())
-      .set(1, 1, getConfirmButton(actionConfirm))
-      .set(1, 2, getCancelButton(closeaction));
+    GooeyButton fill = GooeyButton.builder()
+      .display(Utils.parseItemId(CobbleUtils.config.getFill())).build();
+    template
+      .fill(fill)
+      .set(1, 2, getConfirmButton(actionConfirm))
+      .set(1, 6, getCancelButton(closeaction));
     return GooeyPage.builder()
       .template(template)
       .title(AdventureTranslator.toNative(CobbleUtils.language.getTitleconfirm()))
@@ -301,6 +302,7 @@ public class UIUtils {
 
       // Construir la página vinculada
       LinkedPage.Builder linkedPageBuilder = LinkedPage.builder().title(AdventureTranslator.toNative(titlemenu));
+      
       return PaginationHelper.createPagesFromPlaceholders(template, buttonsList, linkedPageBuilder);
     }).get();
   }

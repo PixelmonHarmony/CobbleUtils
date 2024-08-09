@@ -88,7 +88,6 @@ public class PlotBreeding {
     } else if (gender == Gender.FEMALE) {
       addFemale(pokemon);
     }
-
   }
 
   public Pokemon obtainOtherGender(Gender gender) {

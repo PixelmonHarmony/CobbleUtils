@@ -24,7 +24,9 @@ public class BreedConfig {
   private String titleselectplot;
   private String titleplot;
   private String titleselectpokemon;
+  private String nameAbandonedEgg;
   private String nameEgg;
+  private String nameRandomEgg;
   private boolean active;
   private boolean autoclaim;
   private boolean changeuipasture;
@@ -33,7 +35,9 @@ public class BreedConfig {
   private boolean ditto;
   private boolean doubleditto;
   private boolean spawnEggWorld;
+  private float multipliermasuda;
   private float multiplierShiny;
+  private int checkEggToBreedInSeconds;
   private int cooldown;
   private int maxeggperplot;
   private int maxplots;
@@ -41,24 +45,28 @@ public class BreedConfig {
   private int rowmenuplot;
   private int rowmenuselectpokemon;
   private int percentagespawnegg;
+  private int steps;
+  private int cooldowninstaBreedInSeconds;
+  private int cooldowninstaHatchInSeconds;
   private String createEgg;
   private String notcancreateEgg;
   private String notdoubleditto;
   private String notditto;
+  private String notCompatible;
   private String blacklisted;
   private ItemModel plotItem;
   private List<Integer> plotSlots;
   private List<String> blacklist;
+  private List<String> whitelist;
   //private List<String> nationalities;
 
 
   public BreedConfig() {
-    this.prefix = "&7[<##82d448>Breeding&7] &8»";
-    this.eggcommand = List.of("breed", "egg");
-    this.titleselectplot = "Select Plot";
-    this.titleplot = "Plot";
-    this.titleselectpokemon = "Select Pokemon";
-    this.nameEgg = "Abandoned Egg";
+    this.prefix = "&7[<#82d448>Breeding&7] &8»";
+    this.eggcommand = List.of("daycare", "breed");
+    this.titleselectplot = "<#82d448>Select Plot";
+    this.titleplot = "<#82d448>Plot";
+    this.titleselectpokemon = "<#82d448>Select Pokemon";
     this.active = true;
     this.autoclaim = false;
     this.obtainAspect = false;
@@ -67,17 +75,24 @@ public class BreedConfig {
     this.ditto = true;
     this.doubleditto = true;
     this.spawnEggWorld = false;
+    this.multipliermasuda = 1.5f;
     this.multiplierShiny = 1.5f;
     this.cooldown = 30;
     this.maxeggperplot = 3;
     this.maxplots = 3;
-    this.rowmenuselectplot = 6;
-    this.rowmenuplot = 6;
+    this.steps = 256;
+    this.checkEggToBreedInSeconds = 15;
+    this.rowmenuselectplot = 3;
+    this.rowmenuplot = 3;
     this.rowmenuselectpokemon = 6;
     this.percentagespawnegg = 5;
-    this.plotItem = new ItemModel(0, "minecraft:turtle_egg", "Plot", List.of(
-      "pokemon1: %pokemon1%",
-      "pokemon2: %pokemon2%"
+    this.cooldowninstaBreedInSeconds = 60;
+    this.cooldowninstaHatchInSeconds = 60;
+    this.plotItem = new ItemModel(0, "minecraft:turtle_egg", "<#82d448>Plot", List.of(
+      "&9male: &6%pokemon1%",
+      "&dfemale: &6%pokemon2%",
+      "&7Eggs: &6%eggs%",
+      "&7Cooldown: &6%cooldown%"
     ), 0);
     this.plotSlots = List.of(10,
       12,
@@ -88,15 +103,17 @@ public class BreedConfig {
       22,
       24,
       26);
-    this.createEgg = "%prefix% <#ecca18>%pokemon1% %shiny% &f(%form%&f) <#64de7c>and <#ecca18>%pokemon2% %shiny% &f(%form%&f) " +
-      "<#64de7c>have created an egg <#ecca18>%egg%<#64de7c>!";
-    this.notcancreateEgg = "%prefix% <#ecca18>%pokemon1% %shiny% <#d65549>and <#ecca18>%pokemon2% %shiny% &f(%form%&f) <#d65549>can't " +
-      "create an egg!";
-    this.notdoubleditto = "%prefix% you can't use two dittos!";
-    this.notditto = "%prefix% you can't use a one ditto!";
+    this.createEgg = "%prefix% <#ecca18>%pokemon1% %shiny1% &f(%form1%&f) <#64de7c>and <#ecca18>%pokemon2% %shiny2% &f(%form2%&f) <#64de7c>have created an egg <#ecca18>%egg%<#64de7c>!";
+    this.notcancreateEgg = "%prefix% <#ecca18>%pokemon1% %shiny1% &f(%form1%&f) <#d65549>and <#ecca18>%pokemon2% %shiny2% &f(%form2%&f) <#d65549>can't create an egg!";
+    this.notdoubleditto = "%prefix% <#d65549>you can't use two dittos!";
+    this.notditto = "%prefix% <#d65549>you can't use one ditto!";
     this.blacklisted = "%prefix% <#ecca18>%pokemon% <#d65549>is blacklisted!";
-    this.blacklist = List.of("ditto", "magikarp");
-
+    this.blacklist = List.of("pokestop", "egg");
+    this.whitelist = List.of("manaphy");
+    this.nameEgg = "Egg %pokemon%";
+    this.nameAbandonedEgg = "Abandoned Egg";
+    this.nameRandomEgg = "Random Egg";
+    this.notCompatible = "%prefix% <#d65549>%pokemon1% and %pokemon2% is not compatible!";
     //this.nationalities = List.of("es", "en", "fr", "de", "it", "pt", "jp", "ko", "zh", "ru");
   }
 
@@ -135,8 +152,15 @@ public class BreedConfig {
         titleplot = config.getTitleplot();
         titleselectplot = config.getTitleselectplot();
         titleselectpokemon = config.getTitleselectpokemon();
-
-        //nationalities = config.getNationalities();
+        multipliermasuda = config.getMultipliermasuda();
+        whitelist = config.getWhitelist();
+        steps = config.getSteps();
+        checkEggToBreedInSeconds = config.getCheckEggToBreedInSeconds();
+        nameAbandonedEgg = config.getNameAbandonedEgg();
+        nameRandomEgg = config.getNameRandomEgg();
+        notCompatible = config.getNotCompatible();
+        cooldowninstaBreedInSeconds = config.getCooldowninstaBreedInSeconds();
+        cooldowninstaHatchInSeconds = config.getCooldowninstaHatchInSeconds();
 
         String data = gson.toJson(this);
         CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(CobbleUtils.PATH_BREED, "config.json",

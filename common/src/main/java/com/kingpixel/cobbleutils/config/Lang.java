@@ -48,6 +48,7 @@ public class Lang {
   private String messagePokeShout;
   private String messageBought;
   private String messageNotHaveMoney;
+  private String messageCooldown;
   private String coloritem;
   private List<String> lorepokemon;
   private List<String> lorechance;
@@ -136,7 +137,9 @@ public class Lang {
       "<#ecca18><lang:cobblemon.held_item>: &f%item%",
       "<#ecca18>Form: &f%form%",
       "<#98eb59><lang:cobblemon.ui.moves>: &f%move1% &f- %move2% &f- %move3% &f- %move4%",
-      "<#b0eb59><lang:cobblemon.ui.info.original_trainer>: &f%owner%"
+      "<#b0eb59><lang:cobblemon.ui.info.original_trainer>: &f%owner%",
+      "<#b0eb59>Country: &f%country%",
+      "<#b0eb59>EggGroups: &f%egggroups%"
     );
     lorechance = List.of(
       "&7Chance: &e%chance%&f%"
@@ -208,6 +211,8 @@ public class Lang {
       "and " +
       "you have %bal% Tokens.</gradient>";
     this.messageBought = "%prefix% <gradient:#3693ba:#9cdcf7>You spend &e%price%</gradient>";
+    this.messageCooldown = "%prefix% <gradient:#e33636:#f08181>You need to wait %cooldown% <gradient:#e33636:#f08181>to use this command" +
+      ".</gradient>";
   }
 
   /**
@@ -284,6 +289,7 @@ public class Lang {
         itemCancel = lang.getItemCancel();
         messageNotHaveMoney = lang.getMessageNotHaveMoney();
         messageBought = lang.getMessageBought();
+        messageCooldown = lang.getMessageCooldown();
 
         String data = gson.toJson(this);
         CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(CobbleUtils.PATH_LANG, CobbleUtils.config.getLang() +

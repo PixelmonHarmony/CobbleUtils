@@ -14,6 +14,8 @@ public class CobbleUtilsPermission {
   public final CobblemonPermission USER_PERMISSION;
   public final CobblemonPermission POKESHOUT_PERMISSION;
   public final CobblemonPermission POKESHOUTALL_PERMISSION;
+  public final CobblemonPermission INSTA_BREED_PERMISSION;
+  public final CobblemonPermission HATCH_PERMISSION;
 
   public CobbleUtilsPermission() {
     this.USER_PERMISSION = new CobblemonPermission("cobbleutils.user",
@@ -22,6 +24,11 @@ public class CobbleUtilsPermission {
       toPermLevel(CobbleUtils.permissionConfig.permissionLevels.COMMAND_POKESHOUT_PERMISSION_LEVEL));
     this.POKESHOUTALL_PERMISSION = new CobblemonPermission("cobbleutils.pokeshoutall",
       toPermLevel(CobbleUtils.permissionConfig.permissionLevels.COMMAND_POKESHOUTALL_PERMISSION_LEVEL));
+    this.INSTA_BREED_PERMISSION = new CobblemonPermission("cobbleutils.instabreed",
+      toPermLevel(CobbleUtils.permissionConfig.permissionLevels.COMMAND_INSTA_BREED_PERMISSION_LEVEL));
+    this.HATCH_PERMISSION = new CobblemonPermission("cobbleutils.hatch",
+      toPermLevel(CobbleUtils.permissionConfig.permissionLevels.COMMAND_HATCH_PERMISSION_LEVEL));
+
 
   }
 

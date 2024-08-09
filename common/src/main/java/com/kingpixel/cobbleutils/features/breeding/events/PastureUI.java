@@ -16,7 +16,6 @@ public class PastureUI {
   public static void register() {
     InteractionEvent.RIGHT_CLICK_BLOCK.register((player, hand, blockPos, direction) -> {
       if (!CobbleUtils.breedconfig.isChangeuipasture()) return EventResult.pass();
-      if (player.isShiftKeyDown()) return EventResult.pass();
       BlockEntity blockEntity = player.level().getBlockEntity(blockPos);
       if (blockEntity == null) {
         blockPos = new BlockPos(blockPos.getX(), blockPos.getY() - 1, blockPos.getZ());

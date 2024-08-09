@@ -20,5 +20,8 @@ public class CobbleUtilsPermissionConfig {
     @SerializedName("cobbleutils.pokeshout") public int COMMAND_POKESHOUT_PERMISSION_LEVEL = 1;
     @SerializedName("cobbleutils.pokeshoutall") public int COMMAND_POKESHOUTALL_PERMISSION_LEVEL = 1;
     @SerializedName("cobbleutils.user") public int COMMAND_USER_PERMISSION_LEVEL = 1;
+    // Admin
+    @SerializedName("cobbleutils.breedinsta") public int COMMAND_INSTA_BREED_PERMISSION_LEVEL = 2;
+    @SerializedName("cobbleutils.hatch") public int COMMAND_HATCH_PERMISSION_LEVEL = 2;
   }
 }

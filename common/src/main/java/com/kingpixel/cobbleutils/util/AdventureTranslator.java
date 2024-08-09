@@ -158,7 +158,7 @@ public class AdventureTranslator {
   }
 
   public static MutableComponent toNativeComponent(String messageContent) {
-    return (MutableComponent) miniMessage.deserialize(replaceNative(messageContent));
+    return Component.empty().append(AdventureTranslator.toNative(messageContent));
   }
 }
 

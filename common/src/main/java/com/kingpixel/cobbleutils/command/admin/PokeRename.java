@@ -42,28 +42,44 @@ public class PokeRename implements Command<CommandSourceStack> {
 
   }
 
-  @Override public int run(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+  @Override
+  public int run(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
     try {
       if (!context.getSource().isPlayer()) return 0;
+
       ServerPlayer player = context.getSource().getPlayerOrException();
       Pokemon pokemon = PartySlotArgumentType.Companion.getPokemon(context, "slot");
+
       String name = StringArgumentType.getString(context, "name");
+
       player.sendSystemMessage(Component.literal("This command is not implemented yet, please wait."));
-      MutableComponent component = Component.literal("");
-      component.append(AdventureTranslator.toNativeWithOutPrefix(name));
-      pokemon.setNickname(component);
+
+      MutableComponent displayName = AdventureTranslator.toNativeComponent(name);
+
+      pokemon.setNickname(displayName);
+
       PokemonEntity pokemonEntity = pokemon.getEntity();
       if (pokemonEntity != null) {
-        pokemonEntity.setCustomName(component);
+        pokemonEntity.setCustomName(displayName);
         pokemonEntity.setCustomNameVisible(true);
       }
       JsonObject json = pokemon.saveToJSON(new JsonObject());
-      context.getSource().getPlayerOrException().sendSystemMessage(pokemon.getDisplayName());
-      CobbleUtils.LOGGER.info("Pokemon Json:" + json);
+
+      if (json.has("Nickname")) {
+        JsonObject nicknameObj = json.getAsJsonObject("Nickname");
+        if (nicknameObj.has("text")) {
+          nicknameObj.remove("text");
+          nicknameObj.addProperty("text", displayName.getString());
+        }
+      }
+      pokemon.loadFromJSON(json);
+      context.getSource().getPlayerOrException().sendSystemMessage(displayName);
+
     } catch (Exception e) {
       CobbleUtils.LOGGER.error(e.getMessage());
       return 0;
     }
     return 1;
   }
+
 }

@@ -67,4 +67,7 @@ public class PlayerUtils {
     return itemStack;
   }
 
+  public static boolean isCooldown(Long cooldown) {
+    return new Date().getTime() < cooldown;
+  }
 }

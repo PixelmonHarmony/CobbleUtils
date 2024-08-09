@@ -93,7 +93,7 @@ public class PlotBreedingManagerUI {
 
     GooeyPage page = GooeyPage.builder()
       .template(template)
-      .title("Breeding Manager")
+      .title(AdventureTranslator.toNative(CobbleUtils.breedconfig.getTitleplot()))
       .build();
 
     UIManager.openUIForcefully(player, page);

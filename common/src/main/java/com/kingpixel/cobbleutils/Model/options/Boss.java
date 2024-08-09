@@ -46,7 +46,10 @@ public class Boss {
   }
 
   public BossChance getBossChance(String rarity) {
-    return bossChances.stream().filter(bossChance -> bossChance.getRarity().equals(rarity)).findFirst().orElse(null);
+    return bossChances.stream()
+      .filter(bossChance -> bossChance.getRarity().equalsIgnoreCase(rarity))
+      .findFirst()
+      .orElse(null);
   }
 
   public PokemonDataBoss getPokemonDataBoss(Pokemon pokemon) {

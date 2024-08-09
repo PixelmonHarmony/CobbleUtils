@@ -3,6 +3,7 @@ package com.kingpixel.cobbleutils.features.breeding.events;
 import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.Priority;
 import com.cobblemon.mod.common.api.events.CobblemonEvents;
+import com.cobblemon.mod.common.battles.actor.PokemonBattleActor;
 import kotlin.Unit;
 
 /**
@@ -17,6 +18,14 @@ public class EggThrow {
       return Unit.INSTANCE;
     });
     CobblemonEvents.BATTLE_STARTED_PRE.subscribe(Priority.NORMAL, (evt) -> {
+      if (!evt.getBattle().isPvW()) return Unit.INSTANCE;
+      evt.getBattle().getActors().forEach(actor -> {
+        if (actor instanceof PokemonBattleActor battleActor) {
+          if (battleActor.getPokemon().getOriginalPokemon().showdownId().equalsIgnoreCase("egg")) {
+            evt.cancel();
+          }
+        }
+      });
       evt.getBattle().getPlayers().forEach(player -> Cobblemon.INSTANCE.getStorage().getParty(player).forEach(pokemon -> {
         if (pokemon.showdownId().equalsIgnoreCase("egg")) {
           pokemon.setCurrentHealth(0);

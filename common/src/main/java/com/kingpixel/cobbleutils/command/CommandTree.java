@@ -26,6 +26,8 @@ public class CommandTree {
 
     PokeShout.register(dispatcher, Commands.literal(CobbleUtils.config.getPokeshout()));
     PokeShoutAll.register(dispatcher, Commands.literal(CobbleUtils.config.getPokeshoutall()));
+    Hatch.register(dispatcher, Commands.literal("hatch"));
+
 
     for (String literal : CobbleUtils.config.getCommmandplugin()) {
       LiteralArgumentBuilder<CommandSourceStack> base = Commands.literal(literal);

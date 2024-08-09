@@ -34,19 +34,23 @@ public class PlotBreedingUI {
       pokemons.add(plotBreeding.getMale() != null ? Pokemon.Companion.loadFromJSON(plotBreeding.getMale()) : null);
       pokemons.add(plotBreeding.getFemale() != null ? Pokemon.Companion.loadFromJSON(plotBreeding.getFemale()) : null);
       lore.replaceAll(s -> PokemonUtils.replace(s, pokemons)
-        .replace("%cooldown%", PlayerUtils.getCooldown(new Date(plotBreeding.getCooldown()))));
+        .replace("%cooldown%", PlayerUtils.getCooldown(new Date(plotBreeding.getCooldown())))
+        .replace("%eggs%", String.valueOf(plotBreeding.getEggs().size())));
       GooeyButton button = GooeyButton.builder()
         .display(CobbleUtils.breedconfig.getPlotItem().getItemStack())
         .title(AdventureTranslator.toNative(CobbleUtils.breedconfig.getPlotItem().getDisplayname()))
         .lore(Component.class, AdventureTranslator.toNativeL(lore))
-        .onClick(action -> PlotBreedingManagerUI.open(player, plotBreeding))
+        .onClick(action -> {
+          plotBreeding.checking(player);
+          PlotBreedingManagerUI.open(player, plotBreeding);
+        })
         .build();
       template.set(CobbleUtils.breedconfig.getPlotSlots().get(i), button);
     }
 
     GooeyPage page = GooeyPage.builder()
       .template(template)
-      .title("Breeding Manager")
+      .title(AdventureTranslator.toNative(CobbleUtils.breedconfig.getTitleselectplot()))
       .build();
 
     UIManager.openUIForcefully(player, page);

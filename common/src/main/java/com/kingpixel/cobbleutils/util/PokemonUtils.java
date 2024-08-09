@@ -5,6 +5,7 @@ import com.cobblemon.mod.common.api.abilities.AbilityPool;
 import com.cobblemon.mod.common.api.abilities.AbilityTemplate;
 import com.cobblemon.mod.common.api.abilities.PotentialAbility;
 import com.cobblemon.mod.common.api.moves.Move;
+import com.cobblemon.mod.common.api.pokemon.egg.EggGroup;
 import com.cobblemon.mod.common.api.pokemon.stats.Stat;
 import com.cobblemon.mod.common.api.pokemon.stats.Stats;
 import com.cobblemon.mod.common.api.types.ElementalType;
@@ -12,6 +13,7 @@ import com.cobblemon.mod.common.pokeball.PokeBall;
 import com.cobblemon.mod.common.pokemon.*;
 import com.cobblemon.mod.common.pokemon.abilities.HiddenAbilityType;
 import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.Model.CobbleUtilsTags;
 import com.kingpixel.cobbleutils.Model.ScalePokemonData;
 import com.kingpixel.cobbleutils.Model.SizeChanceWithoutItem;
 import net.minecraft.network.chat.Component;
@@ -154,10 +156,22 @@ public class PokemonUtils {
         .replace("%breedable%", isBreedable(pokemon) ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
         .replace("%pokerus%", isPokerus(pokemon) ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
         .replace("%friendship%", String.valueOf(pokemon.getFriendship()))
-        .replace("%ah%", haveAH(pokemon) ? CobbleUtils.language.getAH() : "");
+        .replace("%ah%", haveAH(pokemon) ? CobbleUtils.language.getAH() : "")
+        .replace("%country%", pokemon.getPersistentData().getString(CobbleUtilsTags.COUNTRY_TAG).isEmpty()
+          ? CobbleUtils.language.getNone()
+          : pokemon.getPersistentData().getString(CobbleUtilsTags.COUNTRY_TAG))
+        .replace("%egggroups%", eggGroups(pokemon));
     }
 
     return message;
+  }
+
+  private static String eggGroups(Pokemon pokemon) {
+    StringBuilder s = new StringBuilder();
+    for (EggGroup eggGroup : pokemon.getSpecies().getEggGroups()) {
+      s.append("&e").append(eggGroup).append(" ");
+    }
+    return s.toString();
   }
 
   /**
@@ -230,7 +244,11 @@ public class PokemonUtils {
           .replace("%ultrabeast" + index + "%", pokemon.isUltraBeast() ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
           .replace("%types" + index + "%", getType(pokemon))
           .replace("%rarity" + index + "%", String.valueOf(getRarity(pokemon)))
-          .replace("%breedable" + index + "%", isBreedable(pokemon) ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo());
+          .replace("%breedable" + index + "%", isBreedable(pokemon) ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
+          .replace("%country" + index + "%", pokemon.getPersistentData().getString(CobbleUtilsTags.COUNTRY_TAG).isEmpty()
+            ? CobbleUtils.language.getNone()
+            : pokemon.getPersistentData().getString(CobbleUtilsTags.COUNTRY_TAG))
+          .replace("%egggroups" + index + "%", eggGroups(pokemon));
 
       }
 
@@ -238,6 +256,23 @@ public class PokemonUtils {
     }
 
     return message;
+  }
+
+  public static Species getFirstEvolution(Pokemon pokemon) {
+    return getFirstEvolution(pokemon.getSpecies());
+  }
+
+
+  public static Species getFirstEvolution(Species currentSpecies) {
+    while (currentSpecies.getPreEvolution() != null) {
+      Species nextPreevolution = currentSpecies.getPreEvolution().getSpecies();
+
+      if (nextPreevolution == null || nextPreevolution.showdownId().equalsIgnoreCase(currentSpecies.showdownId())) {
+        break;
+      }
+      currentSpecies = nextPreevolution;
+    }
+    return currentSpecies;
   }
 
   /**
@@ -578,23 +613,13 @@ public class PokemonUtils {
   public static Ability getRandomAbility(Species species) {
     AbilityPool abilities = species.getAbilities();
     List<Ability> abilityList = new ArrayList<>();
-    Ability hiddenAbility = null;
 
     for (PotentialAbility potentialAbility : abilities) {
-      if (potentialAbility.getType() instanceof HiddenAbilityType) {
-        hiddenAbility = potentialAbility.getTemplate().create(true);
-      } else {
+      if (!(potentialAbility.getType() instanceof HiddenAbilityType)) {
         abilityList.add(potentialAbility.getTemplate().create(true));
       }
     }
 
-    if (hiddenAbility != null && Utils.RANDOM.nextInt(1000) < 1) {
-      return hiddenAbility;
-    }
-
-    if (!abilityList.isEmpty()) {
-      return abilityList.get(Utils.RANDOM.nextInt(abilityList.size()));
-    }
 
     return null;
   }

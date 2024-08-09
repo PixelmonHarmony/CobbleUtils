@@ -2,6 +2,7 @@ package com.kingpixel.cobbleutils.command.admin;
 
 import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
+import com.cobblemon.mod.common.api.pokemon.PokemonPropertyExtractor;
 import com.cobblemon.mod.common.command.argument.PokemonPropertiesArgumentType;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.cobblemon.mod.common.pokemon.Species;
@@ -15,6 +16,8 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+
+import java.util.List;
 
 /**
  * @author Carlos Varas Alonso - 23/07/2024 22:18
@@ -37,21 +40,18 @@ public class EggCommand implements Command<CommandSourceStack> {
               Pokemon pokemon = PokemonPropertiesArgumentType.Companion.getPokemonProperties(context, "pokemon").create();
               Species species = pokemon.getSpecies();
               Pokemon egg = PokemonProperties.Companion.parse("egg type_egg=" + pokemon.showdownId()).create();
+              egg.createPokemonProperties(List.of(
+                PokemonPropertyExtractor.IVS,
+                PokemonPropertyExtractor.GENDER
+              )).apply(egg);
+              
               egg.getPersistentData().putString("species", species.showdownId());
               egg.getPersistentData().putString("nature", pokemon.getNature().getName().getPath());
               egg.getPersistentData().putString("ability", pokemon.getAbility().getName());
               egg.getPersistentData().putString("form", pokemon.getForm().getAspects().isEmpty() ? "" : pokemon.getForm().getAspects().get(0));
               egg.getPersistentData().putInt("level", 1);
-              if (CobbleUtils.config.isDebug()) {
-                egg.getPersistentData().putInt("steps", 0);
-              } else {
-                egg.getPersistentData().putInt("steps", 200);
-              }
-              if (CobbleUtils.config.isDebug()) {
-                egg.getPersistentData().putInt("cycles", 0);
-              } else {
-                egg.getPersistentData().putInt("cycles", pokemon.getSpecies().getEggCycles());
-              }
+              egg.getPersistentData().putInt("steps", CobbleUtils.breedconfig.getSteps());
+              egg.getPersistentData().putInt("cycles", pokemon.getSpecies().getEggCycles());
               egg.setNickname(Component.literal("Egg " + pokemon.getSpecies().getTranslatedName().getString()));
               if (CobbleUtils.config.isDebug()) {
                 CobbleUtils.LOGGER.info("Egg create: " + egg.getPersistentData().getAsString());

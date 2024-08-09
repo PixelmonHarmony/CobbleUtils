@@ -26,8 +26,7 @@ public class ShinyTokenUI {
       PlayerPartyStore partyStore = Cobblemon.INSTANCE.getStorage().getParty(player.getUUID());
 
       ChestTemplate templateBuilder = ChestTemplate.builder(4).build();
-
-
+      
       for (int i = 0; i < partyStore.size(); i++) {
         GooeyButton slot;
         Pokemon pokemon = partyStore.get(i);
