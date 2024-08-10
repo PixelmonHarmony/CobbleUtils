@@ -11,11 +11,10 @@ import com.kingpixel.cobbleutils.util.*;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import lombok.Getter;
 import lombok.ToString;
-import net.minecraft.nbt.TagParser;
-import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtHelper;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -88,7 +87,7 @@ public class ItemChance {
    *
    * @throws NoPokemonStoreException If there's an issue with storing Pokémon.
    */
-  public static boolean giveReward(Player player, ItemChance itemChance) throws NoPokemonStoreException {
+  public static boolean giveReward(ServerPlayerEntity player, ItemChance itemChance) throws NoPokemonStoreException {
     return giveReward(player, itemChance, 1);
   }
 
@@ -101,7 +100,7 @@ public class ItemChance {
    *
    * @throws NoPokemonStoreException If there's an issue with storing Pokémon.
    */
-  public static boolean giveReward(Player player, ItemChance itemChance, int amount) throws NoPokemonStoreException {
+  public static boolean giveReward(ServerPlayerEntity player, ItemChance itemChance, int amount) throws NoPokemonStoreException {
     try {
       String item = itemChance.getItem();
       CobbleUtils.LOGGER.info("ItemChance: " + item);
@@ -116,10 +115,9 @@ public class ItemChance {
         CobbleUtils.LOGGER.info("Logintud de money:" + item.split(":").length);
         if (item.split(":").length < 3) {
           money = Integer.parseInt(item.replace("money:", ""));
-          player.sendSystemMessage(AdventureTranslator.toNativeWithOutPrefix(
+          player.sendMessage(AdventureTranslator.toNativeWithOutPrefix(
             CobbleUtils.language.getMessageReceiveMoney()
-              .replace("%amount%", String.valueOf(money))
-          ));
+              .replace("%amount%", String.valueOf(money))));
           return RewardsUtils.saveRewardCommand(player, CobbleUtils.config.getEcocommand()
             .replace("%player%", player.getGameProfile().getName())
             .replace("%amount%", String.valueOf(money)));
@@ -128,10 +126,9 @@ public class ItemChance {
           String currency = item.split(":")[1];
           String command = CobbleUtils.config.getImpactorEconomy().getEcocommand();
           ImpactorItem impactorItem = CobbleUtils.config.getImpactorEconomy().getItemsCommands().get(currency);
-          player.sendSystemMessage(AdventureTranslator.toNativeWithOutPrefix(
+          player.sendMessage(AdventureTranslator.toNativeWithOutPrefix(
             impactorItem.getMessage()
-              .replace("%amount%", String.valueOf(money))
-          ));
+              .replace("%amount%", String.valueOf(money))));
 
           command = command
             .replace("%player%", player.getGameProfile().getName())
@@ -152,7 +149,7 @@ public class ItemChance {
         itemStack = Utils.parseItemId(iditem, Integer.parseInt(itemSplit[1]));
         if (split.length > 1) {
           try {
-            itemStack.setTag(TagParser.parseTag(split[1]));
+            itemStack.setNbt(NbtHelper.fromNbtProviderString(split[1]));
           } catch (PatternSyntaxException | CommandSyntaxException | ArrayIndexOutOfBoundsException ignored) {
           }
         }
@@ -200,10 +197,9 @@ public class ItemChance {
     return GooeyButton.builder()
       .display(getItemStack())
       .title(AdventureTranslator.toNative(title))
-      .lore(Component.class, AdventureTranslator.toNativeL(lore))
+      .lore(Text.class, AdventureTranslator.toNativeL(lore))
       .build();
   }
-
 
   /**
    * Get the ItemStack of the reward based on its type.
@@ -241,7 +237,7 @@ public class ItemChance {
       itemStack = Utils.parseItemId(iditem, Integer.parseInt(itemSplit[1]));
       if (split.length > 1) {
         try {
-          itemStack.setTag(TagParser.parseTag(split[1]));
+          itemStack.setNbt(NbtHelper.fromNbtProviderString(split[1]));
         } catch (PatternSyntaxException | CommandSyntaxException | ArrayIndexOutOfBoundsException ignored) {
         }
       }
@@ -309,8 +305,8 @@ public class ItemChance {
       itemStack = Utils.parseItemId(iditem, Integer.parseInt(itemSplit[1]));
       if (split.length > 1) {
         try {
-          itemStack.setTag(TagParser.parseTag(split[1]));
-          if (itemStack.getTag().contains("display")) {
+          itemStack.setNbt(NbtHelper.fromNbtProviderString(split[1]));
+          if (itemStack.getNbt().contains("display")) {
             return ItemUtils.getNameItem(itemStack);
           } else {
             return ItemUtils.getTranslatedName(itemStack);
@@ -342,9 +338,11 @@ public class ItemChance {
    * @param player          The player to give the reward to.
    * @param numberOfRewards The number of rewards to give.
    *
-   * @throws IllegalArgumentException If the list of item chances is empty or the number of rewards is less than or equal to zero.
+   * @throws IllegalArgumentException If the list of item chances is empty or the
+   *                                  number of rewards is less than or equal to
+   *                                  zero.
    */
-  public static void getRandomRewards(List<ItemChance> itemChances, ServerPlayer player, int numberOfRewards) {
+  public static void getRandomRewards(List<ItemChance> itemChances, ServerPlayerEntity player, int numberOfRewards) {
     if (itemChances == null || itemChances.isEmpty()) {
       throw new IllegalArgumentException("The list of item chances cannot be empty");
     }
@@ -365,7 +363,7 @@ public class ItemChance {
    *
    * @throws IllegalArgumentException If the list of item chances is empty.
    */
-  public static void getRandomReward(List<ItemChance> itemChances, ServerPlayer player) {
+  public static void getRandomReward(List<ItemChance> itemChances, ServerPlayerEntity player) {
     if (itemChances == null || itemChances.isEmpty()) {
       throw new IllegalArgumentException("The list of item chances cannot be empty");
     }
@@ -395,7 +393,7 @@ public class ItemChance {
    *
    * @return The ItemChance model specifying the reward.
    */
-  public static void getAllRewards(List<ItemChance> itemChances, ServerPlayer player) {
+  public static void getAllRewards(List<ItemChance> itemChances, ServerPlayerEntity player) {
     for (ItemChance itemChance : itemChances) {
       try {
         giveReward(player, itemChance);

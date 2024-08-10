@@ -1,6 +1,7 @@
 package com.kingpixel.cobbleutils.command.admin.rewards;
 
 import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.util.LuckPermsUtil;
 import com.kingpixel.cobbleutils.util.RewardsUtils;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
@@ -8,60 +9,60 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.commands.CommandBuildContext;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
-import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.commands.arguments.item.ItemArgument;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.command.CommandRegistryAccess;
+import net.minecraft.command.argument.EntityArgumentType;
+import net.minecraft.command.argument.ItemStackArgumentType;
+import net.minecraft.item.ItemStack;
+import net.minecraft.server.command.CommandManager;
+import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.network.ServerPlayerEntity;
+
+import java.util.List;
 
 /**
  * @author Carlos Varas Alonso - 28/06/2024 10:51
  */
-public class RewardsItemStack implements Command<CommandSourceStack> {
+public class RewardsItemStack implements Command<ServerCommandSource> {
 
-  public static void register(CommandDispatcher<CommandSourceStack> dispatcher,
-                              LiteralArgumentBuilder<CommandSourceStack> base, CommandBuildContext registry) {
+  public static void register(CommandDispatcher<ServerCommandSource> dispatcher,
+                              LiteralArgumentBuilder<ServerCommandSource> base,
+                              CommandRegistryAccess registry) {
     dispatcher.register(
-      base.requires(source -> source.hasPermission(2))
+      base
         .then(
-          Commands.literal("save")
-            .requires(source -> source.hasPermission(2))
+          CommandManager.literal("save")
+            .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.rewards.save", "cobbleutils" +
+              ".admin")))
             .then(
-              Commands.argument("player", EntityArgument.player())
+              CommandManager.argument("player", EntityArgumentType.player())
                 .then(
-                  Commands.literal("item")
+                  CommandManager.literal("item")
                     .then(
-                      Commands.argument("item", ItemArgument.item(registry))
+                      CommandManager.argument("item", ItemStackArgumentType.itemStack(registry))
                         .executes(context -> {
-                          if (!context.getSource().isPlayer()) {
+                          if (!context.getSource().isExecutedByPlayer()) {
                             CobbleUtils.LOGGER.info("Only players can save items!");
                             return 0;
                           }
-                          Player player = EntityArgument.getPlayer(context, "player");
-                          ItemStack itemStack = ItemArgument.getItem(context, "item").createItemStack(1, false);
+                          ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
+                          ItemStack itemStack = ItemStackArgumentType.getItemStackArgument(context, "item").createStack(1, false);
                           RewardsUtils.saveRewardItemStack(player, itemStack);
                           return 1;
                         })
                         .then(
-                          Commands.argument("amount", IntegerArgumentType.integer())
+                          CommandManager.argument("amount", IntegerArgumentType.integer())
                             .executes(context -> {
-                              Player player = EntityArgument.getPlayer(context, "player");
-                              Integer amount = IntegerArgumentType.getInteger(context, "amount");
-                              ItemStack itemStack = ItemArgument.getItem(context, "item").createItemStack(amount, false);
+                              ServerPlayerEntity player = EntityArgumentType.getPlayer(context,
+                                "player");
+                              int amount = IntegerArgumentType.getInteger(context, "amount");
+                              ItemStack itemStack = ItemStackArgumentType.getItemStackArgument(context, "item").createStack(amount, false);
                               RewardsUtils.saveRewardItemStack(player, itemStack);
                               return 1;
-                            })
-                        )
-                    )
-                )
-            )
-        )
-    );
+                            })))))));
   }
 
-  @Override public int run(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+  @Override
+  public int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
     return 0;
   }
 }

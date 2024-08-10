@@ -4,9 +4,9 @@ import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.party.command.base.*;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import net.minecraft.commands.CommandBuildContext;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
+import net.minecraft.command.CommandRegistryAccess;
+import net.minecraft.server.command.CommandManager;
+import net.minecraft.server.command.ServerCommandSource;
 
 /**
  * @author Carlos Varas Alonso - 10/06/2024 14:08
@@ -14,12 +14,12 @@ import net.minecraft.commands.Commands;
 public class CommandsParty {
 
   public static void register(
-    CommandDispatcher<CommandSourceStack> dispatcher,
-    CommandBuildContext registry) {
+    CommandDispatcher<ServerCommandSource> dispatcher,
+    CommandRegistryAccess registry) {
 
     if (CobbleUtils.config.isParty()) {
       for (String literal : CobbleUtils.config.getCommandparty()) {
-        LiteralArgumentBuilder<CommandSourceStack> base = Commands.literal(literal);
+        LiteralArgumentBuilder<ServerCommandSource> base = CommandManager.literal(literal);
         PartyCreate.register(dispatcher, base);
         PartyInvite.register(dispatcher, base);
         PartyJoin.register(dispatcher, base);

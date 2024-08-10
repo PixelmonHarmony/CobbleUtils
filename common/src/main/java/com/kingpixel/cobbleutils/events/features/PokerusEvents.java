@@ -15,8 +15,8 @@ import com.kingpixel.cobbleutils.Model.options.Pokerus;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.EntityEvent;
 import kotlin.Unit;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.Mob;
+import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -31,11 +31,15 @@ public class PokerusEvents {
   public static void register() {
     if (CobbleUtils.config.getPokerus().isActive()) {
       EntityEvent.ADD.register((entity, level) -> {
-        if (!CobbleUtils.config.getPokerus().isActive()) return EventResult.pass();
+        if (!CobbleUtils.config.getPokerus().isActive())
+          return EventResult.pass();
         if (entity instanceof PokemonEntity pokemon) {
-          if (((Mob) entity).isPersistenceRequired()) return EventResult.pass();
-          if (((Mob) entity).isNoAi()) return EventResult.pass();
-          if (pokemon.getPokemon().isPlayerOwned()) return EventResult.pass();
+          if (((MobEntity) entity).isPersistent())
+            return EventResult.pass();
+          if (((MobEntity) entity).isAiDisabled())
+            return EventResult.pass();
+          if (pokemon.getPokemon().isPlayerOwned())
+            return EventResult.pass();
           CobbleUtils.config.getPokerus().apply(pokemon.getPokemon(), false);
         }
         return EventResult.pass();
@@ -72,7 +76,8 @@ public class PokerusEvents {
               EVs evs = pokemon.getEvs();
               double multiplier = CobbleUtils.config.getPokerus().getMultiplier();
               int adjustedValue;
-              if (integer < 0) return;
+              if (integer < 0)
+                return;
               if (integer == 1) {
                 adjustedValue = (int) multiplier;
               } else {
@@ -91,11 +96,11 @@ public class PokerusEvents {
         return Unit.INSTANCE;
       });
 
-
       CobblemonEvents.BATTLE_VICTORY.subscribe(Priority.NORMAL, (evt) -> {
-        if (!CobbleUtils.config.getPokerus().isActive()) return Unit.INSTANCE;
+        if (!CobbleUtils.config.getPokerus().isActive())
+          return Unit.INSTANCE;
 
-        List<ServerPlayer> players = new ArrayList<>();
+        List<ServerPlayerEntity> players = new ArrayList<>();
         Set<PokemonEntity> processedPokemon = new HashSet<>();
 
         // Process all battle actors
@@ -131,36 +136,39 @@ public class PokerusEvents {
     }
   }
 
-  /*private static void processPokemon(PokemonBattleActor pokemonBattleActor, BattleVictoryEvent evt,
-                                      Set<PokemonEntity> processedPokemon, boolean isWinner) {
-    PokemonEntity entity = pokemonBattleActor.getEntity();
-    if (entity != null && processedPokemon.add(entity)) {
-      Pokemon pokemon = entity.getPokemon();
-      if (pokemon.getPersistentData().getBoolean("pokerus")) {
-        if (isWinner) {
-          // Apply EVs bonus for Pokerus for winning Pokémon
-          evt.getLosers().forEach(loser -> {
-            if (loser instanceof PokemonBattleActor loserPokemonActor) {
-              PokemonEntity loserEntity = loserPokemonActor.getEntity();
-              if (loserEntity != null) {
-                loserEntity.getPokemon().getSpecies().getEvYield().forEach((stat, value) -> {
-                  EVs evs = pokemon.getEvs();
-                  int bonusValue;
-                  if (value == 0) return;
-                  if (value == 1) {
-                    bonusValue = (int) CobbleUtils.config.getPokerus().getMultiplier();
-                  } else {
-                    bonusValue = (int) (value * CobbleUtils.config.getPokerus().getMultiplier());
-                  }
-                  evs.set(stat, evs.get(stat) + bonusValue);
-                });
-              }
-            }
-          });
-        }
-      } else {
-        CobbleUtils.config.getPokerus().apply(pokemon, true);
-      }
-    }
-  }*/
+  /*
+   * private static void processPokemon(PokemonBattleActor pokemonBattleActor,
+   * BattleVictoryEvent evt,
+   * Set<PokemonEntity> processedPokemon, boolean isWinner) {
+   * PokemonEntity entity = pokemonBattleActor.getEntity();
+   * if (entity != null && processedPokemon.add(entity)) {
+   * Pokemon pokemon = entity.getPokemon();
+   * if (pokemon.getPersistentData().getBoolean("pokerus")) {
+   * if (isWinner) {
+   * // Apply EVs bonus for Pokerus for winning Pokémon
+   * evt.getLosers().forEach(loser -> {
+   * if (loser instanceof PokemonBattleActor loserPokemonActor) {
+   * PokemonEntity loserEntity = loserPokemonActor.getEntity();
+   * if (loserEntity != null) {
+   * loserEntity.getPokemon().getSpecies().getEvYield().forEach((stat, value) -> {
+   * EVs evs = pokemon.getEvs();
+   * int bonusValue;
+   * if (value == 0) return;
+   * if (value == 1) {
+   * bonusValue = (int) CobbleUtils.config.getPokerus().getMultiplier();
+   * } else {
+   * bonusValue = (int) (value * CobbleUtils.config.getPokerus().getMultiplier());
+   * }
+   * evs.set(stat, evs.get(stat) + bonusValue);
+   * });
+   * }
+   * }
+   * });
+   * }
+   * } else {
+   * CobbleUtils.config.getPokerus().apply(pokemon, true);
+   * }
+   * }
+   * }
+   */
 }

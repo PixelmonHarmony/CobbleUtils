@@ -25,13 +25,10 @@ package com.kingpixel.cobbleutils.util;
  */
 
 import com.kingpixel.cobbleutils.CobbleUtils;
-import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.sounds.SoundSource;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,21 +36,21 @@ import java.util.List;
 public class AdventureTranslator {
   private static final MiniMessage miniMessage = MiniMessage.miniMessage();
 
-  public static Component toNativeWithOutPrefix(String displayname) {
+  public static Text toNativeWithOutPrefix(String displayname) {
     return toNative(miniMessage.deserialize(replaceNative(displayname)));
   }
 
-  public static Component toNative(String displayname) {
+  public static Text toNative(String displayname) {
     return toNative(miniMessage.deserialize(replaceNative(displayname
       .replace("%prefix%", CobbleUtils.config.getPrefix())
       .replace("%partyprefix%", CobbleUtils.partyLang.getPrefix()))));
   }
 
-  public static Component toNative(net.kyori.adventure.text.Component component) {
-    return Component.Serializer.fromJson(GsonComponentSerializer.gson().serialize(component));
+  public static Text toNative(net.kyori.adventure.text.Component component) {
+    return Text.Serializer.fromJson(GsonComponentSerializer.gson().serialize(component));
   }
 
-  public static List<Component> toNativeL(List<String> lore) {
+  public static List<Text> toNativeL(List<String> lore) {
     List<net.kyori.adventure.text.Component> loreString = new ArrayList<>();
     for (String loreLine : lore) {
       loreString.add(miniMessage.deserialize(replaceNative(loreLine)));
@@ -61,7 +58,7 @@ public class AdventureTranslator {
     return toNative(loreString);
   }
 
-  public static List<Component> toNativeLWithOutPrefix(List<String> lore) {
+  public static List<Text> toNativeLWithOutPrefix(List<String> lore) {
     List<net.kyori.adventure.text.Component> loreString = new ArrayList<>();
     for (String loreLine : lore) {
       loreString.add(miniMessage.deserialize(replaceNative(loreLine)));
@@ -69,59 +66,24 @@ public class AdventureTranslator {
     return toNativeLWithOut(loreString);
   }
 
-  private static List<Component> toNativeLWithOut(List<net.kyori.adventure.text.Component> components) {
-    List<Component> nativeComponents = new ArrayList<>();
+  private static List<Text> toNativeLWithOut(List<net.kyori.adventure.text.Component> components) {
+    List<Text> nativeComponents = new ArrayList<>();
     for (net.kyori.adventure.text.Component component : components) {
       nativeComponents.add(toNative(component));
     }
     return nativeComponents;
   }
 
-  private static List<Component> toNative(List<net.kyori.adventure.text.Component> components) {
-    List<Component> nativeComponents = new ArrayList<>();
+  private static List<Text> toNative(List<net.kyori.adventure.text.Component> components) {
+    List<Text> nativeComponents = new ArrayList<>();
     for (net.kyori.adventure.text.Component component : components) {
       nativeComponents.add(toNative(component));
     }
     return nativeComponents;
   }
 
-  public static net.kyori.adventure.text.Component fromNative(Component component) {
-    return GsonComponentSerializer.gson().deserialize(Component.Serializer.toJson(component));
-  }
-
-  public static SoundSource asVanilla(final Sound.Source source) {
-    switch (source) {
-      case MASTER:
-        return SoundSource.MASTER;
-      case MUSIC:
-        return SoundSource.MUSIC;
-      case RECORD:
-        return SoundSource.RECORDS;
-      case WEATHER:
-        return SoundSource.WEATHER;
-      case BLOCK:
-        return SoundSource.BLOCKS;
-      case HOSTILE:
-        return SoundSource.HOSTILE;
-      case NEUTRAL:
-        return SoundSource.NEUTRAL;
-      case PLAYER:
-        return SoundSource.PLAYERS;
-      case AMBIENT:
-        return SoundSource.AMBIENT;
-      case VOICE:
-        return SoundSource.VOICE;
-    }
-
-    throw new IllegalArgumentException(source.name());
-  }
-
-  public static @Nullable SoundSource asVanillaNullable(final Sound.Source source) {
-    if (source == null) {
-      return null;
-    }
-
-    return asVanilla(source);
+  public static net.kyori.adventure.text.Component fromNative(Text component) {
+    return GsonComponentSerializer.gson().deserialize(Text.Serializer.toJson(component));
   }
 
   public static net.kyori.adventure.text.Component toNativeFromString(String displayname) {
@@ -157,54 +119,56 @@ public class AdventureTranslator {
     return displayname;
   }
 
-  public static MutableComponent toNativeComponent(String messageContent) {
-    return Component.empty().append(AdventureTranslator.toNative(messageContent));
+  public static MutableText toNativeComponent(String messageContent) {
+    return Text.empty().append(AdventureTranslator.toNative(messageContent));
   }
 }
 
-// ------------------------------------------------------------------------------------------------------------ //
+// ------------------------------------------------------------------------------------------------------------
+// //
 // Solution for servers without Impactor temporal fix
 /*
-import com.kingpixel.cobbleutils.CobbleUtils;
-import net.minecraft.network.chat.Component;
-
-import java.util.ArrayList;
-import java.util.List;
-
-public class AdventureTranslator {
-
-  public static Component toNativeWithOutPrefix(String displayname) {
-    return Component.literal(replaceNative(displayname));
-  }
-
-  public static Component toNative(String displayname) {
-    return Component.literal(replaceNative(displayname
-      .replace("%prefix%", CobbleUtils.config.getPrefix())
-      .replace("%partyprefix%", CobbleUtils.partyLang.getPrefix())));
-  }
-
-  public static List<Component> toNativeL(List<String> lore) {
-    List<Component> loreString = new ArrayList<>();
-    for (String loreLine : lore) {
-      loreString.add(Component.literal(replaceNative(loreLine)));
-    }
-    return loreString;
-  }
-
-  public static List<Component> toNativeLWithOutPrefix(List<String> lore) {
-    List<Component> loreString = new ArrayList<>();
-    for (String loreLine : lore) {
-      loreString.add(Component.literal(replaceNative(loreLine)));
-    }
-    return loreString;
-  }
-
-
-  private static String replaceNative(String displayname) {
-    if (displayname == null) {
-      return null;
-    }
-    displayname = displayname.replace("&", "§");
-    return displayname;
-  }
-}*/
+ * import com.kingpixel.cobbleutils.CobbleUtils;
+ * import net.minecraft.network.chat.Text;
+ *
+ * import java.util.ArrayList;
+ * import java.util.List;
+ *
+ * public class AdventureTranslator {
+ *
+ * public static Text toNativeWithOutPrefix(String displayname) {
+ * return Text.literal(replaceNative(displayname));
+ * }
+ *
+ * public static Text toNative(String displayname) {
+ * return Text.literal(replaceNative(displayname
+ * .replace("%prefix%", CobbleUtils.config.getPrefix())
+ * .replace("%partyprefix%", CobbleUtils.partyLang.getPrefix())));
+ * }
+ *
+ * public static List<Text> toNativeL(List<String> lore) {
+ * List<Text> loreString = new ArrayList<>();
+ * for (String loreLine : lore) {
+ * loreString.add(Text.literal(replaceNative(loreLine)));
+ * }
+ * return loreString;
+ * }
+ *
+ * public static List<Text> toNativeLWithOutPrefix(List<String> lore) {
+ * List<Text> loreString = new ArrayList<>();
+ * for (String loreLine : lore) {
+ * loreString.add(Text.literal(replaceNative(loreLine)));
+ * }
+ * return loreString;
+ * }
+ *
+ *
+ * private static String replaceNative(String displayname) {
+ * if (displayname == null) {
+ * return null;
+ * }
+ * displayname = displayname.replace("&", "§");
+ * return displayname;
+ * }
+ * }
+ */

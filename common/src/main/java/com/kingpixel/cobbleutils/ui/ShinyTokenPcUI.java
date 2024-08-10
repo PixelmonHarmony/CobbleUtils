@@ -6,7 +6,7 @@ import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.storage.NoPokemonStoreException;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.util.UIUtils;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
@@ -15,9 +15,9 @@ import java.util.concurrent.ExecutionException;
  * @author Carlos Varas Alonso - 29/06/2024 19:11
  */
 public class ShinyTokenPcUI {
-  public static GooeyPage getMenuShinyTokenPc(Player player) {
+  public static GooeyPage getMenuShinyTokenPc(ServerPlayerEntity player) {
     try {
-      return UIUtils.createPagePc(Cobblemon.INSTANCE.getStorage().getPC(player.getUUID()), actionpokemon -> {
+      return UIUtils.createPagePc(Cobblemon.INSTANCE.getStorage().getPC(player.getUuid()), actionpokemon -> {
           try {
             if (CobbleUtils.config.isShinyTokenBlacklisted(actionpokemon.getPokemon()))
               return;
@@ -29,7 +29,8 @@ public class ShinyTokenPcUI {
           }
         },
         actionclose -> UIManager.openUIForcefully(actionclose.getPlayer(),
-          Objects.requireNonNull(ShinyTokenUI.openmenu(player))), CobbleUtils.language.getTitlepc());
+          Objects.requireNonNull(ShinyTokenUI.openmenu(player))),
+        CobbleUtils.language.getTitlepc());
     } catch (NoPokemonStoreException | InterruptedException | ExecutionException e) {
       e.printStackTrace();
     }

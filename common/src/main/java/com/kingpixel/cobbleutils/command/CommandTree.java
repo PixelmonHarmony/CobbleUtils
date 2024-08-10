@@ -8,32 +8,31 @@ import com.kingpixel.cobbleutils.command.admin.random.RandomMoney;
 import com.kingpixel.cobbleutils.command.admin.random.RandomPokemon;
 import com.kingpixel.cobbleutils.command.admin.rewards.*;
 import com.kingpixel.cobbleutils.command.base.*;
+import com.kingpixel.cobbleutils.util.LuckPermsUtil;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import net.minecraft.commands.CommandBuildContext;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
-import net.minecraft.commands.arguments.ParticleArgument;
-import net.minecraft.core.particles.SimpleParticleType;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.command.CommandRegistryAccess;
+import net.minecraft.server.command.CommandManager;
+import net.minecraft.server.command.ServerCommandSource;
+
+import java.util.List;
 
 /**
  * @author Carlos Varas Alonso - 10/06/2024 14:08
  */
 public class CommandTree {
 
-  public static void register(
-    CommandDispatcher<CommandSourceStack> dispatcher,
-    CommandBuildContext registry) {
+  public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess registry) {
 
 
-    PokeShout.register(dispatcher, Commands.literal(CobbleUtils.config.getPokeshout()));
-    PokeShoutAll.register(dispatcher, Commands.literal(CobbleUtils.config.getPokeshoutall()));
-    Hatch.register(dispatcher, Commands.literal("hatch"));
+    PokeShout.register(dispatcher, CommandManager.literal(CobbleUtils.config.getPokeshout()));
+    PokeShoutAll.register(dispatcher, CommandManager.literal(CobbleUtils.config.getPokeshoutall()));
+    Hatch.register(dispatcher, CommandManager.literal("hatch"));
 
 
     for (String literal : CobbleUtils.config.getCommmandplugin()) {
-      LiteralArgumentBuilder<CommandSourceStack> base = Commands.literal(literal);
+      LiteralArgumentBuilder<ServerCommandSource> base = CommandManager.literal(literal).requires(source ->
+        LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.admin")));
       // /cobbleutils scale <scale> <slot> and /cobbleutils scale <scale> <slot> <player>
       PokemonSize.register(dispatcher, base);
 
@@ -73,7 +72,7 @@ public class CommandTree {
         EggCommand.register(dispatcher, base);
 
         // /egginfo <slot>
-        EggInfoCommand.register(dispatcher, Commands.literal("egginfo"));
+        EggInfoCommand.register(dispatcher, CommandManager.literal("egginfo"));
       }
 
 
@@ -82,7 +81,8 @@ public class CommandTree {
     // Rewards
     if (CobbleUtils.config.isRewards()) {
       for (String literal : CobbleUtils.config.getCommandrewards()) {
-        LiteralArgumentBuilder<CommandSourceStack> base = Commands.literal(literal);
+        LiteralArgumentBuilder<ServerCommandSource> base = CommandManager.literal(literal)
+          .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.user")));
         Rewards.register(dispatcher, base);
         RewardsPokemon.register(dispatcher, base);
         RewardsItemStack.register(dispatcher, base, registry);
@@ -95,7 +95,7 @@ public class CommandTree {
 
     if (CobbleUtils.breedconfig.isActive()) {
       for (String literal : CobbleUtils.breedconfig.getEggcommand()) {
-        LiteralArgumentBuilder<CommandSourceStack> base = Commands.literal(literal);
+        LiteralArgumentBuilder<ServerCommandSource> base = CommandManager.literal(literal);
 
         // /cobbleutils egg <pokemon>
         BreedCommand.register(dispatcher, base);
@@ -103,22 +103,7 @@ public class CommandTree {
     }
 
 
-    // Test particle
-    dispatcher.register(
-      Commands.literal("testparticle")
-        .then(
-          Commands.argument("particle", ParticleArgument.particle(registry))
-            .executes(context -> {
-              SimpleParticleType particle = CobbleUtils.breedconfig.getParticle();
-              ServerPlayer player = context.getSource().getPlayerOrException();
-              for (int i = 0; i < 100; i++) {
-                player.level().addParticle(particle, player.getX(), player.getY(), player.getZ(), 0, 0, 0);
-              }
-              return 0;
-            })
-        )
-    );
-
   }
+
 
 }

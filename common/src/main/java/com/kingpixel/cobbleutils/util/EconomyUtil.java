@@ -6,7 +6,7 @@ import net.impactdev.impactor.api.economy.accounts.Account;
 import net.impactdev.impactor.api.economy.currency.Currency;
 import net.impactdev.impactor.api.economy.transactions.EconomyTransaction;
 import net.kyori.adventure.key.Key;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -16,10 +16,8 @@ import java.util.UUID;
  */
 public class EconomyUtil {
 
-
   // The impactor service
   private static EconomyService service = EconomyService.instance();
-
 
   public static Account getAccount(UUID uuid, String c) {
     if (!service.hasAccount(uuid).join()) {
@@ -28,7 +26,6 @@ public class EconomyUtil {
     Currency currency = Currency.builder().key(Key.key(c)).build();
     return service.account(currency, uuid).join();
   }
-
 
   /**
    * Method to add to the balance of an account.
@@ -57,7 +54,8 @@ public class EconomyUtil {
   }
 
   /**
-   * Method to check if an account has enough balance and optionally remove the amount.
+   * Method to check if an account has enough balance and optionally remove the
+   * amount.
    *
    * @param account The account to check.
    * @param amount  The amount to check for.
@@ -72,26 +70,24 @@ public class EconomyUtil {
     }
     if (account.balance().compareTo(new BigDecimal(amount)) >= 0) {
       remove(account, amount);
-      CobbleUtils.server.getPlayerList().getPlayer(account.owner()).sendSystemMessage(AdventureTranslator.toNative(
+      CobbleUtils.server.getPlayerManager().getPlayer(account.owner()).sendMessage(AdventureTranslator.toNative(
         CobbleUtils.language.getMessageBought()
           .replace("%price%", String.valueOf(amount))
           .replace("%bal%", account.balance().toString())
-          .replace("%prefix%", CobbleUtils.language.getPrefixShop())
-      ));
+          .replace("%prefix%", CobbleUtils.language.getPrefixShop())));
       return true;
     } else {
-      CobbleUtils.server.getPlayerList().getPlayer(account.owner()).sendSystemMessage(AdventureTranslator.toNative(
+      CobbleUtils.server.getPlayerManager().getPlayer(account.owner()).sendMessage(AdventureTranslator.toNative(
         CobbleUtils.language.getMessageNotHaveMoney()
           .replace("%price%", String.valueOf(amount))
           .replace("%bal%", account.balance().toString())
-          .replace("%prefix%", CobbleUtils.language.getPrefixShop())
-      ));
+          .replace("%prefix%", CobbleUtils.language.getPrefixShop())));
       return false;
     }
   }
 
-  public static boolean hasEnough(ServerPlayer player, String currency, double amount) {
-    return hasEnough(getAccount(player.getUUID(), currency), amount);
+  public static boolean hasEnough(ServerPlayerEntity player, String currency, double amount) {
+    return hasEnough(getAccount(player.getUuid(), currency), amount);
   }
 
 }

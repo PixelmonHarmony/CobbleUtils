@@ -4,7 +4,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.UUID;
 
@@ -24,7 +24,7 @@ public class PlayerInfo {
     this.uuid = uuid;
   }
 
-  public static PlayerInfo fromPlayer(Player player) {
-    return new PlayerInfo(player.getGameProfile().getName(), player.getUUID());
+  public static PlayerInfo fromPlayer(ServerPlayerEntity player) {
+    return new PlayerInfo(player.getGameProfile().getName(), player.getUuid());
   }
 }

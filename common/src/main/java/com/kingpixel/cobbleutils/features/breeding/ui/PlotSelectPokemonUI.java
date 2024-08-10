@@ -22,8 +22,8 @@ import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.PokemonUtils;
 import com.kingpixel.cobbleutils.util.UIUtils;
 import com.kingpixel.cobbleutils.util.Utils;
-import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,14 +34,16 @@ import java.util.List;
  */
 public class PlotSelectPokemonUI {
 
-  public static void selectPokemon(ServerPlayer player, PlotBreeding plotBreeding, Gender gender) {
+  public static void selectPokemon(ServerPlayerEntity player, PlotBreeding plotBreeding, Gender gender) {
     int row = CobbleUtils.breedconfig.getRowmenuselectpokemon();
     ChestTemplate template = ChestTemplate.builder(row).build();
 
     List<Pokemon> pokemons = new ArrayList<>();
     try {
-      Cobblemon.INSTANCE.getStorage().getParty(player).forEach(pokemon -> processPokemon(pokemons, pokemon, player, gender, plotBreeding));
-      Cobblemon.INSTANCE.getStorage().getPC(player.getUUID()).forEach(pokemon -> processPokemon(pokemons, pokemon, player, gender, plotBreeding));
+      Cobblemon.INSTANCE.getStorage().getParty(player)
+        .forEach(pokemon -> processPokemon(pokemons, pokemon, player, gender, plotBreeding));
+      Cobblemon.INSTANCE.getStorage().getPC(player.getUuid())
+        .forEach(pokemon -> processPokemon(pokemons, pokemon, player, gender, plotBreeding));
     } catch (NoPokemonStoreException e) {
       throw new RuntimeException(e);
     }
@@ -54,10 +56,10 @@ public class PlotSelectPokemonUI {
       GooeyButton button = GooeyButton.builder()
         .display(PokemonItem.from(pokemon))
         .title(AdventureTranslator.toNative(PokemonUtils.replace(pokemon)))
-        .lore(Component.class, AdventureTranslator.toNativeL(PokemonUtils.replaceLore(pokemon)))
+        .lore(Text.class, AdventureTranslator.toNativeL(PokemonUtils.replaceLore(pokemon)))
         .onClick(action -> {
           try {
-            Cobblemon.INSTANCE.getStorage().getPC(player.getUUID()).remove(pokemon);
+            Cobblemon.INSTANCE.getStorage().getPC(player.getUuid()).remove(pokemon);
             Cobblemon.INSTANCE.getStorage().getParty(player).remove(pokemon);
           } catch (NoPokemonStoreException e) {
             throw new RuntimeException(e);
@@ -91,14 +93,17 @@ public class PlotSelectPokemonUI {
     template.rectangle(0, 0, row - 1, 9, new PlaceholderButton());
     template.fillFromList(buttons);
 
-    LinkedPage.Builder linkedPageBuilder = LinkedPage.builder().title(AdventureTranslator.toNative(CobbleUtils.breedconfig.getTitleselectpokemon()));
+    LinkedPage.Builder linkedPageBuilder = LinkedPage.builder()
+      .title(AdventureTranslator.toNative(CobbleUtils.breedconfig.getTitleselectpokemon()));
     LinkedPage page = PaginationHelper.createPagesFromPlaceholders(template, buttons, linkedPageBuilder);
     UIManager.openUIForcefully(player, page);
   }
 
-  private static void processPokemon(Collection<Pokemon> pokemons, Pokemon pokemon, ServerPlayer player, Gender gender,
+  private static void processPokemon(Collection<Pokemon> pokemons, Pokemon pokemon, ServerPlayerEntity player,
+                                     Gender gender,
                                      PlotBreeding plotBreeding) {
-    // Verifica si el Pokémon pertenece al grupo de huevo "UNDISCOVERED" o si es un huevo, y retorna si es así
+    // Verifica si el Pokémon pertenece al grupo de huevo "UNDISCOVERED" o si es un
+    // huevo, y retorna si es así
     if (pokemon.getSpecies().getEggGroups().contains(EggGroup.UNDISCOVERED) ||
       pokemon.getSpecies().showdownId().equalsIgnoreCase("egg")) {
       return;
@@ -117,11 +122,13 @@ public class PlotSelectPokemonUI {
       return;
     }
 
-    // Verifica si el Pokémon está en la whitelist y si es legendario o una Ultra Bestia
+    // Verifica si el Pokémon está en la whitelist y si es legendario o una Ultra
+    // Bestia
     boolean isInWhitelist = CobbleUtils.breedconfig.getWhitelist().contains(pokemon.getSpecies().showdownId());
     boolean isLegendaryOrUltraBeast = pokemon.isLegendary() || pokemon.isUltraBeast();
 
-    // Si el Pokémon es legendario o una Ultra Bestia y no está en la whitelist, retorna
+    // Si el Pokémon es legendario o una Ultra Bestia y no está en la whitelist,
+    // retorna
     if (isLegendaryOrUltraBeast && !isInWhitelist) {
       return;
     }
@@ -179,6 +186,5 @@ public class PlotSelectPokemonUI {
       }
     }
   }
-
 
 }

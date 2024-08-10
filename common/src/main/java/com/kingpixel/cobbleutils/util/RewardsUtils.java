@@ -9,10 +9,9 @@ import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.ItemObject;
 import com.kingpixel.cobbleutils.Model.RewardsData;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.TagParser;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtHelper;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,20 +26,19 @@ public class RewardsUtils {
   /**
    * Saves an item into the player's rewards inventory.
    *
-   * @param player    Player to save the item for
+   * @param player    ServerPlayerEntity to save the item for
    * @param itemStack Item to save
    *
    * @return
    */
-  public static boolean saveRewardItemStack(Player player, ItemStack itemStack) {
+  public static boolean saveRewardItemStack(ServerPlayerEntity player, ItemStack itemStack) {
     RewardsData rewardsData = CobbleUtils.rewardsManager.getRewardsData().computeIfAbsent(
-      player.getUUID(),
-      uuid -> {
-        RewardsData newRewardsData = new RewardsData(player.getGameProfile().getName(), player.getUUID());
-        newRewardsData.init();
-        return newRewardsData;
-      }
-    );
+        player.getUuid(),
+        uuid -> {
+          RewardsData newRewardsData = new RewardsData(player.getGameProfile().getName(), player.getUuid());
+          newRewardsData.init();
+          return newRewardsData;
+        });
     saveItemToRewardsData(player, rewardsData, itemStack);
 
     rewardsData.writeInfo();
@@ -50,18 +48,17 @@ public class RewardsUtils {
   /**
    * Saves a list of items into the player's rewards inventory.
    *
-   * @param player     Player to save the items for
+   * @param player     ServerPlayerEntity to save the items for
    * @param itemStacks List of items to save
    */
-  public static void saveRewardItemStack(Player player, List<ItemStack> itemStacks) {
+  public static void saveRewardItemStack(ServerPlayerEntity player, List<ItemStack> itemStacks) {
     RewardsData rewardsData = CobbleUtils.rewardsManager.getRewardsData().computeIfAbsent(
-      player.getUUID(),
-      uuid -> {
-        RewardsData newRewardsData = new RewardsData(player.getGameProfile().getName(), player.getUUID());
-        newRewardsData.init();
-        return newRewardsData;
-      }
-    );
+        player.getUuid(),
+        uuid -> {
+          RewardsData newRewardsData = new RewardsData(player.getGameProfile().getName(), player.getUuid());
+          newRewardsData.init();
+          return newRewardsData;
+        });
 
     for (ItemStack itemStack : itemStacks) {
       saveItemToRewardsData(player, rewardsData, itemStack);
@@ -77,33 +74,34 @@ public class RewardsUtils {
    * @param rewardsData RewardsData object to save the item to
    * @param itemStack   ItemStack to save
    */
-  private static void saveItemToRewardsData(Player player, RewardsData rewardsData, ItemStack itemStack) {
-    boolean added = player.getInventory().add(itemStack);
-    if (added) return;
+  private static void saveItemToRewardsData(ServerPlayerEntity player, RewardsData rewardsData, ItemStack itemStack) {
+    boolean added = player.getInventory().insertStack(itemStack);
+    if (added)
+      return;
 
     if (!CobbleUtils.config.isRewards() || CobbleUtils.config.isDirectreward()) {
-      CobbleUtils.server.execute(() -> player.drop(itemStack, true));
+      CobbleUtils.server.execute(() -> player.dropItem(itemStack, true));
       return;
     }
 
     int remainingCount = itemStack.getCount();
-    int maxStackSize = itemStack.getMaxStackSize();
-
+    int maxStackSize = itemStack.getMaxCount();
 
     // Add to rewards data
     for (ItemObject item : rewardsData.getItems()) {
-      if (remainingCount <= 0) break;
+      if (remainingCount <= 0)
+        break;
 
       try {
-        ItemStack existingItemStack = ItemStack.of(TagParser.parseTag(item.getItem()));
-        if (existingItemStack.is(itemStack.getItem())) {
+        ItemStack existingItemStack = ItemStack.fromNbt(NbtHelper.fromNbtProviderString(item.getItem()));
+        if (existingItemStack.isOf(itemStack.getItem())) {
           int existingCount = existingItemStack.getCount();
           int spaceAvailable = maxStackSize - existingCount;
 
           if (spaceAvailable > 0) {
             int toAdd = Math.min(remainingCount, spaceAvailable);
             existingItemStack.setCount(existingCount + toAdd);
-            item.setItem(existingItemStack.save(new CompoundTag()).getAsString());
+            item.setItem(existingItemStack.getNbt().toString());
             remainingCount -= toAdd;
           }
         }
@@ -116,33 +114,32 @@ public class RewardsUtils {
       int toAdd = Math.min(remainingCount, maxStackSize);
       ItemStack newItemStack = itemStack.copy();
       newItemStack.setCount(toAdd);
-      rewardsData.getItems().add(ItemObject.fromString(newItemStack.save(new CompoundTag()).getAsString()));
+      rewardsData.getItems().add(ItemObject.fromString(newItemStack.getNbt().toString()));
       remainingCount -= toAdd;
     }
   }
 
-
   /**
    * Saves a Pokémon into the player's rewards inventory.
    *
-   * @param player  Player to save the Pokémon for
+   * @param player  ServerPlayerEntity to save the Pokémon for
    * @param pokemon Pokémon to save
    *
    * @return
    */
-  public static boolean saveRewardPokemon(Player player, Pokemon pokemon) throws NoPokemonStoreException {
-    if (pokemon == null) return false;
-    if (Cobblemon.INSTANCE.getStorage().getParty(player.getUUID()).add(pokemon)) {
+  public static boolean saveRewardPokemon(ServerPlayerEntity player, Pokemon pokemon) throws NoPokemonStoreException {
+    if (pokemon == null)
+      return false;
+    if (Cobblemon.INSTANCE.getStorage().getParty(player.getUuid()).add(pokemon)) {
       return true;
     }
     RewardsData rewardsData = CobbleUtils.rewardsManager.getRewardsData().computeIfAbsent(
-      player.getUUID(),
-      uuid -> {
-        RewardsData newRewardsData = new RewardsData(player.getGameProfile().getName(), player.getUUID());
-        newRewardsData.init();
-        return newRewardsData;
-      }
-    );
+        player.getUuid(),
+        uuid -> {
+          RewardsData newRewardsData = new RewardsData(player.getGameProfile().getName(), player.getUuid());
+          newRewardsData.init();
+          return newRewardsData;
+        });
     rewardsData.getPokemons().add(pokemon.saveToJSON(new JsonObject()));
     rewardsData.writeInfo();
     return true;
@@ -151,20 +148,20 @@ public class RewardsUtils {
   /**
    * Saves a list of Pokémon into the player's rewards inventory.
    *
-   * @param player   Player to save the Pokémon for
+   * @param player   ServerPlayerEntity to save the Pokémon for
    * @param pokemons List of Pokémon to save
    */
-  public static void saveRewardPokemon(Player player, List<Pokemon> pokemons) {
+  public static void saveRewardPokemon(ServerPlayerEntity player, List<Pokemon> pokemons) {
     RewardsData rewardsData = CobbleUtils.rewardsManager.getRewardsData().computeIfAbsent(
-      player.getUUID(),
-      uuid -> {
-        RewardsData newRewardsData = new RewardsData(player.getGameProfile().getName(), player.getUUID());
-        newRewardsData.init();
-        return newRewardsData;
-      }
-    );
+        player.getUuid(),
+        uuid -> {
+          RewardsData newRewardsData = new RewardsData(player.getGameProfile().getName(), player.getUuid());
+          newRewardsData.init();
+          return newRewardsData;
+        });
     for (Pokemon pokemon : pokemons) {
-      if (pokemon == null) continue;
+      if (pokemon == null)
+        continue;
       rewardsData.getPokemons().add(pokemon.saveToJSON(new JsonObject()));
     }
     rewardsData.writeInfo();
@@ -173,20 +170,19 @@ public class RewardsUtils {
   /**
    * Saves a command into the player's rewards inventory.
    *
-   * @param player  Player to save the command for
+   * @param player  ServerPlayerEntity to save the command for
    * @param command Command to save
    *
    * @return
    */
-  public static boolean saveRewardCommand(Player player, String command) {
+  public static boolean saveRewardCommand(ServerPlayerEntity player, String command) {
     RewardsData rewardsData = CobbleUtils.rewardsManager.getRewardsData().computeIfAbsent(
-      player.getUUID(),
-      uuid -> {
-        RewardsData newRewardsData = new RewardsData(player.getGameProfile().getName(), player.getUUID());
-        newRewardsData.init();
-        return newRewardsData;
-      }
-    );
+        player.getUuid(),
+        uuid -> {
+          RewardsData newRewardsData = new RewardsData(player.getGameProfile().getName(), player.getUuid());
+          newRewardsData.init();
+          return newRewardsData;
+        });
     rewardsData.getCommands().add(command.replace("%player%", player.getGameProfile().getName()));
     if (!CobbleUtils.config.isRewards() || CobbleUtils.config.isDirectreward()) {
       giveCommandRewards(rewardsData.getCommands());
@@ -198,18 +194,17 @@ public class RewardsUtils {
   /**
    * Saves a list of commands into the player's rewards inventory.
    *
-   * @param player   Player to save the commands for
+   * @param player   ServerPlayerEntity to save the commands for
    * @param commands List of commands to save
    */
-  public static void saveRewardCommand(Player player, List<String> commands) {
+  public static void saveRewardCommand(ServerPlayerEntity player, List<String> commands) {
     RewardsData rewardsData = CobbleUtils.rewardsManager.getRewardsData().computeIfAbsent(
-      player.getUUID(),
-      uuid -> {
-        RewardsData newRewardsData = new RewardsData(player.getGameProfile().getName(), player.getUUID());
-        newRewardsData.init();
-        return newRewardsData;
-      }
-    );
+        player.getUuid(),
+        uuid -> {
+          RewardsData newRewardsData = new RewardsData(player.getGameProfile().getName(), player.getUuid());
+          newRewardsData.init();
+          return newRewardsData;
+        });
     commands.replaceAll(command -> command.replace("%player%", player.getGameProfile().getName()));
     rewardsData.getCommands().addAll(commands);
     if (!CobbleUtils.config.isRewards() || CobbleUtils.config.isDirectreward()) {
@@ -234,23 +229,23 @@ public class RewardsUtils {
   /**
    * Claims rewards for the player.
    *
-   * @param player Player to claim rewards
+   * @param player ServerPlayerEntity to claim rewards
    */
-  public static void claimRewards(Player player) {
-    RewardsData rewardsData = CobbleUtils.rewardsManager.getRewardsData().get(player.getUUID());
+  public static void claimRewards(ServerPlayerEntity player) {
+    RewardsData rewardsData = CobbleUtils.rewardsManager.getRewardsData().get(player.getUuid());
     if (rewardsData == null) {
       rewardsData = CobbleUtils.rewardsManager.getRewardsData().computeIfAbsent(
-        player.getUUID(),
-        uuid -> new RewardsData(player.getGameProfile().getName(), player.getUUID())
-      );
+          player.getUuid(),
+          uuid -> new RewardsData(player.getGameProfile().getName(), player.getUuid()));
       rewardsData.init();
     }
-    if (rewardsData.getCommands().isEmpty() && rewardsData.getItems().isEmpty() && rewardsData.getPokemons().isEmpty()) {
+    if (rewardsData.getCommands().isEmpty() && rewardsData.getItems().isEmpty()
+        && rewardsData.getPokemons().isEmpty()) {
       return;
     }
     PlayerPartyStore playerPartyStore = null;
     try {
-      playerPartyStore = Cobblemon.INSTANCE.getStorage().getParty(player.getUUID());
+      playerPartyStore = Cobblemon.INSTANCE.getStorage().getParty(player.getUuid());
     } catch (NoPokemonStoreException e) {
       throw new RuntimeException(e);
     }
@@ -277,8 +272,9 @@ public class RewardsUtils {
       rewardsData.getItems().forEach(item -> {
         ItemStack itemStack = CobbleUtilities.getItem(item.getItem());
         try {
-          if (player.getInventory().getFreeSlot() == -1) return;
-          boolean success = player.getInventory().add(itemStack);
+          if (player.getInventory().getEmptySlot() == -1)
+            return;
+          boolean success = player.getInventory().insertStack(itemStack);
           if (success) {
             itemsToRemove.add(item);
           }
@@ -311,30 +307,31 @@ public class RewardsUtils {
   /**
    * Checks if the player has pending rewards.
    *
-   * @param player Player to check
+   * @param player ServerPlayerEntity to check
    *
    * @return True if the player has pending rewards, false otherwise
    */
-  public static boolean hasRewards(Player player) {
-    if (player == null) return false;
+  public static boolean hasRewards(ServerPlayerEntity player) {
+    if (player == null)
+      return false;
 
     RewardsData rewardsData = CobbleUtils.rewardsManager.getRewardsData().computeIfAbsent(
-      player.getUUID(),
-      uuid -> {
-        RewardsData newRewardsData = new RewardsData(player.getGameProfile().getName(), player.getUUID());
-        newRewardsData.init();
-        return newRewardsData;
-      }
-    );
+        player.getUuid(),
+        uuid -> {
+          RewardsData newRewardsData = new RewardsData(player.getGameProfile().getName(), player.getUuid());
+          newRewardsData.init();
+          return newRewardsData;
+        });
 
     return !rewardsData.getCommands().isEmpty() ||
-      !rewardsData.getItems().isEmpty() ||
-      !rewardsData.getPokemons().isEmpty();
+        !rewardsData.getItems().isEmpty() ||
+        !rewardsData.getPokemons().isEmpty();
   }
 
-  public static void removeRewards(Player player) {
-    RewardsData rewardsData = CobbleUtils.rewardsManager.getRewardsData().get(player.getUUID());
-    if (rewardsData == null) return;
+  public static void removeRewards(ServerPlayerEntity player) {
+    RewardsData rewardsData = CobbleUtils.rewardsManager.getRewardsData().get(player.getUuid());
+    if (rewardsData == null)
+      return;
     rewardsData.getItems().clear();
     rewardsData.getPokemons().clear();
     rewardsData.getCommands().clear();

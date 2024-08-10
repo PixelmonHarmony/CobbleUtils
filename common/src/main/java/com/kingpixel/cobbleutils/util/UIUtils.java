@@ -21,11 +21,10 @@ import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.ItemModel;
 import com.kingpixel.cobbleutils.action.PokemonButtonAction;
-import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 import org.joml.Vector4f;
 
 import java.util.ArrayList;
@@ -53,14 +52,14 @@ public class UIUtils {
       return GooeyButton.builder()
         .display(CobbleUtils.language.getItemNoPokemon().getItemStack())
         .title(AdventureTranslator.toNative(CobbleUtils.language.getItemNoPokemon().getDisplayname()))
-        .lore(Component.class, AdventureTranslator.toNativeL(CobbleUtils.language.getItemNoPokemon().getLore()))
+        .lore(Text.class, AdventureTranslator.toNativeL(CobbleUtils.language.getItemNoPokemon().getLore()))
         .build();
     }
 
     return GooeyButton.builder()
       .display(PokemonItem.from(pokemon, 1, new Vector4f(5, 5, 5, 5)))
       .title(AdventureTranslator.toNative(PokemonUtils.replace(CobbleUtils.language.getPokemonnameformat(), pokemon)))
-      .lore(Component.class, AdventureTranslator.toNativeL(lorepokemon(pokemon)))
+      .lore(Text.class, AdventureTranslator.toNativeL(lorepokemon(pokemon)))
       .onClick(action -> actionpokemon.accept(new PokemonButtonAction(action, pokemon)))
       .build();
   }
@@ -103,14 +102,14 @@ public class UIUtils {
       return GooeyButton.builder()
         .display(CobbleUtils.language.getItemNoPokemon().getItemStack())
         .title(AdventureTranslator.toNative(CobbleUtils.language.getItemNoPokemon().getDisplayname()))
-        .lore(Component.class, AdventureTranslator.toNativeL(CobbleUtils.language.getItemNoPokemon().getLore()))
+        .lore(Text.class, AdventureTranslator.toNativeL(CobbleUtils.language.getItemNoPokemon().getLore()))
         .build();
     }
 
     return GooeyButton.builder()
       .display(PokemonItem.from(pokemon))
       .title(AdventureTranslator.toNative(PokemonUtils.replace(CobbleUtils.language.getPokemonnameformat(), pokemon)))
-      .lore(Component.class, AdventureTranslator.toNativeL(lorepokemon(pokemon, lore, add)))
+      .lore(Text.class, AdventureTranslator.toNativeL(lorepokemon(pokemon, lore, add)))
       .onClick(action -> actionpokemon.accept(new PokemonButtonAction(action, pokemon)))
       .build();
   }
@@ -126,7 +125,8 @@ public class UIUtils {
    */
   public static List<String> lorepokemon(Pokemon pokemon, List<String> lore, boolean add) {
     List<String> finalLore = new ArrayList<>();
-    if (add) lore.addAll(new ArrayList<>(CobbleUtils.language.getLorepokemon()));
+    if (add)
+      lore.addAll(new ArrayList<>(CobbleUtils.language.getLorepokemon()));
     for (String s : lore) {
       String replaced = PokemonUtils.replace(s, pokemon);
       for (int i = 0; i < 4; i++) {
@@ -210,16 +210,17 @@ public class UIUtils {
         button.set(GooeyButton.builder()
           .display(i.getItemStack())
           .title(AdventureTranslator.toNative(i.getDisplayname()))
-          .lore(Component.class, AdventureTranslator.toNativeL(i.getLore()))
+          .lore(Text.class, AdventureTranslator.toNativeL(i.getLore()))
           .onClick(action)
           .build());
       }
     });
-    if (button.get() != null) return button.get();
+    if (button.get() != null)
+      return button.get();
     return GooeyButton.builder()
       .display(CobbleUtils.language.getItemCommand().getItemStack())
       .title(command)
-      .lore(Component.class, AdventureTranslator.toNativeL(CobbleUtils.language.getItemCommand().getLore()))
+      .lore(Text.class, AdventureTranslator.toNativeL(CobbleUtils.language.getItemCommand().getLore()))
       .onClick(action)
       .build();
   }
@@ -233,12 +234,12 @@ public class UIUtils {
    * @return The button with the item data
    */
   public static GooeyButton createButtonItem(ItemStack itemStack, Consumer<ButtonAction> action) {
-    Component title;
+    Text title;
     ItemStack item = itemStack.copy();
-    if (item.getTag() != null) {
-      title = AdventureTranslator.toNative(item.getTag().getCompound("display").getString("Name"));
+    if (item.getNbt() != null) {
+      title = AdventureTranslator.toNative(item.getNbt().getCompound("display").getString("Name"));
     } else {
-      title = AdventureTranslator.toNative(CobbleUtils.language.getColoritem() + item.getHoverName().getString());
+      title = AdventureTranslator.toNative(CobbleUtils.language.getColoritem() + item.getName().getString());
     }
     return GooeyButton.builder()
       .display(item)
@@ -271,29 +272,26 @@ public class UIUtils {
 
     // Crear CompletableFuture para cada Pokemon en pcStore
     for (Pokemon pokemon : pcStore) {
-      CompletableFuture<Button> buttonFuture = CompletableFuture.supplyAsync(() ->
-        UIUtils.createButtonPokemon(pokemon, action ->
-          actionpokemon.accept(new PokemonButtonAction(action.getAction(), pokemon))
-        )
-      );
+      CompletableFuture<Button> buttonFuture = CompletableFuture.supplyAsync(() -> UIUtils.createButtonPokemon(pokemon,
+        action -> actionpokemon.accept(new PokemonButtonAction(action.getAction(), pokemon))));
       buttonFutures.add(buttonFuture);
     }
 
-    // Convertir lista de CompletableFuture a un CompletableFuture de lista de botones
+    // Convertir lista de CompletableFuture a un CompletableFuture de lista de
+    // botones
     CompletableFuture<List<Button>> allButtonsFuture = CompletableFuture.allOf(
         buttonFutures.toArray(new CompletableFuture[0]))
-      .thenApply(v ->
-        buttonFutures.stream()
-          .map(CompletableFuture::join)
-          .collect(Collectors.toList())
-      );
+      .thenApply(v -> buttonFutures.stream()
+        .map(CompletableFuture::join)
+        .collect(Collectors.toList()));
 
     // Obtener la lista de botones una vez completados todos los futuros
     return allButtonsFuture.thenApplyAsync(buttonsList -> {
       // Añadir los botones a la plantilla
       template.fill(GooeyButton.builder()
           .display(Utils.parseItemId("minecraft:gray_stained_glass_pane")
-            .setHoverName(Component.literal(""))).build())
+            .setCustomName(Text.literal("")))
+          .build())
         .rectangle(0, 0, 5, 9, new PlaceholderButton())
         .fillFromList(buttonsList)
         .set(5, 4, getCloseButton(closeaction))
@@ -302,7 +300,7 @@ public class UIUtils {
 
       // Construir la página vinculada
       LinkedPage.Builder linkedPageBuilder = LinkedPage.builder().title(AdventureTranslator.toNative(titlemenu));
-      
+
       return PaginationHelper.createPagesFromPlaceholders(template, buttonsList, linkedPageBuilder);
     }).get();
   }
@@ -345,7 +343,8 @@ public class UIUtils {
     return allSlotsFuture.thenApplyAsync(v -> {
       template.fill(GooeyButton.builder()
         .display(new ItemStack(Items.GRAY_STAINED_GLASS_PANE)
-          .setHoverName(AdventureTranslator.toNative(""))).build());
+          .setCustomName(AdventureTranslator.toNative("")))
+        .build());
       return GooeyPage.builder()
         .template(template)
         .title(AdventureTranslator.toNative(CobbleUtils.language.getTitleparty()))
@@ -364,7 +363,7 @@ public class UIUtils {
    * @throws ExecutionException   If the computation threw an exception
    * @throws InterruptedException If the current thread was interrupted
    */
-  public static GooeyPage createPageParty(ServerPlayer player, Consumer<PokemonButtonAction> actionpokemon,
+  public static GooeyPage createPageParty(ServerPlayerEntity player, Consumer<PokemonButtonAction> actionpokemon,
                                           Consumer<ButtonAction> actionclose) throws ExecutionException,
     InterruptedException {
     ChestTemplate template = ChestTemplate.builder(4).build();
@@ -392,7 +391,8 @@ public class UIUtils {
     return allSlotsFuture.thenApplyAsync(v -> {
       template.fill(GooeyButton.builder()
         .display(new ItemStack(Items.GRAY_STAINED_GLASS_PANE)
-          .setHoverName(AdventureTranslator.toNative(""))).build());
+          .setCustomName(AdventureTranslator.toNative("")))
+        .build());
       template.set(0, 4, getPcButton(player, actionpokemon, actionclose));
       return GooeyPage.builder()
         .template(template)
@@ -426,7 +426,8 @@ public class UIUtils {
    *
    * @return The linked page button
    */
-  public static LinkedPageButton getLinkedPageButton(ItemModel itemModel, LinkType linkType, Consumer<ButtonAction> action) {
+  public static LinkedPageButton getLinkedPageButton(ItemModel itemModel, LinkType linkType,
+                                                     Consumer<ButtonAction> action) {
     return LinkedPageButton.builder()
       .display(itemModel.getItemStack())
       .title(AdventureTranslator.toNative(itemModel.getDisplayname()))
@@ -460,12 +461,12 @@ public class UIUtils {
    *
    * @return The pc button
    */
-  public static GooeyButton getPcButton(Player player, Consumer<PokemonButtonAction> actionpokemon,
+  public static GooeyButton getPcButton(ServerPlayerEntity player, Consumer<PokemonButtonAction> actionpokemon,
                                         Consumer<ButtonAction> closeaction) {
     ItemModel itemModel = CobbleUtils.language.getItemPc();
     PCStore pcStore = null;
     try {
-      pcStore = Cobblemon.INSTANCE.getStorage().getPC(player.getUUID());
+      pcStore = Cobblemon.INSTANCE.getStorage().getPC(player.getUuid());
     } catch (NoPokemonStoreException e) {
       e.printStackTrace();
 
@@ -497,7 +498,7 @@ public class UIUtils {
     return GooeyButton.builder()
       .display(itemModel.getItemStack())
       .title(AdventureTranslator.toNative(itemModel.getDisplayname()))
-      .lore(Component.class, AdventureTranslator.toNativeLWithOutPrefix(itemModel.getLore()))
+      .lore(Text.class, AdventureTranslator.toNativeLWithOutPrefix(itemModel.getLore()))
       .onClick(action)
       .build();
   }
@@ -515,7 +516,7 @@ public class UIUtils {
     return GooeyButton.builder()
       .display(itemModel.getItemStack())
       .title(AdventureTranslator.toNative(itemModel.getDisplayname()))
-      .lore(Component.class, AdventureTranslator.toNativeLWithOutPrefix(itemModel.getLore()))
+      .lore(Text.class, AdventureTranslator.toNativeLWithOutPrefix(itemModel.getLore()))
       .onClick(action -> actionPokemon.accept(new PokemonButtonAction(action, pokemon)))
       .build();
   }
@@ -549,7 +550,7 @@ public class UIUtils {
     return GooeyButton.builder()
       .display(itemModel.getItemStack())
       .title(AdventureTranslator.toNativeWithOutPrefix(itemModel.getDisplayname()))
-      .lore(Component.class, AdventureTranslator.toNativeLWithOutPrefix(itemModel.getLore()))
+      .lore(Text.class, AdventureTranslator.toNativeLWithOutPrefix(itemModel.getLore()))
       .onClick(action -> actionPokemon.accept(new PokemonButtonAction(action, pokemon)))
       .build();
   }
@@ -588,7 +589,4 @@ public class UIUtils {
       .build();
   }
 
-
 }
-
-

@@ -11,8 +11,8 @@ import com.kingpixel.cobbleutils.features.breeding.models.PlotBreeding;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.PlayerUtils;
 import com.kingpixel.cobbleutils.util.PokemonUtils;
-import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -22,13 +22,13 @@ import java.util.List;
  * @author Carlos Varas Alonso - 02/08/2024 14:29
  */
 public class PlotBreedingUI {
-  public static void open(ServerPlayer player) {
+  public static void open(ServerPlayerEntity player) {
     ChestTemplate template = ChestTemplate.builder(CobbleUtils.breedconfig.getRowmenuselectplot()).build();
 
     int size = CobbleUtils.breedconfig.getMaxplots();
 
     for (int i = 0; i < size; i++) {
-      PlotBreeding plotBreeding = Breeding.managerPlotEggs.getEggs().get(player.getUUID()).get(i);
+      PlotBreeding plotBreeding = Breeding.managerPlotEggs.getEggs().get(player.getUuid()).get(i);
       List<String> lore = new ArrayList<>(CobbleUtils.breedconfig.getPlotItem().getLore());
       List<Pokemon> pokemons = new ArrayList<>();
       pokemons.add(plotBreeding.getMale() != null ? Pokemon.Companion.loadFromJSON(plotBreeding.getMale()) : null);
@@ -39,7 +39,7 @@ public class PlotBreedingUI {
       GooeyButton button = GooeyButton.builder()
         .display(CobbleUtils.breedconfig.getPlotItem().getItemStack())
         .title(AdventureTranslator.toNative(CobbleUtils.breedconfig.getPlotItem().getDisplayname()))
-        .lore(Component.class, AdventureTranslator.toNativeL(lore))
+        .lore(Text.class, AdventureTranslator.toNativeL(lore))
         .onClick(action -> {
           plotBreeding.checking(player);
           PlotBreedingManagerUI.open(player, plotBreeding);

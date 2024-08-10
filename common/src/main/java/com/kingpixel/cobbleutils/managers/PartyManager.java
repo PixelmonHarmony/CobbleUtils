@@ -9,7 +9,7 @@ import com.kingpixel.cobbleutils.party.models.UserParty;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Getter;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.io.File;
 import java.util.*;
@@ -33,8 +33,8 @@ public class PartyManager {
     UserParty userParty = this.userParty.get(owner.getUuid());
     if (userParty.isHasParty()) {
       // Esta en una party el jugador
-      CobbleUtils.server.getPlayerList().getPlayer(owner.getUuid())
-        .sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyAlreadyInParty()));
+      CobbleUtils.server.getPlayerManager().getPlayer(owner.getUuid())
+        .sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyAlreadyInParty()));
       return;
     }
     PartyData partyData = new PartyData(partyName, owner);
@@ -45,19 +45,19 @@ public class PartyManager {
       userParty.setPartyName(partyName);
       partyData.init();
       CreatePartyEvent.CREATE_PARTY_EVENT.emit(partyData);
-      CobbleUtils.server.getPlayerList().getPlayer(owner.getUuid())
-        .sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyCreated()));
+      CobbleUtils.server.getPlayerManager().getPlayer(owner.getUuid())
+        .sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyCreated()));
     } else {
       // Existe el party
-      CobbleUtils.server.getPlayerList().getPlayer(owner.getUuid())
-        .sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyAlreadyExists()));
+      CobbleUtils.server.getPlayerManager().getPlayer(owner.getUuid())
+        .sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyAlreadyExists()));
     }
   }
 
   public void deleteParty(String partyName) {
     if (parties.get(partyName) == null) {
-      CobbleUtils.server.getPlayerList().getPlayer(parties.get(partyName).getOwner().getUuid())
-        .sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyNotExists()));
+      CobbleUtils.server.getPlayerManager().getPlayer(parties.get(partyName).getOwner().getUuid())
+        .sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyNotExists()));
     } else {
       PartyData partyData = parties.get(partyName);
       for (PlayerInfo playerInfo : partyData.getMembers()) {
@@ -65,33 +65,33 @@ public class PartyManager {
       }
       parties.remove(partyName);
       deletefile(partyName);
-      CobbleUtils.server.getPlayerList().getPlayer(parties.get(partyName).getOwner().getUuid())
-        .sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyDeleted()));
+      CobbleUtils.server.getPlayerManager().getPlayer(parties.get(partyName).getOwner().getUuid())
+        .sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyDeleted()));
     }
   }
 
   public void addMember(String partyName, PlayerInfo playerInfo) {
     PartyData partyData = parties.get(partyName);
     if (partyData == null) {
-      CobbleUtils.server.getPlayerList().getPlayer(playerInfo.getUuid())
-        .sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyNotExists()));
+      CobbleUtils.server.getPlayerManager().getPlayer(playerInfo.getUuid())
+        .sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyNotExists()));
     } else {
       if (partyData.getMembers().size() == CobbleUtils.partyConfig.getMaxPartySize()) {
-        CobbleUtils.server.getPlayerList().getPlayer(playerInfo.getUuid())
-          .sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyFull()));
+        CobbleUtils.server.getPlayerManager().getPlayer(playerInfo.getUuid())
+          .sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyFull()));
         return;
       }
       partyData.getMembers().add(playerInfo);
       userParty.put(playerInfo.getUuid(), new UserParty(partyName, true));
       partyData.writeInfo();
-      CobbleUtils.server.getPlayerList().getPlayer(playerInfo.getUuid())
-        .sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyJoin()));
+      CobbleUtils.server.getPlayerManager().getPlayer(playerInfo.getUuid())
+        .sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyJoin()));
     }
   }
 
   public void leaveParty(String partyname, PlayerInfo playerInfo) {
     PartyData partyData = parties.get(partyname);
-    Player player = CobbleUtils.server.getPlayerList().getPlayer(playerInfo.getUuid());
+    ServerPlayerEntity player = CobbleUtils.server.getPlayerManager().getPlayer(playerInfo.getUuid());
     boolean isowner = partyData.getOwner().equals(playerInfo);
     if (isowner) {
       // Soy el owner
@@ -102,7 +102,7 @@ public class PartyManager {
         userParty.get(playerInfo.getUuid()).setHasParty(false);
         deletefile(partyname);
         DeletePartyEvent.DELETE_PARTY_EVENT.emit(partyData);
-        player.sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyDeleted()));
+        player.sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyDeleted()));
       } else {
         // No soy el unico miembro
         partyData.getMembers().remove(playerInfo);
@@ -110,7 +110,7 @@ public class PartyManager {
         userParty.get(playerInfo.getUuid()).setHasParty(false);
         partyData.setOwner(partyData.getMembers().iterator().next());
         partyData.writeInfo();
-        player.sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyLeave()));
+        player.sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyLeave()));
       }
     } else {
       // No soy el owner
@@ -118,14 +118,14 @@ public class PartyManager {
       userParty.get(playerInfo.getUuid()).setPartyName("");
       userParty.get(playerInfo.getUuid()).setHasParty(false);
       partyData.writeInfo();
-      player.sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyLeave()));
+      player.sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyLeave()));
     }
   }
 
   private void deletefile(String partyName) {
     File file = Utils.getAbsolutePath(CobbleUtils.PATH_PARTY_DATA + partyName + ".json");
     if (CobbleUtils.config.isDebug())
-      CobbleUtils.server.sendSystemMessage(AdventureTranslator.toNative("Deleting file: " + file.getAbsolutePath() +
+      CobbleUtils.server.sendMessage(AdventureTranslator.toNative("Deleting file: " + file.getAbsolutePath() +
         " " + file.exists()));
     if (file.exists()) {
       file.delete();
@@ -134,26 +134,26 @@ public class PartyManager {
 
   public void invitePlayer(UUID owneruuid, UUID inviteuuid, UserParty owner, UserParty inviteData) {
     boolean isOwner = parties.get(owner.getPartyName()).getOwner().getUuid().equals(owneruuid);
-    Player playerowner = CobbleUtils.server.getPlayerList().getPlayer(owneruuid);
-    Player playerinvite = CobbleUtils.server.getPlayerList().getPlayer(inviteuuid);
+    ServerPlayerEntity playerowner = CobbleUtils.server.getPlayerManager().getPlayer(owneruuid);
+    ServerPlayerEntity playerinvite = CobbleUtils.server.getPlayerManager().getPlayer(inviteuuid);
 
     if (owneruuid.equals(inviteuuid)) {
-      playerowner.sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyInviteYourSelf()));
+      playerowner.sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyInviteYourSelf()));
       return;
     }
 
     if (!isOwner) {
-      playerowner.sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyNotOwner()));
+      playerowner.sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyNotOwner()));
       return;
     }
 
     if (inviteData.isHasParty()) {
-      playerowner.sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyAlreadyInParty()));
+      playerowner.sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyAlreadyInParty()));
       return;
     }
 
     if (parties.get(owner.getPartyName()).getMembers().size() == CobbleUtils.partyConfig.getMaxPartySize()) {
-      playerowner.sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyFull()));
+      playerowner.sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyFull()));
       return;
     }
 
@@ -163,35 +163,35 @@ public class PartyManager {
 
       if (partyData.getInvites().contains(inviteuuid)) {
         if (owner.getPartyName().equals(partyName)) {
-          playerowner.sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyPlayerHasInvite()
+          playerowner.sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyPlayerHasInvite()
             .replace("%player%", playerinvite.getGameProfile().getName())));
         } else {
           playerowner
-            .sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyPlayerHasInviteOtherParty()
+            .sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyPlayerHasInviteOtherParty()
               .replace("%player%", playerinvite.getGameProfile().getName())));
         }
         return;
       }
     }
     parties.get(owner.getPartyName()).getInvites().add(inviteuuid);
-    playerowner.sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyInvite()
-      .replace("%player%", CobbleUtils.server.getPlayerList().getPlayer(inviteuuid).getGameProfile().getName())));
-    playerinvite.sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyInviteSend()
+    playerowner.sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyInvite()
+      .replace("%player%", CobbleUtils.server.getPlayerManager().getPlayer(inviteuuid).getGameProfile().getName())));
+    playerinvite.sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyInviteSend()
       .replace("%partyname%", owner.getPartyName())));
   }
 
   public void joinParty(PlayerInfo playerInfo) {
     boolean hasParty = userParty.get(playerInfo.getUuid()).isHasParty();
     if (hasParty) {
-      CobbleUtils.server.getPlayerList().getPlayer(playerInfo.getUuid())
-        .sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyAlreadyInParty()));
+      CobbleUtils.server.getPlayerManager().getPlayer(playerInfo.getUuid())
+        .sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyAlreadyInParty()));
       return;
     }
     boolean hasInvites = parties.values().stream()
       .anyMatch(partyData -> partyData.getInvites().contains(playerInfo.getUuid()));
     if (!hasInvites) {
-      CobbleUtils.server.getPlayerList().getPlayer(playerInfo.getUuid())
-        .sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyNotInvites()));
+      CobbleUtils.server.getPlayerManager().getPlayer(playerInfo.getUuid())
+        .sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyNotInvites()));
       return;
     }
     parties.forEach((partyName, partyData) -> {
@@ -201,8 +201,8 @@ public class PartyManager {
         userParty.get(playerInfo.getUuid()).setHasParty(true);
         partyData.getInvites().remove(playerInfo.getUuid());
         partyData.writeInfo();
-        CobbleUtils.server.getPlayerList().getPlayer(playerInfo.getUuid())
-          .sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyJoin()));
+        CobbleUtils.server.getPlayerManager().getPlayer(playerInfo.getUuid())
+          .sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyJoin()));
       }
     });
   }
@@ -210,63 +210,63 @@ public class PartyManager {
   public void joinParty(String partyname, PlayerInfo player) {
     PartyData partyData = parties.get(partyname);
     if (userParty.get(player.getUuid()).isHasParty()) {
-      CobbleUtils.server.getPlayerList().getPlayer(player.getUuid())
-        .sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyAlreadyInParty()));
+      CobbleUtils.server.getPlayerManager().getPlayer(player.getUuid())
+        .sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyAlreadyInParty()));
       return;
     }
     if (partyData == null) {
-      CobbleUtils.server.getPlayerList().getPlayer(player.getUuid())
-        .sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyNotExists()));
+      CobbleUtils.server.getPlayerManager().getPlayer(player.getUuid())
+        .sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyNotExists()));
     } else {
       if (partyData.getMembers().size() == CobbleUtils.partyConfig.getMaxPartySize()) {
         userParty.get(player.getUuid()).setPartyName("");
         userParty.get(player.getUuid()).setHasParty(false);
-        CobbleUtils.server.getPlayerList().getPlayer(player.getUuid())
-          .sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyFull()));
+        CobbleUtils.server.getPlayerManager().getPlayer(player.getUuid())
+          .sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyFull()));
         return;
       }
       partyData.getMembers().add(player);
       userParty.put(player.getUuid(), new UserParty(partyname, true));
       partyData.writeInfo();
-      CobbleUtils.server.getPlayerList().getPlayer(player.getUuid())
-        .sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyJoin()));
+      CobbleUtils.server.getPlayerManager().getPlayer(player.getUuid())
+        .sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyJoin()));
     }
   }
 
   public void kickPlayer(String partyname, PlayerInfo owner, PlayerInfo playerInfo) {
     PartyData partyData = parties.get(partyname);
-    Player playerowner = CobbleUtils.server.getPlayerList().getPlayer(owner.getUuid());
-    Player playermember = CobbleUtils.server.getPlayerList().getPlayer(playerInfo.getUuid());
+    ServerPlayerEntity playerowner = CobbleUtils.server.getPlayerManager().getPlayer(owner.getUuid());
+    ServerPlayerEntity playermember = CobbleUtils.server.getPlayerManager().getPlayer(playerInfo.getUuid());
     if (partyData == null) {
       playerowner
-        .sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyNotExists()));
+        .sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyNotExists()));
       return;
     }
 
     if (!partyData.getOwner().equals(owner)) {
       playerowner
-        .sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyNotOwner()));
+        .sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyNotOwner()));
       return;
     }
 
     if (partyData.getOwner().equals(playerInfo)) {
       playerowner
-        .sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyKickYourSelf()));
+        .sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyKickYourSelf()));
       return;
     }
 
     if (!partyData.getMembers().contains(playerInfo)) {
       playerowner
-        .sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartynotInParty()));
+        .sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartynotInParty()));
       return;
     }
 
     if (partyData.getMembers().remove(playerInfo)) {
       userParty.put(playerInfo.getUuid(), new UserParty("", false));
       partyData.writeInfo();
-      playerowner.sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyKick()
+      playerowner.sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyKick()
         .replace("%player%", playermember.getGameProfile().getName())));
-      playermember.sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyKickOther()));
+      playermember.sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyKickOther()));
     }
   }
 
@@ -274,8 +274,8 @@ public class PartyManager {
     return parties.values().stream().anyMatch(partyData -> partyData.getOwner().getUuid().equals(playeruuid));
   }
 
-  public boolean isOwner(Player player) {
-    return isOwner(player.getUUID());
+  public boolean isOwner(ServerPlayerEntity player) {
+    return isOwner(player.getUuid());
   }
 
   public boolean isOwner(String playername) {
@@ -318,8 +318,8 @@ public class PartyManager {
     return userParty.get(Utils.getUUID(playername)).isHasParty();
   }
 
-  public boolean isPlayerInParty(Player player) {
-    return isPlayerInParty(player.getUUID());
+  public boolean isPlayerInParty(ServerPlayerEntity player) {
+    return isPlayerInParty(player.getUuid());
   }
 
 }

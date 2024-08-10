@@ -12,7 +12,7 @@ import kotlin.Unit;
 public class NationalityPokemon {
   public static void register() {
     CobblemonEvents.POKEMON_CAPTURED.subscribe(Priority.NORMAL, (evt) -> {
-      String country = Breeding.playerCountry.get(evt.getPlayer().getUUID());
+      String country = Breeding.playerCountry.get(evt.getPlayer().getUuid());
       if (country == null) return Unit.INSTANCE;
       evt.getPokemon().getPersistentData().putString(CobbleUtilsTags.COUNTRY_TAG, country);
       return Unit.INSTANCE;

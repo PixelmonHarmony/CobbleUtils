@@ -9,49 +9,44 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.command.CommandManager;
+import net.minecraft.command.argument.EntityArgumentType;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.item.ItemStack;
 
 /**
  * @author Carlos Varas Alonso - 02/08/2024 12:23
  */
-public class EggInfoCommand implements Command<CommandSourceStack> {
+public class EggInfoCommand implements Command<ServerCommandSource> {
 
-  public static void register(CommandDispatcher<CommandSourceStack> dispatcher,
-                              LiteralArgumentBuilder<CommandSourceStack> base) {
+  public static void register(CommandDispatcher<ServerCommandSource> dispatcher,
+      LiteralArgumentBuilder<ServerCommandSource> base) {
     dispatcher.register(
-      base.then(
-        Commands.argument("slot", PartySlotArgumentType.Companion.partySlot())
-          .executes(context -> {
-            if (!context.getSource().isPlayer()) {
-              return 0;
-            }
-            ServerPlayer player = context.getSource().getPlayerOrException();
-            Pokemon pokemon = PartySlotArgumentType.Companion.getPokemon(context, "slot");
-            if (pokemon.getSpecies().showdownId().equalsIgnoreCase("egg")) {
-              player.sendSystemMessage(
-                AdventureTranslator.toNative(
-                  "Egg Info: " + EggData.from(pokemon).getInfo()
-                )
-              );
-            } else {
-              player.sendSystemMessage(
-                AdventureTranslator.toNative(
-                  "This is not an egg"
-                )
-              );
-            }
-            return 0;
-          })
-      )
-    );
+        base.then(
+            CommandManager.argument("slot", PartySlotArgumentType.Companion.partySlot())
+                .executes(context -> {
+                  if (!context.getSource().isExecutedByPlayer()) {
+                    return 0;
+                  }
+                  ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
+                  Pokemon pokemon = PartySlotArgumentType.Companion.getPokemon(context, "slot");
+                  if (pokemon.getSpecies().showdownId().equalsIgnoreCase("egg")) {
+                    player.sendMessage(
+                        AdventureTranslator.toNative(
+                            "Egg Info: " + EggData.from(pokemon).getInfo()));
+                  } else {
+                    player.sendMessage(
+                        AdventureTranslator.toNative(
+                            "This is not an egg"));
+                  }
+                  return 0;
+                })));
   }
 
   @Override
-  public int run(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+  public int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
     return 0;
   }
-
 
 }

@@ -10,8 +10,8 @@ import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.item.ItemStack;
+import net.minecraft.text.Text;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -143,7 +143,7 @@ public class ItemModel {
     return GooeyButton.builder()
       .display(getItemStack(itemModel))
       .title(AdventureTranslator.toNative(itemModel.getDisplayname()))
-      .lore(Component.class, AdventureTranslator.toNativeL(itemModel.getLore()))
+      .lore(Text.class, AdventureTranslator.toNativeL(itemModel.getLore()))
       .onClick(action)
       .build();
   }

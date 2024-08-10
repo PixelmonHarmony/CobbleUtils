@@ -22,11 +22,11 @@ import com.kingpixel.cobbleutils.util.Utils;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.ParseResults;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,30 +36,33 @@ import java.util.Objects;
  * @author Carlos Varas Alonso - 28/06/2024 6:11
  */
 public class RewardsUI {
-  public static Page getRewards(Player player) {
+  public static Page getRewards(ServerPlayerEntity player) {
     try {
       ChestTemplate template = ChestTemplate.builder(6).build();
       List<Button> buttons = new ArrayList<>();
 
-      RewardsData rewardsData = CobbleUtils.rewardsManager.getRewardsData().get(player.getUUID());
+      RewardsData rewardsData = CobbleUtils.rewardsManager.getRewardsData().get(player.getUuid());
 
-      rewardsData.getPokemons().forEach(pokemon -> buttons.add(UIUtils.createButtonPokemon(Pokemon.Companion.loadFromJSON(pokemon), action -> {
-        try {
-          if (Cobblemon.INSTANCE.getStorage().getParty(player.getUUID()).add(Pokemon.Companion.loadFromJSON(pokemon))) {
-            rewardsData.getPokemons().remove(pokemon);
-            rewardsData.writeInfo();
+      rewardsData.getPokemons().forEach(
+        pokemon -> buttons.add(UIUtils.createButtonPokemon(Pokemon.Companion.loadFromJSON(pokemon), action -> {
+          try {
+            if (Cobblemon.INSTANCE.getStorage().getParty(player.getUuid())
+              .add(Pokemon.Companion.loadFromJSON(pokemon))) {
+              rewardsData.getPokemons().remove(pokemon);
+              rewardsData.writeInfo();
+            }
+            UIManager.openUIForcefully(action.getAction().getPlayer(), getRewards(player));
+          } catch (NoPokemonStoreException e) {
+            throw new RuntimeException(e);
           }
-          UIManager.openUIForcefully(action.getAction().getPlayer(), getRewards(player));
-        } catch (NoPokemonStoreException e) {
-          throw new RuntimeException(e);
-        }
-      })));
+        })));
 
       rewardsData.getItems().forEach(item -> {
         ItemStack itemStack = CobbleUtilities.getItem(item.getItem());
         buttons.add(UIUtils.createButtonItem(itemStack, action -> {
-          if (player.getInventory().getFreeSlot() == -1) return;
-          if (action.getPlayer().getInventory().add(itemStack)) {
+          if (player.getInventory().getEmptySlot() == -1)
+            return;
+          if (action.getPlayer().getInventory().insertStack(itemStack)) {
             rewardsData.getItems().remove(item);
             rewardsData.writeInfo();
             UIManager.openUIForcefully(action.getPlayer(), getRewards(player));
@@ -69,11 +72,12 @@ public class RewardsUI {
 
       rewardsData.getCommands().forEach(command -> {
         buttons.add(UIUtils.createButtonCommand(command, action -> {
-          if (player.getInventory().getFreeSlot() == -1) return;
-          CommandDispatcher<CommandSourceStack> disparador = CobbleUtils.server.getCommands().getDispatcher();
+          if (player.getInventory().getEmptySlot() == -1)
+            return;
+          CommandDispatcher<ServerCommandSource> disparador = CobbleUtils.server.getCommandManager().getDispatcher();
           try {
-            CommandSourceStack serverSource = CobbleUtils.server.createCommandSourceStack();
-            ParseResults<CommandSourceStack> parse = disparador.parse(command, serverSource);
+            ServerCommandSource serverSource = CobbleUtils.server.getCommandSource();
+            ParseResults<ServerCommandSource> parse = disparador.parse(command, serverSource);
             disparador.execute(parse);
           } catch (CommandSyntaxException e) {
             System.err.println("Error al ejecutar el comando: " + command);
@@ -101,17 +105,17 @@ public class RewardsUI {
         .build();
 
       GooeyButton close = GooeyButton.builder()
-        .display(Items.RED_STAINED_GLASS_PANE.getDefaultInstance())
+        .display(Items.RED_STAINED_GLASS_PANE.getDefaultStack())
         .title(AdventureTranslator.toNative(CobbleUtils.language.getClose()))
         .onClick(action -> {
-          action.getPlayer().closeContainer();
+          action.getPlayer().closeHandledScreen();
         })
         .build();
 
-
       PlaceholderButton placeholder = new PlaceholderButton();
 
-      GooeyButton fill = GooeyButton.builder().display(Items.GRAY_STAINED_GLASS_PANE.getDefaultInstance().setHoverName(Component.literal(""))).build();
+      GooeyButton fill = GooeyButton.builder()
+        .display(Items.GRAY_STAINED_GLASS_PANE.getDefaultStack().setCustomName(Text.literal(""))).build();
       template.fill(fill)
         .rectangle(0, 0, 5, 9, placeholder)
         .fillFromList(buttons)

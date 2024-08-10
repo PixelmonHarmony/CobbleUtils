@@ -28,8 +28,11 @@ loom {
 }
 
 dependencies {
+    //minecraft("net.minecraft:minecraft:${property("minecraft_version")}")
+    //mappings(loom.officialMojangMappings())
+
     minecraft("net.minecraft:minecraft:${property("minecraft_version")}")
-    mappings(loom.officialMojangMappings())
+    mappings("net.fabricmc:yarn:${property("yarn_mappings")}:v2")
 
     modImplementation("com.cobblemon:fabric:${property("cobblemon_version")}")
     modImplementation("net.fabricmc:fabric-loader:${property("fabric_loader_version")}")

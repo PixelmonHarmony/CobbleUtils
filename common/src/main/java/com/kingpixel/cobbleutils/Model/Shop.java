@@ -9,7 +9,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,7 +74,7 @@ public class Shop {
     }
   }
 
-  public void open(ServerPlayer player) {
+  public void open(ServerPlayerEntity player) {
     ChestTemplate chestTemplate = ChestTemplate
       .builder(this.rows)
       .build();

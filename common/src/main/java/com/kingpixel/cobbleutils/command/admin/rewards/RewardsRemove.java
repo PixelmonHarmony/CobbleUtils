@@ -1,50 +1,55 @@
 package com.kingpixel.cobbleutils.command.admin.rewards;
 
 import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.util.LuckPermsUtil;
 import com.kingpixel.cobbleutils.util.RewardsUtils;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
-import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.command.argument.EntityArgumentType;
+import net.minecraft.server.command.CommandManager;
+import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.network.ServerPlayerEntity;
+
+import java.util.List;
 
 /**
  * @author Carlos Varas Alonso - 28/06/2024 21:04
  */
-public class RewardsRemove implements Command<CommandSourceStack> {
-  public static void register(CommandDispatcher<CommandSourceStack> dispatcher,
-                              LiteralArgumentBuilder<CommandSourceStack> base) {
+public class RewardsRemove implements Command<ServerCommandSource> {
+  public static void register(CommandDispatcher<ServerCommandSource> dispatcher,
+                              LiteralArgumentBuilder<ServerCommandSource> base) {
     dispatcher.register(
       base
         .then(
-          Commands.literal("remove")
-            .requires(source -> source.hasPermission(2))
+          CommandManager.literal("remove")
+            .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.rewards.remove",
+              "cobbleutils" +
+                ".admin")))
             .executes(context -> {
-              if (!context.getSource().isPlayer()) {
+              if (!context.getSource().isExecutedByPlayer()) {
                 CobbleUtils.LOGGER.info("Only players can remove rewards!");
                 return 0;
               }
-              Player player = context.getSource().getPlayerOrException();
+              ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
               RewardsUtils.removeRewards(player);
               return 1;
             })
-            .requires(source -> source.hasPermission(2))
-            .then(Commands.argument("player", EntityArgument.player())
+            .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.rewards.remove",
+              "cobbleutils" +
+                ".admin")))
+            .then(CommandManager.argument("player", EntityArgumentType.player())
               .executes(context -> {
-                Player player = EntityArgument.getPlayer(context, "player");
+                ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
                 RewardsUtils.removeRewards(player);
                 return 1;
-              })
-            )
-        )
-    );
+              }))));
   }
 
-  @Override public int run(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+  @Override
+  public int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
     return 1;
   }
 }

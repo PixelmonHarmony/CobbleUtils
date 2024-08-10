@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.HashSet;
 import java.util.List;
@@ -89,9 +89,10 @@ public class Boss {
     return null;
   }
 
-  public void giveRewards(String bossrarity, ServerPlayer player) {
+  public void giveRewards(String bossrarity, ServerPlayerEntity player) {
     BossChance bossChance = getBossChance(bossrarity);
-    if (bossChance == null) return;
+    if (bossChance == null)
+      return;
     if (bossChance.isAllrewards()) {
       ItemChance.getAllRewards(bossChance.getRewards(), player);
     } else {

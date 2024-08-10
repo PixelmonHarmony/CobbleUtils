@@ -10,7 +10,7 @@ import com.kingpixel.cobbleutils.util.RewardsUtils;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -36,19 +36,21 @@ public class PlotBreeding {
     cooldown = new Date(1).getTime();
   }
 
-  public void checking(ServerPlayer player) {
-    if (male == null || female == null) return;
+  public void checking(ServerPlayerEntity player) {
+    if (male == null || female == null)
+      return;
 
     if (cooldown < new Date().getTime()) {
       try {
-        Pokemon pokemon = EggData.createEgg(Pokemon.Companion.loadFromJSON(male)
-          , Pokemon.Companion.loadFromJSON(female),
+        Pokemon pokemon = EggData.createEgg(Pokemon.Companion.loadFromJSON(male),
+          Pokemon.Companion.loadFromJSON(female),
           player, this);
         if (pokemon != null) {
-          if (eggs.size() >= CobbleUtils.breedconfig.getMaxeggperplot()) return;
+          if (eggs.size() >= CobbleUtils.breedconfig.getMaxeggperplot())
+            return;
 
-          cooldown =
-            new Date(new Date().getTime() + TimeUnit.MINUTES.toMillis(CobbleUtils.breedconfig.getCooldown())).getTime();
+          cooldown = new Date(new Date().getTime() + TimeUnit.MINUTES.toMillis(CobbleUtils.breedconfig.getCooldown()))
+            .getTime();
           if (CobbleUtils.breedconfig.isAutoclaim()) {
             RewardsUtils.saveRewardPokemon(player, pokemon);
           } else {
@@ -63,13 +65,15 @@ public class PlotBreeding {
   }
 
   public boolean addMale(Pokemon pokemon) {
-    if (pokemon.isLegendary() || pokemon.isUltraBeast()) return false;
+    if (pokemon.isLegendary() || pokemon.isUltraBeast())
+      return false;
     setMale(pokemon.saveToJSON(new JsonObject()));
     return true;
   }
 
   public boolean addFemale(Pokemon pokemon) {
-    if (pokemon.isLegendary() || pokemon.isUltraBeast()) return false;
+    if (pokemon.isLegendary() || pokemon.isUltraBeast())
+      return false;
     setFemale(pokemon.saveToJSON(new JsonObject()));
     return true;
   }

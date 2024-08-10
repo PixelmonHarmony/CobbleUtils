@@ -9,12 +9,11 @@ import com.kingpixel.cobbleutils.CobbleUtils;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.ParseResults;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.nbt.TagParser;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtHelper;
+import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 /**
  * @author Carlos Varas Alonso - 10/06/2024 21:09
@@ -34,13 +33,12 @@ public class CobbleUtilities {
    *
    * @return If the player is in a battle
    */
-  public static boolean isBattle(Player player) {
+  public static boolean isBattle(ServerPlayerEntity player) {
     PokemonBattle battle;
     try {
-      battle =
-        Cobblemon.INSTANCE.getBattleRegistry().getBattleByParticipatingPlayer((ServerPlayer) player);
+      battle = Cobblemon.INSTANCE.getBattleRegistry().getBattleByParticipatingPlayer(player);
     } catch (Exception e) {
-      player.sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.language.getMessagearebattle()));
+      player.sendMessage(AdventureTranslator.toNative(CobbleUtils.language.getMessagearebattle()));
       return false;
     }
     assert battle != null;
@@ -57,16 +55,16 @@ public class CobbleUtilities {
    * @param type   The type of item to give
    * @param amount The amount of items to give
    */
-  public static void giveRandomItem(Player player, String type, int amount) {
+  public static void giveRandomItem(ServerPlayerEntity player, String type, int amount) {
     String item = CobbleUtils.poolItems.getRandomItem(type);
     if (item == null) {
-      player.sendSystemMessage(AdventureTranslator.toNative("Invalid type."));
+      player.sendMessage(AdventureTranslator.toNative("Invalid type."));
       return;
     }
     ItemStack itemStack = Utils.parseItemId(item, amount);
     CobbleUtils.server.execute(() -> {
-      if (!player.getInventory().add(itemStack)) {
-        player.drop(itemStack, true);
+      if (!player.getInventory().insertStack(itemStack)) {
+        player.dropItem(itemStack, true);
       }
     });
     String message = CobbleUtils.language.getMessagerandomitem()
@@ -74,7 +72,7 @@ public class CobbleUtilities {
       .replace("%amount%", String.valueOf(amount))
       .replace("%type%", type);
 
-    player.sendSystemMessage(AdventureTranslator.toNative(message));
+    player.sendMessage(AdventureTranslator.toNative(message));
   }
 
   /**
@@ -85,14 +83,14 @@ public class CobbleUtilities {
    *
    * @throws NoPokemonStoreException If the pokemon store is empty
    */
-  public static void giveRandomPokemon(Player player, String type) throws NoPokemonStoreException {
+  public static void giveRandomPokemon(ServerPlayerEntity player, String type) throws NoPokemonStoreException {
     String pokemonName = CobbleUtils.poolPokemons.getRandomPokemon(type);
     if (pokemonName == null) {
-      player.sendSystemMessage(AdventureTranslator.toNative("Invalid type."));
+      player.sendMessage(AdventureTranslator.toNative("Invalid type."));
       return;
     }
     Pokemon pokemon = Utils.createPokemonParse(pokemonName);
-    Cobblemon.INSTANCE.getStorage().getParty(player.getUUID()).add(pokemon);
+    Cobblemon.INSTANCE.getStorage().getParty(player.getUuid()).add(pokemon);
   }
 
   /**
@@ -115,32 +113,35 @@ public class CobbleUtilities {
     StringBuilder result = new StringBuilder();
 
     if (days > 0) {
-      String dayString = days != 1 ? CobbleUtils.language.getDays().replace("%s", String.valueOf(days)) :
-        CobbleUtils.language.getDay().replace("%s", String.valueOf(days));
+      String dayString = days != 1 ? CobbleUtils.language.getDays().replace("%s", String.valueOf(days))
+        : CobbleUtils.language.getDay().replace("%s", String.valueOf(days));
       result.append(dayString);
     }
     if (remainingHours > 0) {
       String hourString = remainingHours != 1 ? CobbleUtils.language.getHours().replace("%s",
-        String.valueOf(remainingHours)) : CobbleUtils.language.getHour().replace("%s", String.valueOf(remainingHours));
+        String.valueOf(remainingHours))
+        : CobbleUtils.language.getHour().replace("%s", String.valueOf(remainingHours));
       result.append(hourString);
     }
     if (remainingMinutes > 0) {
       String minuteString = remainingMinutes != 1 ? CobbleUtils.language.getMinutes().replace("%s",
-        String.valueOf(remainingMinutes)) : CobbleUtils.language.getMinute().replace("%s",
+        String.valueOf(remainingMinutes))
+        : CobbleUtils.language.getMinute().replace("%s",
         String.valueOf(remainingMinutes));
       result.append(minuteString);
     }
     if (remainingSeconds > 0) {
       String secondString = remainingSeconds != 1 ? CobbleUtils.language.getSeconds().replace("%s",
-        String.valueOf(remainingSeconds)) : CobbleUtils.language.getSecond().replace("%s",
+        String.valueOf(remainingSeconds))
+        : CobbleUtils.language.getSecond().replace("%s",
         String.valueOf(remainingSeconds));
       result.append(secondString);
     }
-    if (result.isEmpty()) return CobbleUtils.language.getNocooldown();
+    if (result.isEmpty())
+      return CobbleUtils.language.getNocooldown();
 
     return result.toString().trim();
   }
-
 
   public static GooeyButton fillItem() {
     return GooeyButton.builder().display(Utils.parseItemId(CobbleUtils.config.getFill())).build();
@@ -154,10 +155,10 @@ public class CobbleUtilities {
    *
    * @return If the money was given successfully
    */
-  public static boolean giveRandomMoney(Player player, String type) {
+  public static boolean giveRandomMoney(ServerPlayerEntity player, String type) {
     int money = CobbleUtils.poolMoney.getRandomMoney(type);
     if (money == 0) {
-      player.sendSystemMessage(AdventureTranslator.toNative("Invalid type."));
+      player.sendMessage(AdventureTranslator.toNative("Invalid type."));
       return false;
     }
     String comando = CobbleUtils.config.getEcocommand()
@@ -165,7 +166,6 @@ public class CobbleUtilities {
       .replace("%player%", player.getGameProfile().getName());
     return executeCommand(comando);
   }
-
 
   /**
    * Execute a command
@@ -175,10 +175,10 @@ public class CobbleUtilities {
    * @return If the command was executed successfully
    */
   public static boolean executeCommand(String command) {
-    CommandDispatcher<CommandSourceStack> disparador = CobbleUtils.server.getCommands().getDispatcher();
+    CommandDispatcher<ServerCommandSource> disparador = CobbleUtils.server.getCommandManager().getDispatcher();
     try {
-      CommandSourceStack serverSource = CobbleUtils.server.createCommandSourceStack();
-      ParseResults<CommandSourceStack> parse = disparador.parse(command, serverSource);
+      ServerCommandSource serverSource = CobbleUtils.server.getCommandSource();
+      ParseResults<ServerCommandSource> parse = disparador.parse(command, serverSource);
       disparador.execute(parse);
       return true;
     } catch (CommandSyntaxException e) {
@@ -197,7 +197,7 @@ public class CobbleUtilities {
    */
   public static ItemStack getItem(String item) {
     try {
-      return ItemStack.of(TagParser.parseTag(item));
+      return ItemStack.fromNbt(NbtHelper.fromNbtProviderString(item));
     } catch (CommandSyntaxException e) {
       CobbleUtils.LOGGER.fatal("Failed to parse item for NBT: " + item);
       CobbleUtils.LOGGER.fatal("Stacktrace: ");

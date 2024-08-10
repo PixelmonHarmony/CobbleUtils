@@ -28,9 +28,11 @@ loom {
 }
 
 dependencies {
+    //minecraft("net.minecraft:minecraft:${property("minecraft_version")}")
+    //mappings(loom.officialMojangMappings())
     minecraft("net.minecraft:minecraft:${property("minecraft_version")}")
-    mappings(loom.officialMojangMappings())
-
+    mappings("net.fabricmc:yarn:${property("yarn_mappings")}:v2")
+    
     // Forge
     forge("net.minecraftforge:forge:${property("forge_version")}")
 

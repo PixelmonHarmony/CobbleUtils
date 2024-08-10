@@ -12,16 +12,15 @@ import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.UIUtils;
 import com.kingpixel.cobbleutils.util.Utils;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 /**
  * @author Carlos Varas Alonso - 28/06/2024 20:09
  */
 public class ShinyTokenUI {
-  public static GooeyPage openmenu(Player player) {
+  public static GooeyPage openmenu(ServerPlayerEntity player) {
     try {
-      PlayerPartyStore partyStore = Cobblemon.INSTANCE.getStorage().getParty(player.getUUID());
+      PlayerPartyStore partyStore = Cobblemon.INSTANCE.getStorage().getParty(player.getUuid());
 
       ChestTemplate templateBuilder = ChestTemplate.builder(4).build();
 
@@ -30,10 +29,12 @@ public class ShinyTokenUI {
         Pokemon pokemon = partyStore.get(i);
         slot = UIUtils.createButtonPokemon(pokemon, action -> {
           try {
-            if (pokemon == null) return;
-            if (CobbleUtils.config.isShinyTokenBlacklisted(pokemon)) return;
+            if (pokemon == null)
+              return;
+            if (CobbleUtils.config.isShinyTokenBlacklisted(pokemon))
+              return;
             if (!pokemon.getShiny()) {
-              UIManager.openUIForcefully((ServerPlayer) player, confirmShiny(player, pokemon));
+              UIManager.openUIForcefully((ServerPlayerEntity) player, confirmShiny(player, pokemon));
             }
           } catch (NoPokemonStoreException e) {
             e.printStackTrace();
@@ -47,7 +48,6 @@ public class ShinyTokenUI {
         CobbleUtils.language.getItemPc().getButton(action -> UIManager.openUIForcefully(action.getPlayer(),
           ShinyTokenPcUI.getMenuShinyTokenPc(action.getPlayer()))));
 
-
       GooeyButton fill = GooeyButton.builder()
         .display(Utils.parseItemId(CobbleUtils.config.getFill()))
         .title("")
@@ -55,24 +55,24 @@ public class ShinyTokenUI {
 
       templateBuilder.fill(fill);
 
+      GooeyPage page = GooeyPage.builder().template(templateBuilder)
+        .title(AdventureTranslator.toNative(CobbleUtils.language.getTitlemenushiny())).build();
 
-      GooeyPage page =
-        GooeyPage.builder().template(templateBuilder).title(AdventureTranslator.toNative(CobbleUtils.language.getTitlemenushiny())).build();
-
-      UIManager.openUIForcefully((ServerPlayer) player, page);
+      UIManager.openUIForcefully(player, page);
       return page;
     } catch (NoPokemonStoreException e) {
-      player.sendSystemMessage(AdventureTranslator.toNative("An error occurred while trying to access your Pokémon party."));
+      player.sendMessage(
+        AdventureTranslator.toNative("An error occurred while trying to access your Pokémon party."));
       e.printStackTrace();
     }
     return null;
   }
 
-  public static GooeyPage confirmShiny(Player player, Pokemon pokemon) throws NoPokemonStoreException {
+  public static GooeyPage confirmShiny(ServerPlayerEntity player, Pokemon pokemon) throws NoPokemonStoreException {
     GooeyButton confirm = UIUtils.getConfirmButton(action -> {
       pokemon.setShiny(true);
-      player.getItemInHand(action.getPlayer().getUsedItemHand()).shrink(1);
-      UIManager.closeUI((ServerPlayer) player);
+      player.getMainHandStack().decrement(1);
+      UIManager.closeUI(player);
     });
 
     GooeyButton buttonPokemon = UIUtils.createButtonPokemon(pokemon, (action) -> {
@@ -85,11 +85,12 @@ public class ShinyTokenUI {
         .set(1, 2, confirm)
         .set(1, 6, cancel)
         .set(1, 4, buttonPokemon)
-        .fill(GooeyButton.builder().display(Utils.parseItemId(CobbleUtils.config.getFill())).title("").build()).build())
+        .fill(GooeyButton.builder().display(Utils.parseItemId(CobbleUtils.config.getFill())).title("").build())
+        .build())
       .title(AdventureTranslator.toNative(CobbleUtils.language.getTitlemenushinyoperation())).build();
   }
 
-  public static boolean haveShinyToken(Player player) {
+  public static boolean haveShinyToken(ServerPlayerEntity player) {
     return player.getInventory().contains(CobbleUtils.config.getShinytoken().getItemStack());
   }
 }

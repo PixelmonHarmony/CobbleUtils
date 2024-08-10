@@ -2,55 +2,58 @@ package com.kingpixel.cobbleutils.command.admin;
 
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
+import com.kingpixel.cobbleutils.util.LuckPermsUtil;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
+import net.minecraft.server.command.CommandManager;
+import net.minecraft.server.command.ServerCommandSource;
+
+import java.util.List;
 
 /**
  * @author Carlos Varas Alonso - 12/06/2024 3:48
  */
-public class Reload implements Command<CommandSourceStack> {
-  public static void register(CommandDispatcher<CommandSourceStack> dispatcher,
-                              LiteralArgumentBuilder<CommandSourceStack> base) {
+public class Reload implements Command<ServerCommandSource> {
+  public static void register(CommandDispatcher<ServerCommandSource> dispatcher,
+                              LiteralArgumentBuilder<ServerCommandSource> base) {
     dispatcher.register(
-      base.requires(source -> source.hasPermission(2)).then(
-        Commands.literal("reload")
-          .requires(
-            source -> source.hasPermission(2)
-          )
-          .executes(new Reload()))
-    );
+      base
+        .then(
+          CommandManager.literal("reload")
+            .requires(
+              source ->
+                LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.reload", "cobbleutils.admin"))
+            )
+            .executes(new Reload())));
 
     for (String literal : CobbleUtils.config.getCommandparty()) {
       dispatcher.register(
-        Commands.literal(literal)
+        CommandManager.literal(literal)
           .then(
-            Commands.literal("reload")
+            CommandManager.literal("reload")
               .requires(
-                source -> source.hasPermission(2))
-              .executes(new Reload())
-          )
-      );
+                source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.reload", "cobbleutils.admin")))
+              .executes(new Reload())));
     }
-
 
   }
 
-  @Override public int run(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+  @Override
+  public int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
     try {
       CobbleUtils.load();
     } catch (Exception e) {
       e.printStackTrace();
     }
-    if (!context.getSource().isPlayer()) {
-      CobbleUtils.server.sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.language.getMessageReload()));
+    if (!context.getSource().isExecutedByPlayer()) {
+      CobbleUtils.server.sendMessage(AdventureTranslator.toNative(CobbleUtils.language.getMessageReload()));
       return 0;
     } else {
-      context.getSource().getPlayerOrException().sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.language.getMessageReload()));
+      context.getSource().getPlayerOrThrow()
+        .sendMessage(AdventureTranslator.toNative(CobbleUtils.language.getMessageReload()));
     }
     return 1;
   }

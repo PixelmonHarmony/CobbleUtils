@@ -15,14 +15,13 @@ import com.kingpixel.cobbleutils.features.breeding.events.WalkBreeding;
 import com.kingpixel.cobbleutils.features.breeding.manager.ManagerPlotEggs;
 import com.kingpixel.cobbleutils.features.breeding.models.EggData;
 import com.kingpixel.cobbleutils.util.RewardsUtils;
-import com.kingpixel.cobbleutils.util.Utils;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.ChunkEvent;
 import dev.architectury.event.events.common.InteractionEvent;
 import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.event.events.common.PlayerEvent;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.Entity;
+import net.minecraft.entity.Entity;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -44,6 +43,7 @@ public class Breeding {
   private static boolean active = false;
   private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
   private static final List<ScheduledFuture<?>> scheduledTasks = new CopyOnWriteArrayList<>();
+  private static final String FOLDER_WORLD = "/world/region/";
 
   public static void register() {
     if (!active) {
@@ -51,9 +51,8 @@ public class Breeding {
       active = true;
     }
 
-
     if (CobbleUtils.server != null) {
-      CobbleUtils.server.getPlayerList().getPlayers().forEach(managerPlotEggs::checking);
+      CobbleUtils.server.getPlayerManager().getPlayerList().forEach(managerPlotEggs::checking);
     }
 
     for (ScheduledFuture<?> task : scheduledTasks) {
@@ -61,24 +60,24 @@ public class Breeding {
     }
     scheduledTasks.clear();
 
-
     // Crear una nueva tarea
     ScheduledFuture<?> checkegg = scheduler.scheduleAtFixedRate(() -> {
       try {
-        CobbleUtils.server.getPlayerList().getPlayers().forEach(managerPlotEggs::checking);
+        CobbleUtils.server.getPlayerManager().getPlayerList().forEach(managerPlotEggs::checking);
       } catch (Exception e) {
         e.printStackTrace();
       }
-      CobbleUtils.server.getPlayerList().getPlayers().forEach(player -> {
-        String country = playerCountry.get(player.getUUID());
-        if (country == null) return;
+      CobbleUtils.server.getPlayerManager().getPlayerList().forEach(player -> {
+        String country = playerCountry.get(player.getUuid());
+        if (country == null)
+          return;
         try {
-          Cobblemon.INSTANCE.getStorage().getPC(player.getUUID()).forEach(pokemon -> {
+          Cobblemon.INSTANCE.getStorage().getPC(player.getUuid()).forEach(pokemon -> {
             if (pokemon.getPersistentData().getString(CobbleUtilsTags.COUNTRY_TAG).isEmpty()) {
               pokemon.getPersistentData().putString(CobbleUtilsTags.COUNTRY_TAG, country);
             }
           });
-          Cobblemon.INSTANCE.getStorage().getParty(player.getUUID()).forEach(pokemon -> {
+          Cobblemon.INSTANCE.getStorage().getParty(player.getUuid()).forEach(pokemon -> {
             if (pokemon.getPersistentData().getString(CobbleUtilsTags.COUNTRY_TAG).isEmpty()) {
               pokemon.getPersistentData().putString(CobbleUtilsTags.COUNTRY_TAG, country);
             }
@@ -105,16 +104,18 @@ public class Breeding {
       scheduledTasks.clear();
     });
 
-    ChunkEvent.SAVE_DATA.register((chunkAccess, level, compoundTag) -> {
+    ChunkEvent.LOAD_DATA.register((chunk, level, nbtCompound) -> {
       if (!CobbleUtils.breedconfig.isSpawnEggWorld()) return;
-      if (Utils.RANDOM.nextInt(1000) < CobbleUtils.breedconfig.getPercentagespawnegg()) {
-        EggData.spawnEgg(chunkAccess, level);
+      if (nbtCompound.isEmpty()) {
+        EggData.spawnEgg(chunk, level);
       }
     });
 
-    PlayerEvent.ATTACK_ENTITY.register((player, level, target, hand, result) -> egg(target, (ServerPlayer) player));
 
-    InteractionEvent.INTERACT_ENTITY.register((player, entity, hand) -> egg(entity, (ServerPlayer) player));
+    PlayerEvent.ATTACK_ENTITY
+      .register((player, level, target, hand, result) -> egg(target, (ServerPlayerEntity) player));
+
+    InteractionEvent.INTERACT_ENTITY.register((player, entity, hand) -> egg(entity, (ServerPlayerEntity) player));
 
     WalkBreeding.register();
     EggThrow.register();
@@ -122,15 +123,16 @@ public class Breeding {
     NationalityPokemon.register();
   }
 
-  private static EventResult egg(Entity entity, ServerPlayer player) {
+  private static EventResult egg(Entity entity, ServerPlayerEntity player) {
     try {
-      if (entity == null) return EventResult.pass();
+      if (entity == null)
+        return EventResult.pass();
       if (entity instanceof PokemonEntity pokemonEntity) {
         Pokemon pokemon = pokemonEntity.getPokemon();
         if (pokemon.getSpecies().showdownId().equalsIgnoreCase("egg")) {
           if (pokemon.getPersistentData().getBoolean("EggSpawned")) {
             pokemon.getPersistentData().remove("EggSpawned");
-            CobbleUtils.LOGGER.info("persistentdata: " + pokemon.getPersistentData().getAsString());
+            CobbleUtils.LOGGER.info("persistentdata: " + pokemon.getPersistentData());
             try {
               RewardsUtils.saveRewardPokemon(player, pokemon);
             } catch (NoPokemonStoreException e) {
@@ -148,25 +150,24 @@ public class Breeding {
     }
   }
 
-  private static void countryPlayer(ServerPlayer player) {
-    if (playerCountry.get(player.getUUID()) != null) return;
+  private static void countryPlayer(ServerPlayerEntity player) {
+    if (playerCountry.get(player.getUuid()) != null)
+      return;
     CompletableFuture.runAsync(() -> {
       HttpURLConnection conn = null;
       BufferedReader in = null;
       try {
-        URL url = new URL(API_URL_IP + player.getIpAddress());
+        URL url = new URL(API_URL_IP + player.getIp());
         conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
 
         in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
         JsonObject json = JsonParser.parseReader(in).getAsJsonObject();
 
-
         if (json.has("country")) {
           String city = json.get("country").getAsString();
-          playerCountry.put(player.getUUID(), city);
+          playerCountry.put(player.getUuid(), city);
         }
-
 
       } catch (Exception e) {
         e.printStackTrace();

@@ -13,9 +13,9 @@ import com.kingpixel.cobbleutils.Model.options.PokemonDataBoss;
 import com.kingpixel.cobbleutils.util.PokemonUtils;
 import com.kingpixel.cobbleutils.util.Utils;
 import kotlin.Unit;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.Mob;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.text.Text;
 
 import static com.kingpixel.cobbleutils.Model.CobbleUtilsTags.*;
 
@@ -27,16 +27,21 @@ public class PokemonBoss {
 
   public static void register() {
     // ? Pokemon Boss
-    CobblemonEvents.POKEMON_ENTITY_SPAWN.subscribe(Priority.NORMAL, (evt) -> {
+    CobblemonEvents.POKEMON_ENTITY_SPAWN.subscribe(Priority.HIGHEST, (evt) -> {
       try {
-        if (!CobbleUtils.config.getBosses().isActive()) return Unit.INSTANCE;
+        if (!CobbleUtils.config.getBosses().isActive())
+          return Unit.INSTANCE;
         Entity entity = evt.getEntity();
         if (entity instanceof PokemonEntity pokemonEntity) {
-          if (((Mob) entity).isPersistenceRequired()) return Unit.INSTANCE;
-          if (((Mob) entity).isNoAi()) return Unit.INSTANCE;
+          if (((MobEntity) entity).isPersistent())
+            return Unit.INSTANCE;
+          if (((MobEntity) entity).isAiDisabled())
+            return Unit.INSTANCE;
           Pokemon pokemon = pokemonEntity.getPokemon();
-          if (pokemon.isPlayerOwned()) return Unit.INSTANCE;
-          if (pokemon.getShiny() || pokemon.isLegendary() || pokemon.isUltraBeast() || PokemonUtils.getIvsAverage(pokemon.getIvs()) == 31)
+          if (pokemon.isPlayerOwned())
+            return Unit.INSTANCE;
+          if (pokemon.getShiny() || pokemon.isLegendary() || pokemon.isUltraBeast()
+            || PokemonUtils.getIvsAverage(pokemon.getIvs()) == 31)
             return Unit.INSTANCE;
           BossChance bossChance = CobbleUtils.config.getBosses().getBossChance();
           if (bossChance != null) {
@@ -45,15 +50,18 @@ public class PokemonBoss {
           PokemonDataBoss pokemonDataBoss = CobbleUtils.config.getBosses().getPokemonDataBoss(pokemon);
           BossChance bossChanceByRarity = CobbleUtils.config.getBosses().getBossChanceByRarity(pokemon);
           if (CobbleUtils.config.getBosses().isForceAspectBoss()) {
-            if (pokemonDataBoss == null) return Unit.INSTANCE;
+            if (pokemonDataBoss == null)
+              return Unit.INSTANCE;
             if (boss) {
               apply(pokemon, bossChanceByRarity);
               boss = false;
               return Unit.INSTANCE;
             }
           } else {
-            if (bossChance == null) return Unit.INSTANCE;
-            if (CobbleUtils.config.getBosses().getBlacklist().contains(pokemon.showdownId())) return Unit.INSTANCE;
+            if (bossChance == null)
+              return Unit.INSTANCE;
+            if (CobbleUtils.config.getBosses().getBlacklist().contains(pokemon.showdownId()))
+              return Unit.INSTANCE;
             apply(pokemon, bossChance);
             boss = false;
             return Unit.INSTANCE;
@@ -65,23 +73,28 @@ public class PokemonBoss {
       return Unit.INSTANCE;
     });
 
-    CobblemonEvents.THROWN_POKEBALL_HIT.subscribe(Priority.NORMAL, (evt) -> {
-      if (!CobbleUtils.config.getBosses().isActive()) return Unit.INSTANCE;
+    CobblemonEvents.THROWN_POKEBALL_HIT.subscribe(Priority.HIGHEST, (evt) -> {
+      if (!CobbleUtils.config.getBosses().isActive())
+        return Unit.INSTANCE;
       Pokemon pokemon = evt.getPokemon().getPokemon();
-      if (pokemon.getPersistentData().getBoolean("boss")) evt.cancel();
+      if (pokemon.getPersistentData().getBoolean("boss"))
+        evt.cancel();
       return Unit.INSTANCE;
     });
 
-    CobblemonEvents.BATTLE_VICTORY.subscribe(Priority.NORMAL, (evt) -> {
-      if (!CobbleUtils.config.getBosses().isActive()) return Unit.INSTANCE;
+    CobblemonEvents.BATTLE_VICTORY.subscribe(Priority.HIGHEST, (evt) -> {
+      if (!CobbleUtils.config.getBosses().isActive())
+        return Unit.INSTANCE;
       evt.getLosers().forEach(battleActor -> {
         if (battleActor instanceof PokemonBattleActor pokemonBattleActor) {
           Pokemon pokemon = pokemonBattleActor.getPokemon().getOriginalPokemon();
-          if (pokemon.isPlayerOwned()) return;
+          if (pokemon.isPlayerOwned())
+            return;
           if (pokemon.getPersistentData().getBoolean(BOSS_TAG)) {
             evt.getWinners().forEach(winner -> {
               if (winner instanceof PlayerBattleActor playerBattleActor) {
-                CobbleUtils.config.getBosses().giveRewards(pokemon.getPersistentData().getString(BOSS_RARITY_TAG), playerBattleActor.getEntity());
+                CobbleUtils.config.getBosses().giveRewards(pokemon.getPersistentData().getString(BOSS_RARITY_TAG),
+                  playerBattleActor.getEntity());
               }
             });
           }
@@ -96,7 +109,7 @@ public class PokemonBoss {
     pokemon.setLevel(Utils.RANDOM.nextInt(bossChance.getMinlevel(), bossChance.getMaxlevel()));
     pokemon.getPersistentData().putString(BOSS_RARITY_TAG, bossChance.getRarity());
     pokemon.getPersistentData().putBoolean(BOSS_TAG, true);
-    pokemon.setNickname(Component.literal(bossChance.getRarity()));
+    pokemon.setNickname(Text.literal(bossChance.getRarity()));
     pokemon.setShiny(CobbleUtils.config.getBosses().isShiny());
     pokemon.getPersistentData().putString(SIZE_TAG, SIZE_CUSTOM_TAG);
     pokemon.setScaleModifier(Utils.RANDOM.nextFloat(bossChance.getMinsize(), bossChance.getMaxsize()));

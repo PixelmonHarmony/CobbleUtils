@@ -16,8 +16,8 @@ import com.kingpixel.cobbleutils.party.models.PartyData;
 import com.kingpixel.cobbleutils.party.models.UserParty;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.Utils;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.Items;
+import net.minecraft.item.Items;
+import net.minecraft.text.Text;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +37,8 @@ public class PartyMembersUI {
         .title(playerInfo.getName())
         .onClick(action -> {
           if (partyData.getOwner().equals(PlayerInfo.fromPlayer(action.getPlayer()))) {
-            CobbleUtils.partyManager.kickPlayer(userParty.getPartyName(), PlayerInfo.fromPlayer(action.getPlayer()), playerInfo);
+            CobbleUtils.partyManager.kickPlayer(userParty.getPartyName(), PlayerInfo.fromPlayer(action.getPlayer()),
+              playerInfo);
             UIManager.openUIForcefully(action.getPlayer(), getPartyMembers(userParty));
           }
         })
@@ -59,10 +60,10 @@ public class PartyMembersUI {
       .linkType(LinkType.Next)
       .build();
 
-
     PlaceholderButton placeholder = new PlaceholderButton();
 
-    GooeyButton fill = GooeyButton.builder().display(Items.GRAY_STAINED_GLASS_PANE.getDefaultInstance().setHoverName(Component.literal(""))).build();
+    GooeyButton fill = GooeyButton.builder()
+      .display(Items.GRAY_STAINED_GLASS_PANE.getDefaultStack().setCustomName(Text.literal(""))).build();
     template.fill(fill)
       .rectangle(0, 0, 2, 9, placeholder)
       .fillFromList(buttons)

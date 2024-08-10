@@ -69,8 +69,11 @@ public class ScalePokemonData {
    */
   public static boolean equals(ScalePokemonData scalePokemonData1, ScalePokemonData scalePokemonData2) {
     return scalePokemonData1.getPokemon().equalsIgnoreCase(scalePokemonData2.getPokemon()) &&
-      scalePokemonData1.getForm().equalsIgnoreCase(scalePokemonData2.getForm());
+      (scalePokemonData1.getForm().equalsIgnoreCase(scalePokemonData2.getForm()) ||
+        scalePokemonData1.getForm().equals("*") ||
+        scalePokemonData2.getForm().equals("*"));
   }
+
 
   /**
    * Obtiene un tamaño aleatorio basado en las probabilidades.
@@ -104,6 +107,7 @@ public class ScalePokemonData {
     if (specifiedSizes == null || specifiedSizes.isEmpty()) {
       return ScalePokemonData.transformDefaultSizes();
     }
+
 
     return specifiedSizes.stream()
       .filter(scalePokemonData -> {
@@ -167,11 +171,18 @@ public class ScalePokemonData {
   public boolean existSize(Pokemon pokemon) {
     String size = pokemon.getPersistentData().getString("size");
     if (size.isEmpty()) return false;
-    return getScalePokemonData(pokemon).getSizes().stream().anyMatch(sizeChanceWithoutItem -> sizeChanceWithoutItem.getId().equalsIgnoreCase(size));
+    return getScalePokemonData(pokemon)
+      .getSizes()
+      .stream()
+      .anyMatch(sizeChanceWithoutItem -> sizeChanceWithoutItem.getId().equalsIgnoreCase(size));
   }
 
   public SizeChanceWithoutItem getSize(Pokemon pokemon) {
     String size = pokemon.getPersistentData().getString("size");
-    return getScalePokemonData(pokemon).getSizes().stream().filter(sizeChanceWithoutItem -> sizeChanceWithoutItem.getId().equalsIgnoreCase(size)).findFirst().orElse(new SizeChanceWithoutItem());
+    return getScalePokemonData(pokemon).getSizes()
+      .stream()
+      .filter(sizeChanceWithoutItem -> sizeChanceWithoutItem.getId().equalsIgnoreCase(size))
+      .findFirst()
+      .orElse(new SizeChanceWithoutItem());
   }
 }

@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-
 /**
  * @author Carlos Varas Alonso - 29/04/2024 0:14
  */
@@ -66,7 +65,6 @@ public class Config {
   private Map<String, ItemModel> itemsCommands;
   private Map<String, Double> rarity;
 
-
   public Config() {
     debug = false;
     prefix = "§7[§6CobbleUtils§7] ";
@@ -77,7 +75,7 @@ public class Config {
     commandrewards = List.of("rewards", "curewards");
     commmandplugin = List.of("cobbleutils", "pokeutils");
     shulkers = true;
-    randomsize = true;
+    randomsize = false;
     fossil = true;
     solveSizeRandom = true;
     pickup = true;
@@ -100,8 +98,7 @@ public class Config {
       new SizeChance("Small", 0.75f, 15),
       new SizeChance("Normal", 1.0f, 75),
       new SizeChance("Big", 1.25f, 15),
-      new SizeChance("Giant", 1.5f, 5)
-    );
+      new SizeChance("Giant", 1.5f, 5));
     shinytoken = new ItemModel("minecraft:paper", "<gradient:#e0d234:#ede69a><bold>Shiny Token", List.of("§aShiny " +
       "Token"), 0);
     shinytokenBlacklist = List.of(new PokemonData("ditto", "normal"));
@@ -159,12 +156,14 @@ public class Config {
         bosses = config.getBosses();
         impactorEconomy = config.getImpactorEconomy();
 
-        if (bosses == null) bosses = new Boss();
-        if (bosses.getBlacklist() == null) bosses.setBlacklist(new ArrayList<>());
+        if (bosses == null)
+          bosses = new Boss();
+        if (bosses.getBlacklist() == null)
+          bosses.setBlacklist(new ArrayList<>());
         bosses.getBossChances().forEach(bossChance -> {
-          if (bossChance.getPokemons() == null) bossChance.setPokemons(new PokemonDataBoss());
+          if (bossChance.getPokemons() == null)
+            bossChance.setPokemons(new PokemonDataBoss());
         });
-
 
         shinytokenBlacklist = config.getShinytokenBlacklist();
         blacklist = config.getBlacklist();
@@ -199,7 +198,8 @@ public class Config {
   }
 
   /**
-   * Método para obtener un tamaño de Pokémon basado en las probabilidades configuradas.
+   * Método para obtener un tamaño de Pokémon basado en las probabilidades
+   * configuradas.
    *
    * @return El tamaño del Pokémon seleccionado según las probabilidades.
    */
@@ -222,7 +222,8 @@ public class Config {
   }
 
   public boolean isShinyTokenBlacklisted(Pokemon pokemon) {
-    return shinytokenBlacklist.stream().anyMatch(pokemonData -> PokemonData.equals(pokemonData, PokemonData.from(pokemon)));
+    return shinytokenBlacklist.stream()
+      .anyMatch(pokemonData -> PokemonData.equals(pokemonData, PokemonData.from(pokemon)));
   }
 
   public boolean isLegendary(Pokemon pokemon) {

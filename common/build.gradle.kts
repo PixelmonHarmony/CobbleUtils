@@ -10,15 +10,19 @@ architectury {
 
 dependencies {
 
-    minecraft("net.minecraft:minecraft:${property("minecraft_version")}")
-    mappings(loom.officialMojangMappings())
+    //minecraft("net.minecraft:minecraft:${property("minecraft_version")}")
+    //mappings(loom.officialMojangMappings())
+    minecraft("com.mojang:minecraft:${property("minecraft_version")}")
+    mappings("net.fabricmc:yarn:${property("yarn_mappings")}:v2")
+
     modCompileOnly("com.cobblemon:mod:${property("cobblemon_version")}")
     // alL fabric dependencies:
     modCompileOnly("net.fabricmc:fabric-loader:${property("fabric_loader_version")}")
     modCompileOnly("net.fabricmc.fabric-api:fabric-api:${property("fabric_version")}")
+
     modImplementation("dev.architectury:architectury:${property("architectury_version")}")
     modImplementation("ca.landonjw.gooeylibs:api:${property("gooeylibs_version")}")
-    modImplementation("com.cobblemon:mod:${property("cobblemon_version")}")
+
 
     // PlaceholderAPI
     modImplementation("eu.pb4:placeholder-api:${property("placeholder_api_version_fabricandforge")}")
@@ -30,6 +34,9 @@ dependencies {
     // Lombok
     annotationProcessor("org.projectlombok:lombok:1.18.20")
     implementation("org.projectlombok:lombok:1.18.20")
+
+    // LuckPerms
+    compileOnly("net.luckperms:api:${property("luckperms_version")}")
 
     // Impactor
     implementation("net.impactdev.impactor.api:economy:${property("impactor_version")}")

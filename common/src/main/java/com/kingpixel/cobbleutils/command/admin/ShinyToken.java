@@ -1,6 +1,7 @@
 package com.kingpixel.cobbleutils.command.admin;
 
 import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.util.LuckPermsUtil;
 import com.kingpixel.cobbleutils.util.RewardsUtils;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
@@ -8,46 +9,42 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
-import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.command.argument.EntityArgumentType;
+import net.minecraft.item.ItemStack;
+import net.minecraft.server.command.CommandManager;
+import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.network.ServerPlayerEntity;
+
+import java.util.List;
 
 /**
  * @author Carlos Varas Alonso - 28/06/2024 20:04
  */
-public class ShinyToken implements Command<CommandSourceStack> {
-  public static void register(CommandDispatcher<CommandSourceStack> dispatcher,
-                              LiteralArgumentBuilder<CommandSourceStack> base) {
+public class ShinyToken implements Command<ServerCommandSource> {
+  public static void register(CommandDispatcher<ServerCommandSource> dispatcher,
+                              LiteralArgumentBuilder<ServerCommandSource> base) {
 
     dispatcher.register(
       base
-        .requires(source -> source.hasPermission(2))
         .then(
-          Commands.literal("shinytoken")
+          CommandManager.literal("shinytoken")
             .requires(
-              source -> source.hasPermission(2)
-            )
+              source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.shinytoken", "cobbleutils.admin")))
             .then(
-              Commands.argument("player", EntityArgument.player())
+              CommandManager.argument("player", EntityArgumentType.player())
                 .then(
-                  Commands.argument("amount", IntegerArgumentType.integer(1, 64))
-                    .executes(new ShinyToken())
-                )
-            )
-        )
-    );
+                  CommandManager.argument("amount", IntegerArgumentType.integer(1, 64))
+                    .executes(new ShinyToken())))));
 
   }
 
-  @Override public int run(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-    Player player = EntityArgument.getPlayer(context, "player");
+  @Override
+  public int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
     int amount = IntegerArgumentType.getInteger(context, "amount");
     ItemStack itemStack = CobbleUtils.config.getShinytoken().getItemStack(amount);
-    itemStack.addTagElement("shinytoken", ItemStack.EMPTY.save(new CompoundTag()));
-    if (!player.getInventory().add(itemStack)) {
+    itemStack.getOrCreateNbt().putBoolean("shinytoken", true);
+    if (!player.getInventory().insertStack(itemStack)) {
       RewardsUtils.saveRewardItemStack(player, itemStack);
     }
     return 1;

@@ -9,8 +9,8 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 
 import java.util.List;
 
@@ -48,7 +48,7 @@ public class ShopMenu {
     this.shops = shops;
   }
 
-  public void open(ServerPlayer player) {
+  public void open(ServerPlayerEntity player) {
     ChestTemplate chestTemplate = ChestTemplate
       .builder(this.rows)
       .build();
@@ -58,12 +58,12 @@ public class ShopMenu {
       GooeyButton button = GooeyButton.builder()
         .display(itemModelShop.getItemStack())
         .title(AdventureTranslator.toNative(shop.getTitle()))
-        .lore(Component.class, AdventureTranslator.toNativeL(itemModelShop.getLore()))
+        .lore(Text.class, AdventureTranslator.toNativeL(itemModelShop.getLore()))
         .onClick(action -> {
           if (shop.isActive()) {
             shop.open(player);
           } else {
-            player.sendSystemMessage(Component.literal("Shop is not active"));
+            player.sendMessage(Text.literal("Shop is not active"));
           }
         })
         .build();

@@ -9,37 +9,37 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.command.CommandManager;
+import net.minecraft.command.argument.EntityArgumentType;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.item.ItemStack;
 
 /**
  * @author Carlos Varas Alonso - 28/06/2024 4:05
  */
-public class PartyLeave implements Command<CommandSourceStack> {
+public class PartyLeave implements Command<ServerCommandSource> {
 
-  public static void register(CommandDispatcher<CommandSourceStack> dispatcher,
-                              LiteralArgumentBuilder<CommandSourceStack> base) {
+  public static void register(CommandDispatcher<ServerCommandSource> dispatcher,
+      LiteralArgumentBuilder<ServerCommandSource> base) {
     dispatcher.register(
-      base.then(Commands.literal("leave")
-        .executes(new PartyLeave())
-      )
-    );
+        base.then(CommandManager.literal("leave")
+            .executes(new PartyLeave())));
   }
 
   @Override
-  public int run(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-    if (!context.getSource().isPlayer()) {
-      CobbleUtils.server.sendSystemMessage(AdventureTranslator.toNative("You must be a player to use this command"));
+  public int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    if (!context.getSource().isExecutedByPlayer()) {
+      CobbleUtils.server.sendMessage(AdventureTranslator.toNative("You must be a player to use this command"));
       return 0;
     }
 
-    Player player = context.getSource().getPlayerOrException();
-    UserParty userParty = CobbleUtils.partyManager.getUserParty().get(player.getUUID());
+    ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
+    UserParty userParty = CobbleUtils.partyManager.getUserParty().get(player.getUuid());
     if (userParty.isHasParty()) {
       CobbleUtils.partyManager.leaveParty(userParty.getPartyName(), PlayerInfo.fromPlayer(player));
     } else {
-      player.sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartynotInParty()));
+      player.sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartynotInParty()));
     }
     return 1;
   }

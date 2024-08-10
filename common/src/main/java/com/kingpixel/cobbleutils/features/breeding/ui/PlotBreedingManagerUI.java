@@ -18,9 +18,9 @@ import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.PokemonUtils;
 import com.kingpixel.cobbleutils.util.RewardsUtils;
 import com.kingpixel.cobbleutils.util.UIUtils;
-import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.Items;
+import net.minecraft.item.Items;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -29,7 +29,7 @@ import java.util.function.Consumer;
  * @author Carlos Varas Alonso - 02/08/2024 14:29
  */
 public class PlotBreedingManagerUI {
-  public static void open(ServerPlayer player, PlotBreeding plotBreeding) {
+  public static void open(ServerPlayerEntity player, PlotBreeding plotBreeding) {
     int row = CobbleUtils.breedconfig.getRowmenuplot();
     ChestTemplate template = ChestTemplate.builder(row).build();
 
@@ -101,9 +101,11 @@ public class PlotBreedingManagerUI {
 
   private static GooeyButton createButton(Pokemon pokemon, Consumer<ButtonAction> action) {
     return GooeyButton.builder()
-      .display((pokemon != null ? PokemonItem.from(pokemon) : Items.BARRIER.getDefaultInstance()))
-      .title(AdventureTranslator.toNative((pokemon != null ? PokemonUtils.replace(pokemon) : CobbleUtils.language.getEmpty())))
-      .lore(Component.class, AdventureTranslator.toNativeL((pokemon != null ? PokemonUtils.replaceLore(pokemon) : List.of(""))))
+      .display((pokemon != null ? PokemonItem.from(pokemon) : Items.BARRIER.getDefaultStack()))
+      .title(AdventureTranslator
+        .toNative((pokemon != null ? PokemonUtils.replace(pokemon) : CobbleUtils.language.getEmpty())))
+      .lore(Text.class,
+        AdventureTranslator.toNativeL((pokemon != null ? PokemonUtils.replaceLore(pokemon) : List.of(""))))
       .onClick(action)
       .build();
   }

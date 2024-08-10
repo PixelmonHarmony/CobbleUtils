@@ -4,46 +4,48 @@ import ca.landonjw.gooeylibs2.api.UIManager;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.ui.RewardsUI;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
+import com.kingpixel.cobbleutils.util.LuckPermsUtil;
 import com.kingpixel.cobbleutils.util.RewardsUtils;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
-import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.command.argument.EntityArgumentType;
+import net.minecraft.server.command.CommandManager;
+import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.network.ServerPlayerEntity;
+
+import java.util.List;
 
 /**
  * @author Carlos Varas Alonso - 12/06/2024 3:47
  */
-public class Rewards implements Command<CommandSourceStack> {
+public class Rewards implements Command<ServerCommandSource> {
 
-  public static void register(CommandDispatcher<CommandSourceStack> dispatcher,
-                              LiteralArgumentBuilder<CommandSourceStack> base) {
+  public static void register(CommandDispatcher<ServerCommandSource> dispatcher,
+                              LiteralArgumentBuilder<ServerCommandSource> base) {
     dispatcher.register(
       base
         .executes(new Rewards())
         .then(
-          Commands.literal("other")
-            .requires(source -> source.hasPermission(2))
+          CommandManager.literal("other")
+            .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.rewards", "cobbleutils" +
+              ".admin")))
             .then(
-              Commands.argument("player", EntityArgument.player())
-                .executes(new Rewards())
-            )
-        )
+              CommandManager.argument("player", EntityArgumentType.player())
+                .executes(new Rewards())))
     );
   }
 
   @Override
-  public int run(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-    ServerPlayer player = context.getSource().getPlayerOrException();
-    ServerPlayer target = null;
+  public int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
+    ServerPlayerEntity target = null;
     try {
-      target = EntityArgument.getPlayer(context, "player");
+      target = EntityArgumentType.getPlayer(context, "player");
     } catch (Exception e) {
-      if (!context.getSource().isPlayer()) {
+      if (!context.getSource().isExecutedByPlayer()) {
         CobbleUtils.LOGGER.info("You must was a player to execute this command");
         return 0;
       }
@@ -52,14 +54,14 @@ public class Rewards implements Command<CommandSourceStack> {
       if (RewardsUtils.hasRewards(target)) {
         UIManager.openUIForcefully(target, RewardsUI.getRewards(target));
       } else {
-        target.sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.language.getMessageNotHaveRewards()));
+        target.sendMessage(AdventureTranslator.toNative(CobbleUtils.language.getMessageNotHaveRewards()));
       }
       return 1;
     }
     if (RewardsUtils.hasRewards(player)) {
       UIManager.openUIForcefully(player, RewardsUI.getRewards(player));
     } else {
-      player.sendSystemMessage(AdventureTranslator.toNative(CobbleUtils.language.getMessageNotHaveRewards()));
+      player.sendMessage(AdventureTranslator.toNative(CobbleUtils.language.getMessageNotHaveRewards()));
     }
     return 1;
   }

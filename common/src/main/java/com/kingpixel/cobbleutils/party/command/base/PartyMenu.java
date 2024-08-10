@@ -9,34 +9,31 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
+import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.command.CommandManager;
 
 /**
  * @author Carlos Varas Alonso - 28/06/2024 2:23
  */
-public class PartyMenu implements Command<CommandSourceStack> {
+public class PartyMenu implements Command<ServerCommandSource> {
 
-  public static void register(CommandDispatcher<CommandSourceStack> dispatcher,
-                              LiteralArgumentBuilder<CommandSourceStack> base) {
+  public static void register(CommandDispatcher<ServerCommandSource> dispatcher,
+      LiteralArgumentBuilder<ServerCommandSource> base) {
     dispatcher.register(
-      base.then(Commands.literal("menu")
-        .executes(new PartyMenu())
-      )
-    );
+        base.then(CommandManager.literal("menu")
+            .executes(new PartyMenu())));
   }
 
   @Override
-  public int run(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-    if (!context.getSource().isPlayer()) {
-      CobbleUtils.server.sendSystemMessage(AdventureTranslator.toNative("You must be a player to use this command"));
+  public int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    if (!context.getSource().isExecutedByPlayer()) {
+      CobbleUtils.server.sendMessage(AdventureTranslator.toNative("You must be a player to use this command"));
       return 0;
     }
 
-
     try {
-      UIManager.openUIForcefully(context.getSource().getPlayerOrException(),
-        PartyUI.getPartyMenu());
+      UIManager.openUIForcefully(context.getSource().getPlayerOrThrow(),
+          PartyUI.getPartyMenu());
     } catch (Exception e) {
       e.printStackTrace();
     }

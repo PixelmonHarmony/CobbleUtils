@@ -13,9 +13,9 @@ import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.PlayerInfo;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.Utils;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Items;
+import net.minecraft.item.Items;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,12 +25,12 @@ import java.util.Objects;
  * @author Carlos Varas Alonso - 28/06/2024 6:11
  */
 public class PartyInvitesUI {
-  public static Page getPartyInvites(Player player) {
+  public static Page getPartyInvites(ServerPlayerEntity player) {
     ChestTemplate template = ChestTemplate.builder(2).build();
     List<Button> buttons = new ArrayList<>();
 
     CobbleUtils.partyManager.getParties().forEach((uuid, party) -> {
-      if (party.getInvites().contains(player.getUUID())) {
+      if (party.getInvites().contains(player.getUuid())) {
         GooeyButton invite = GooeyButton.builder()
           .display(Utils.parseItemId("minecraft:emerald"))
           .title(party.getName())
@@ -57,16 +57,16 @@ public class PartyInvitesUI {
       .build();
 
     GooeyButton close = GooeyButton.builder()
-      .display(Items.RED_STAINED_GLASS_PANE.getDefaultInstance().setHoverName(Component.literal("Close")))
+      .display(Items.RED_STAINED_GLASS_PANE.getDefaultStack().setCustomName(Text.literal("Close")))
       .onClick(action -> {
-        action.getPlayer().closeContainer();
+        action.getPlayer().closeHandledScreen();
       })
       .build();
 
-
     PlaceholderButton placeholder = new PlaceholderButton();
 
-    GooeyButton fill = GooeyButton.builder().display(Items.GRAY_STAINED_GLASS_PANE.getDefaultInstance().setHoverName(Component.literal(""))).build();
+    GooeyButton fill = GooeyButton.builder()
+      .display(Items.GRAY_STAINED_GLASS_PANE.getDefaultStack().setCustomName(Text.literal(""))).build();
     template.fill(fill)
       .rectangle(0, 0, 2, 9, placeholder)
       .fillFromList(buttons)

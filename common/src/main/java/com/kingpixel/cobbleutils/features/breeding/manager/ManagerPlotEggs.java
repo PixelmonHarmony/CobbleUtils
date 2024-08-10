@@ -9,7 +9,7 @@ import com.kingpixel.cobbleutils.util.RewardsUtils;
 import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Data;
 import lombok.Getter;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.io.File;
 import java.io.FileReader;
@@ -34,9 +34,9 @@ public class ManagerPlotEggs {
     }
   }
 
-  public void init(ServerPlayer player) {
+  public void init(ServerPlayerEntity player) {
     CompletableFuture.runAsync(() -> {
-      File playerFile = Utils.getAbsolutePath(CobbleUtils.PATH_BREED_DATA + player.getUUID() + ".json");
+      File playerFile = Utils.getAbsolutePath(CobbleUtils.PATH_BREED_DATA + player.getUuid() + ".json");
       if (playerFile.exists()) {
         try (FileReader reader = new FileReader(playerFile)) {
           Type listType = new TypeToken<List<PlotBreeding>>() {
@@ -51,7 +51,8 @@ public class ManagerPlotEggs {
               playerEggs.add(new PlotBreeding());
             }
           } else if (playerEggs.size() > CobbleUtils.breedconfig.getMaxplots()) {
-            List<PlotBreeding> eggsToRemove = playerEggs.subList(CobbleUtils.breedconfig.getMaxplots(), playerEggs.size());
+            List<PlotBreeding> eggsToRemove = playerEggs.subList(CobbleUtils.breedconfig.getMaxplots(),
+              playerEggs.size());
 
             for (PlotBreeding egg : eggsToRemove) {
               RewardsUtils.saveRewardPokemon(player, egg.obtainMale());
@@ -67,7 +68,7 @@ public class ManagerPlotEggs {
 
             playerEggs = playerEggs.subList(0, CobbleUtils.breedconfig.getMaxplots());
           }
-          eggs.put(player.getUUID(), playerEggs);
+          eggs.put(player.getUuid(), playerEggs);
           writeInfo(player);
         } catch (IOException e) {
           e.printStackTrace();
@@ -75,9 +76,9 @@ public class ManagerPlotEggs {
           throw new RuntimeException(e);
         }
       } else {
-        eggs.put(player.getUUID(), new ArrayList<>());
+        eggs.put(player.getUuid(), new ArrayList<>());
         for (int i = 0; i < CobbleUtils.breedconfig.getMaxplots(); i++) {
-          eggs.get(player.getUUID()).add(new PlotBreeding());
+          eggs.get(player.getUuid()).add(new PlotBreeding());
         }
         writeInfo(player);
       }
@@ -86,19 +87,18 @@ public class ManagerPlotEggs {
 
   }
 
-  public void remove(ServerPlayer player) {
+  public void remove(ServerPlayerEntity player) {
     writeInfo(player).join();
   }
 
-  public void checking(ServerPlayer player) {
-    eggs.get(player.getUUID()).forEach(plotBreeding -> plotBreeding.checking(player));
+  public void checking(ServerPlayerEntity player) {
+    eggs.get(player.getUuid()).forEach(plotBreeding -> plotBreeding.checking(player));
   }
 
-
-  public CompletableFuture<Void> writeInfo(ServerPlayer player) {
+  public CompletableFuture<Void> writeInfo(ServerPlayerEntity player) {
     return CompletableFuture.runAsync(() -> {
-      File playerFile = Utils.getAbsolutePath(CobbleUtils.PATH_BREED_DATA + player.getUUID() + ".json");
-      List<PlotBreeding> playerEggs = eggs.get(player.getUUID());
+      File playerFile = Utils.getAbsolutePath(CobbleUtils.PATH_BREED_DATA + player.getUuid() + ".json");
+      List<PlotBreeding> playerEggs = eggs.get(player.getUuid());
       try (FileWriter writer = new FileWriter(playerFile)) {
         Utils.newWithoutSpacingGson().toJson(playerEggs, writer);
       } catch (IOException e) {

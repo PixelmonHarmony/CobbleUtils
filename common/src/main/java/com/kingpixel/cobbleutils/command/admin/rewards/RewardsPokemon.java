@@ -4,49 +4,51 @@ import com.cobblemon.mod.common.api.storage.NoPokemonStoreException;
 import com.cobblemon.mod.common.command.argument.PokemonPropertiesArgumentType;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.util.LuckPermsUtil;
 import com.kingpixel.cobbleutils.util.RewardsUtils;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
-import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.command.argument.EntityArgumentType;
+import net.minecraft.server.command.CommandManager;
+import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
+
+import java.util.List;
 
 /**
  * @author Carlos Varas Alonso - 28/06/2024 10:51
  */
-public class RewardsPokemon implements Command<CommandSourceStack> {
-  public static void register(CommandDispatcher<CommandSourceStack> dispatcher,
-                              LiteralArgumentBuilder<CommandSourceStack> base) {
+public class RewardsPokemon implements Command<ServerCommandSource> {
+  public static void register(CommandDispatcher<ServerCommandSource> dispatcher,
+                              LiteralArgumentBuilder<ServerCommandSource> base) {
     dispatcher.register(
-      base.requires(source -> source.hasPermission(2))
+      base
         .then(
-          Commands.literal("save")
-            .requires(source -> source.hasPermission(2))
+          CommandManager.literal("save")
+            .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.rewards.save", "cobbleutils" +
+              ".admin")))
             .then(
-              Commands.argument("player", EntityArgument.player())
+              CommandManager.argument("player", EntityArgumentType.player())
                 .then(
-                  Commands.literal("pokemon")
+                  CommandManager.literal("pokemon")
                     .then(
-                      Commands.argument("pokemon", PokemonPropertiesArgumentType.Companion.properties())
-                        .executes(new RewardsPokemon()))
-                )
-            )
-        )
-    );
+                      CommandManager.argument("pokemon",
+                          PokemonPropertiesArgumentType.Companion.properties())
+                        .executes(new RewardsPokemon()))))));
   }
 
-  @Override public int run(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-    Player player = EntityArgument.getPlayer(context, "player");
+  @Override
+  public int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
     Pokemon pokemon = PokemonPropertiesArgumentType.Companion.getPokemonProperties(context, "pokemon").create();
     try {
       if (RewardsUtils.saveRewardPokemon(player, pokemon)) {
-        if (context.getSource().isPlayer()) {
-          context.getSource().getPlayer().sendSystemMessage(Component.literal("Pokemon saved!"));
+        if (context.getSource().isExecutedByPlayer()) {
+          context.getSource().getPlayer().sendMessage(Text.literal("Pokemon saved!"));
         } else {
           CobbleUtils.LOGGER.info("Pokemon saved!");
         }

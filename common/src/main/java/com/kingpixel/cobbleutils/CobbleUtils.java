@@ -11,8 +11,6 @@ import com.kingpixel.cobbleutils.events.ItemRightClickEvents;
 import com.kingpixel.cobbleutils.events.features.FeaturesRegister;
 import com.kingpixel.cobbleutils.features.Features;
 import com.kingpixel.cobbleutils.features.breeding.config.BreedConfig;
-import com.kingpixel.cobbleutils.managers.CobbleUtilsPermission;
-import com.kingpixel.cobbleutils.managers.CobbleUtilsPermissionConfig;
 import com.kingpixel.cobbleutils.managers.PartyManager;
 import com.kingpixel.cobbleutils.managers.RewardsManager;
 import com.kingpixel.cobbleutils.party.command.CommandsParty;
@@ -27,6 +25,7 @@ import dev.architectury.event.events.common.InteractionEvent;
 import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.event.events.common.PlayerEvent;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.List;
 import java.util.concurrent.*;
@@ -54,8 +53,6 @@ public class CobbleUtils {
   public static SpawnRates spawnRates = new SpawnRates();
 
 
-  public static CobbleUtilsPermissionConfig permissionConfig = new CobbleUtilsPermissionConfig();
-  public static CobbleUtilsPermission permission = new CobbleUtilsPermission();
   // Party
   public static PartyConfig partyConfig = new PartyConfig();
   public static PartyLang partyLang = new PartyLang();
@@ -79,6 +76,7 @@ public class CobbleUtils {
     sign();
     tasks();
     Features.register();
+    permissions();
   }
 
   private static void checks() {
@@ -155,25 +153,24 @@ public class CobbleUtils {
       LOGGER.info("CobbleUtils has been stopped.");
     });
 
-    LifecycleEvent.SERVER_LEVEL_LOAD.register(level -> server = level.getLevel().getServer());
+    LifecycleEvent.SERVER_LEVEL_LOAD.register(level -> server = level.getServer());
 
     PlayerEvent.PLAYER_JOIN.register(player -> {
 
-      partyManager.getUserParty().put(player.getUUID(), new UserParty("", false));
+      partyManager.getUserParty().put(player.getUuid(), new UserParty("", false));
       RewardsData rewardsData = rewardsManager.getRewardsData().computeIfAbsent(
-        player.getUUID(),
-        uuid -> new RewardsData(player.getGameProfile().getName(), player.getUUID())
+        player.getUuid(),
+        uuid -> new RewardsData(player.getGameProfile().getName(), player.getUuid())
       );
-
       rewardsData.init();
     });
 
 
     PlayerEvent.PLAYER_QUIT.register(player -> {
-      UserParty userParty = partyManager.getUserParty().get(player.getUUID());
+      UserParty userParty = partyManager.getUserParty().get(player.getUuid());
       if (userParty == null) return;
       if (userParty.isHasParty()) {
-        partyManager.leaveParty(partyManager.getUserParty().get(player.getUUID())
+        partyManager.leaveParty(partyManager.getUserParty().get(player.getUuid())
             .getPartyName(),
           PlayerInfo.fromPlayer(player));
       }
@@ -181,7 +178,7 @@ public class CobbleUtils {
 
 
     InteractionEvent.RIGHT_CLICK_BLOCK.register((player, hand, blockpos, direction) -> {
-      BlockRightClickEvents.register(player, hand, blockpos, direction);
+      BlockRightClickEvents.register((ServerPlayerEntity) player, hand, blockpos, direction);
       return EventResult.pass();
     });
 
@@ -194,6 +191,41 @@ public class CobbleUtils {
 
     PlayerEvent.DROP_ITEM.register(DropItemEvent::register);
 
+
+  }
+
+  private static void permissions() {
+    new Thread(() -> {
+      try {
+        Thread.sleep(TimeUnit.SECONDS.toMillis(60));
+      } catch (InterruptedException e) {
+        // Registrar la interrupción y restablecer el estado de interrupción del hilo
+        Thread.currentThread().interrupt();
+        return; // Salir del hilo si fue interrumpido
+      }
+
+      server.execute(() -> {
+        addAllPermissions();
+      });
+    }).start();
+  }
+
+  private static void addAllPermissions() {
+    String[] permissions = {
+      "cobbleutils.user",
+      "cobbleutils.admin",
+      "cobbleutils.party",
+      "cobbleutils.rewards",
+      "cobbleutils.breed",
+      "cobbleutils.bosses",
+      "cobbleutils.pokerus",
+      "cobbleutils.pokeshout",
+      "cobbleutils.pokeshoutall"
+    };
+
+    for (String permission : permissions) {
+      LuckPermsUtil.addPermission(permission);
+    }
   }
 
 
@@ -203,15 +235,16 @@ public class CobbleUtils {
     }
     scheduledTasks.clear();
 
-    ScheduledFuture<?> alertreward = scheduler.scheduleAtFixedRate(() -> server.getPlayerList().getPlayers().forEach(player -> {
-      RewardsData rewardsData = rewardsManager.getRewardsData().get(player.getUUID());
-      if (RewardsUtils.hasRewards(player)) {
-        int amount = rewardsData.getCommands().size() + rewardsData.getItems().size() + rewardsData.getPokemons().size();
-        player.sendSystemMessage(AdventureTranslator.toNative(
-          language.getMessageHaveRewards().replace("%amount%", String.valueOf(amount))
-        ));
-      }
-    }), 0, CobbleUtils.config.getAlertreward(), TimeUnit.MINUTES);
+    ScheduledFuture<?> alertreward =
+      scheduler.scheduleAtFixedRate(() -> server.getPlayerManager().getPlayerList().forEach(player -> {
+        RewardsData rewardsData = rewardsManager.getRewardsData().get(player.getUuid());
+        if (RewardsUtils.hasRewards(player)) {
+          int amount = rewardsData.getCommands().size() + rewardsData.getItems().size() + rewardsData.getPokemons().size();
+          player.sendMessage(AdventureTranslator.toNative(
+            language.getMessageHaveRewards().replace("%amount%", String.valueOf(amount))
+          ));
+        }
+      }), 0, CobbleUtils.config.getAlertreward(), TimeUnit.MINUTES);
 
     scheduledTasks.add(alertreward);
   }
