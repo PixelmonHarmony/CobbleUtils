@@ -38,7 +38,7 @@ public class PokeShout implements Command<CommandSourceStack> {
                 CobbleUtils.LOGGER.error("This command can only be executed by a player");
                 return 0;
               }
-
+              context.getSource().sendSuccess(() -> Component.literal("commands.cobbleutils.pokeshout.success"), true);
               Pokemon pokemon = PartySlotArgumentType.Companion.getPokemon(context, "slot");
               ServerPlayer player = context.getSource().getPlayerOrException();
               if (pokemon != null) {
@@ -46,6 +46,7 @@ public class PokeShout implements Command<CommandSourceStack> {
               } else {
                 PlayerUtils.sendMessage(player, CobbleUtils.language.getMessageNoPokemon());
               }
+
 
               return 0;
             })

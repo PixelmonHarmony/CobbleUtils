@@ -13,6 +13,9 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.ParticleArgument;
+import net.minecraft.core.particles.SimpleParticleType;
+import net.minecraft.server.level.ServerPlayer;
 
 /**
  * @author Carlos Varas Alonso - 10/06/2024 14:08
@@ -98,6 +101,23 @@ public class CommandTree {
         BreedCommand.register(dispatcher, base);
       }
     }
+
+
+    // Test particle
+    dispatcher.register(
+      Commands.literal("testparticle")
+        .then(
+          Commands.argument("particle", ParticleArgument.particle(registry))
+            .executes(context -> {
+              SimpleParticleType particle = CobbleUtils.breedconfig.getParticle();
+              ServerPlayer player = context.getSource().getPlayerOrException();
+              for (int i = 0; i < 100; i++) {
+                player.level().addParticle(particle, player.getX(), player.getY(), player.getZ(), 0, 0, 0);
+              }
+              return 0;
+            })
+        )
+    );
 
   }
 

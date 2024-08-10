@@ -14,6 +14,7 @@ import com.kingpixel.cobbleutils.features.breeding.events.PastureUI;
 import com.kingpixel.cobbleutils.features.breeding.events.WalkBreeding;
 import com.kingpixel.cobbleutils.features.breeding.manager.ManagerPlotEggs;
 import com.kingpixel.cobbleutils.features.breeding.models.EggData;
+import com.kingpixel.cobbleutils.util.RewardsUtils;
 import com.kingpixel.cobbleutils.util.Utils;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.ChunkEvent;
@@ -131,7 +132,7 @@ public class Breeding {
             pokemon.getPersistentData().remove("EggSpawned");
             CobbleUtils.LOGGER.info("persistentdata: " + pokemon.getPersistentData().getAsString());
             try {
-              Cobblemon.INSTANCE.getStorage().getParty(player.getUUID()).add(pokemon);
+              RewardsUtils.saveRewardPokemon(player, pokemon);
             } catch (NoPokemonStoreException e) {
               throw new RuntimeException(e);
             }

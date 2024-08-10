@@ -104,11 +104,10 @@ public class PlotSelectPokemonUI {
       return;
     }
 
-    // No dejara a ningun ditto
+    // Verifica si se permite la cría con Ditto y retorna si no está permitido
     if (pokemon.getSpecies().showdownId().equalsIgnoreCase("ditto") && !CobbleUtils.breedconfig.isDitto()) {
       return;
     }
-
 
     Pokemon otherGender = plotBreeding.obtainOtherGender(gender);
 
@@ -118,11 +117,11 @@ public class PlotSelectPokemonUI {
       return;
     }
 
-    // Verifica si el Pokémon está en la whitelist
+    // Verifica si el Pokémon está en la whitelist y si es legendario o una Ultra Bestia
     boolean isInWhitelist = CobbleUtils.breedconfig.getWhitelist().contains(pokemon.getSpecies().showdownId());
     boolean isLegendaryOrUltraBeast = pokemon.isLegendary() || pokemon.isUltraBeast();
 
-    // Si el Pokémon es legendario o una Ultra Bestia, verifica si está en la whitelist
+    // Si el Pokémon es legendario o una Ultra Bestia y no está en la whitelist, retorna
     if (isLegendaryOrUltraBeast && !isInWhitelist) {
       return;
     }
@@ -136,40 +135,46 @@ public class PlotSelectPokemonUI {
       }
       return;
     }
-    // Si el otro Pokémon es Ditto
+
+    // Verifica si el otro Pokémon es Ditto
     boolean isOtherDitto = otherGender.getSpecies().showdownId().equalsIgnoreCase("ditto");
     boolean isGenderless = pokemon.getGender() == Gender.GENDERLESS;
     boolean areCompatible = EggData.isCompatible(otherGender, pokemon);
 
-    if (CobbleUtils.breedconfig.isDitto() && pokemon.getSpecies().showdownId().equalsIgnoreCase("ditto") && !isOtherDitto) {
-      pokemons.add(pokemon);
-      return;
-    }
-
-    if (pokemon.getSpecies().showdownId().equalsIgnoreCase("ditto") && !CobbleUtils.breedconfig.isDoubleditto()) {
-      return;
-    }
-
-
-    if (isOtherDitto) {
-      // Si se permite Ditto x Ditto
-      if (!CobbleUtils.breedconfig.isDoubleditto() && pokemon.getSpecies().showdownId().equalsIgnoreCase("ditto")) {
-        return;
+    // Maneja la cría de Ditto
+    if (pokemon.getSpecies().showdownId().equalsIgnoreCase("ditto")) {
+      // Si se permite la cría de Ditto x Ditto
+      if (isOtherDitto) {
+        if (CobbleUtils.breedconfig.isDoubleditto()) {
+          pokemons.add(pokemon);
+        }
+      } else {
+        // Si no es Ditto x Ditto, pero es compatible o Ditto está permitido
+        if (areCompatible) {
+          pokemons.add(pokemon);
+        } else if (pokemon.getSpecies().showdownId().equalsIgnoreCase("ditto") && CobbleUtils.breedconfig.isDitto()) {
+          pokemons.add(pokemon);
+        }
       }
-      if (CobbleUtils.breedconfig.isDoubleditto()) {
+      return;
+    }
+
+    // Si el otro Pokémon es Ditto y no es Ditto x Ditto, pero son compatibles
+    if (isOtherDitto) {
+      if (areCompatible) {
         pokemons.add(pokemon);
-      } else if (areCompatible) {
-        // Si no se permite Ditto x Ditto, pero es compatible con otro Pokémon
-        pokemons.add(pokemon);
-      } else if (!pokemon.getSpecies().showdownId().equalsIgnoreCase("ditto")) {
+      } else if (isInWhitelist) {
         pokemons.add(pokemon);
       } else if (pokemon.getSpecies().showdownId().equalsIgnoreCase("ditto") && CobbleUtils.breedconfig.isDitto()) {
         pokemons.add(pokemon);
+      } else if (!pokemon.getSpecies().showdownId().equalsIgnoreCase("ditto")) {
+        pokemons.add(pokemon);
       }
-
     } else {
-
-      if (areCompatible || pokemon.getGender() == gender || isGenderless || isInWhitelist) {
+      // Caso general: agregar el Pokémon si es compatible o cumple otras condiciones
+      if (areCompatible && (pokemon.getGender() == gender || isGenderless)) {
+        pokemons.add(pokemon);
+      } else if (isInWhitelist && (pokemon.getGender() == gender || isGenderless)) {
         pokemons.add(pokemon);
       }
     }

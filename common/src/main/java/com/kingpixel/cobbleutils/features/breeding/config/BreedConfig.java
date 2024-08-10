@@ -7,6 +7,8 @@ import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Data;
 import lombok.Getter;
 import lombok.ToString;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.particles.SimpleParticleType;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -27,6 +29,7 @@ public class BreedConfig {
   private String nameAbandonedEgg;
   private String nameEgg;
   private String nameRandomEgg;
+  private SimpleParticleType particle;
   private boolean active;
   private boolean autoclaim;
   private boolean changeuipasture;
@@ -62,6 +65,7 @@ public class BreedConfig {
 
 
   public BreedConfig() {
+    this.particle = ParticleTypes.FLAME;
     this.prefix = "&7[<#82d448>Breeding&7] &8»";
     this.eggcommand = List.of("daycare", "breed");
     this.titleselectplot = "<#82d448>Select Plot";
@@ -94,6 +98,7 @@ public class BreedConfig {
       "&7Eggs: &6%eggs%",
       "&7Cooldown: &6%cooldown%"
     ), 0);
+
     this.plotSlots = List.of(10,
       12,
       14,
@@ -111,8 +116,8 @@ public class BreedConfig {
     this.blacklist = List.of("pokestop", "egg");
     this.whitelist = List.of("manaphy");
     this.nameEgg = "Egg %pokemon%";
-    this.nameAbandonedEgg = "Abandoned Egg";
     this.nameRandomEgg = "Random Egg";
+    this.nameAbandonedEgg = "Abandoned Egg";
     this.notCompatible = "%prefix% <#d65549>%pokemon1% and %pokemon2% is not compatible!";
     //this.nationalities = List.of("es", "en", "fr", "de", "it", "pt", "jp", "ko", "zh", "ru");
   }
@@ -122,6 +127,7 @@ public class BreedConfig {
       el -> {
         Gson gson = Utils.newGson();
         BreedConfig config = gson.fromJson(el, BreedConfig.class);
+        particle = config.getParticle();
         prefix = config.getPrefix();
         active = config.isActive();
         changeuipasture = config.isChangeuipasture();

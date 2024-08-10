@@ -14,8 +14,6 @@ import com.kingpixel.cobbleutils.util.UIUtils;
 import com.kingpixel.cobbleutils.util.Utils;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 
 /**
  * @author Carlos Varas Alonso - 28/06/2024 20:09
@@ -26,7 +24,7 @@ public class ShinyTokenUI {
       PlayerPartyStore partyStore = Cobblemon.INSTANCE.getStorage().getParty(player.getUUID());
 
       ChestTemplate templateBuilder = ChestTemplate.builder(4).build();
-      
+
       for (int i = 0; i < partyStore.size(); i++) {
         GooeyButton slot;
         Pokemon pokemon = partyStore.get(i);
@@ -71,36 +69,24 @@ public class ShinyTokenUI {
   }
 
   public static GooeyPage confirmShiny(Player player, Pokemon pokemon) throws NoPokemonStoreException {
-    GooeyButton confirm = GooeyButton.builder()
-      .display(new ItemStack(Items.GREEN_STAINED_GLASS_PANE))
-      .title(AdventureTranslator.toNative(CobbleUtils.language.getConfirm()))
-      .onClick((action) -> {
-        pokemon.setShiny(true);
-        player.getItemInHand(action.getPlayer().getUsedItemHand()).shrink(1);
-        UIManager.closeUI((ServerPlayer) player);
-      })
-      .build();
+    GooeyButton confirm = UIUtils.getConfirmButton(action -> {
+      pokemon.setShiny(true);
+      player.getItemInHand(action.getPlayer().getUsedItemHand()).shrink(1);
+      UIManager.closeUI((ServerPlayer) player);
+    });
 
     GooeyButton buttonPokemon = UIUtils.createButtonPokemon(pokemon, (action) -> {
     });
 
-    GooeyButton cancel = GooeyButton.builder()
-      .display(new ItemStack(Items.RED_STAINED_GLASS_PANE))
-      .title(AdventureTranslator.toNative(CobbleUtils.language.getCancel()))
-      .onClick((action) -> {
-        openmenu(player);
-      })
-      .build();
+    GooeyButton cancel = UIUtils.getCancelButton(action -> openmenu(player));
 
-    GooeyPage page = GooeyPage.builder()
+    return GooeyPage.builder()
       .template(new ChestTemplate.Builder(3)
         .set(1, 2, confirm)
         .set(1, 6, cancel)
         .set(1, 4, buttonPokemon)
-        .fill(GooeyButton.builder().display(new ItemStack(Items.GRAY_STAINED_GLASS_PANE).setHoverName(AdventureTranslator.toNative(""))).build()).build())
+        .fill(GooeyButton.builder().display(Utils.parseItemId(CobbleUtils.config.getFill())).title("").build()).build())
       .title(AdventureTranslator.toNative(CobbleUtils.language.getTitlemenushinyoperation())).build();
-
-    return page;
   }
 
   public static boolean haveShinyToken(Player player) {

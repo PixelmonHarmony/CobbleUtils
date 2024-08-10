@@ -355,6 +355,12 @@ public class EggData {
 
     // Gender
     egg.createPokemonProperties(PokemonPropertyExtractor.GENDER).apply(egg);
+
+    // Egg Moves
+/*    List<Move> eggMoves = new ArrayList<>();
+    male.getMoveSet().forEach(move -> {
+      PokemonUtils.isEggMove(male, move);
+    });*/
   }
 
   private static void applyInitialIvs(Pokemon egg, Pokemon male, Pokemon female) {
