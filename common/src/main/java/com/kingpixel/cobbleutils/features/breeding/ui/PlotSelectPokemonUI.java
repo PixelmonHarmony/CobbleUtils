@@ -102,6 +102,10 @@ public class PlotSelectPokemonUI {
   private static void processPokemon(Collection<Pokemon> pokemons, Pokemon pokemon, ServerPlayerEntity player,
                                      Gender gender,
                                      PlotBreeding plotBreeding) {
+    if (pokemon.isUncatchable()) {
+      CobbleUtils.LOGGER.info("Pokemon is uncatchable");
+      return;
+    }
     // Verifica si el Pokémon pertenece al grupo de huevo "UNDISCOVERED" o si es un
     // huevo, y retorna si es así
     if (pokemon.getSpecies().getEggGroups().contains(EggGroup.UNDISCOVERED) ||

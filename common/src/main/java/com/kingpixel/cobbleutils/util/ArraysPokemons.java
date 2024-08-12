@@ -23,8 +23,8 @@ public class ArraysPokemons {
    * Initialize the Pokémon arrays
    */
   public static void init() {
-    all = new ArrayList<>();
     Collection<Species> species = PokemonSpecies.INSTANCE.getSpecies();
+    all = new ArrayList<>(species);
     Set<String> pokeBlacklist = new HashSet<>();
     CobbleUtils.config.getBlacklist().forEach(pokemonData -> pokeBlacklist.add(pokemonData.getPokename()));
 
@@ -57,10 +57,7 @@ public class ArraysPokemons {
     ultraBeasts = new ArrayList<>(sortedSpecies.getOrDefault("ultrabeast", new ArrayList<>()).stream()
       .sorted(Comparator.comparingInt(Species::getNationalPokedexNumber))
       .toList());
-
-    all.addAll(pokemons);
-    all.addAll(legendarys);
-    all.addAll(ultraBeasts);
+    
     all = all.stream()
       .sorted(Comparator.comparingInt(Species::getNationalPokedexNumber))
       .toList();

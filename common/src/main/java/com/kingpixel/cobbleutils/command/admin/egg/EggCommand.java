@@ -1,4 +1,4 @@
-package com.kingpixel.cobbleutils.command.admin;
+package com.kingpixel.cobbleutils.command.admin.egg;
 
 import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;

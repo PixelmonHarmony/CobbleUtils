@@ -3,6 +3,7 @@ package com.kingpixel.cobbleutils.features.breeding.config;
 import com.google.gson.Gson;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.ItemModel;
+import com.kingpixel.cobbleutils.features.breeding.models.Incense;
 import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Data;
 import lombok.Getter;
@@ -20,6 +21,15 @@ import java.util.concurrent.CompletableFuture;
 @Data
 public class BreedConfig {
   private String prefix;
+  private boolean active;
+  private boolean changeuipasture;
+  private boolean shifttoopen;
+  private boolean autoclaim;
+  private boolean obtainAspect;
+  private boolean methodmasuda;
+  private boolean ditto;
+  private boolean doubleditto;
+  private boolean spawnEggWorld;
   private List<String> eggcommand;
   private String titleselectplot;
   private String titleplot;
@@ -27,14 +37,6 @@ public class BreedConfig {
   private String nameAbandonedEgg;
   private String nameEgg;
   private String nameRandomEgg;
-  private boolean active;
-  private boolean autoclaim;
-  private boolean changeuipasture;
-  private boolean obtainAspect;
-  private boolean methodmasuda;
-  private boolean ditto;
-  private boolean doubleditto;
-  private boolean spawnEggWorld;
   private float multipliermasuda;
   private float multiplierShiny;
   private int checkEggToBreedInSeconds;
@@ -55,9 +57,12 @@ public class BreedConfig {
   private String notCompatible;
   private String blacklisted;
   private ItemModel plotItem;
+  private ItemModel maleSelectItem;
+  private ItemModel femaleSelectItem;
   private List<Integer> plotSlots;
   private List<String> blacklist;
   private List<String> whitelist;
+  private List<Incense> incenses;
   //private List<String> nationalities;
 
 
@@ -67,14 +72,15 @@ public class BreedConfig {
     this.titleselectplot = "<#82d448>Select Plot";
     this.titleplot = "<#82d448>Plot";
     this.titleselectpokemon = "<#82d448>Select Pokemon";
-    this.active = true;
+    this.active = false;
     this.autoclaim = false;
     this.obtainAspect = false;
-    this.changeuipasture = false;
-    this.methodmasuda = false;
+    this.changeuipasture = true;
+    this.methodmasuda = true;
     this.ditto = true;
     this.doubleditto = true;
     this.spawnEggWorld = false;
+    this.shifttoopen = true;
     this.multipliermasuda = 1.5f;
     this.multiplierShiny = 1.5f;
     this.cooldown = 30;
@@ -115,6 +121,9 @@ public class BreedConfig {
     this.nameRandomEgg = "Random Egg";
     this.nameAbandonedEgg = "Abandoned Egg";
     this.notCompatible = "%prefix% <#d65549>%pokemon1% and %pokemon2% is not compatible!";
+    this.maleSelectItem = new ItemModel(0, "minecraft:light_blue_wool", "Male", List.of(""), 0);
+    this.femaleSelectItem = new ItemModel(0, "minecraft:pink_wool", "Female", List.of(""), 0);
+    this.incenses = Incense.defaultIncenses();
     //this.nationalities = List.of("es", "en", "fr", "de", "it", "pt", "jp", "ko", "zh", "ru");
   }
 
@@ -162,6 +171,10 @@ public class BreedConfig {
         notCompatible = config.getNotCompatible();
         cooldowninstaBreedInSeconds = config.getCooldowninstaBreedInSeconds();
         cooldowninstaHatchInSeconds = config.getCooldowninstaHatchInSeconds();
+        maleSelectItem = config.getMaleSelectItem();
+        femaleSelectItem = config.getFemaleSelectItem();
+        shifttoopen = config.isShifttoopen();
+        incenses = config.getIncenses();
 
         String data = gson.toJson(this);
         CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(CobbleUtils.PATH_BREED, "config.json",

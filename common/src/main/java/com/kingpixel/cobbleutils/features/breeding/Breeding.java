@@ -13,7 +13,7 @@ import com.kingpixel.cobbleutils.features.breeding.events.NationalityPokemon;
 import com.kingpixel.cobbleutils.features.breeding.events.PastureUI;
 import com.kingpixel.cobbleutils.features.breeding.events.WalkBreeding;
 import com.kingpixel.cobbleutils.features.breeding.manager.ManagerPlotEggs;
-import com.kingpixel.cobbleutils.features.breeding.models.EggData;
+import com.kingpixel.cobbleutils.util.PokemonUtils;
 import com.kingpixel.cobbleutils.util.RewardsUtils;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.ChunkEvent;
@@ -43,7 +43,6 @@ public class Breeding {
   private static boolean active = false;
   private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
   private static final List<ScheduledFuture<?>> scheduledTasks = new CopyOnWriteArrayList<>();
-  private static final String FOLDER_WORLD = "/world/region/";
 
   public static void register() {
     if (!active) {
@@ -69,19 +68,21 @@ public class Breeding {
       }
       CobbleUtils.server.getPlayerManager().getPlayerList().forEach(player -> {
         String country = playerCountry.get(player.getUuid());
-        if (country == null)
-          return;
+        if (country == null) return;
         try {
-          Cobblemon.INSTANCE.getStorage().getPC(player.getUuid()).forEach(pokemon -> {
-            if (pokemon.getPersistentData().getString(CobbleUtilsTags.COUNTRY_TAG).isEmpty()) {
-              pokemon.getPersistentData().putString(CobbleUtilsTags.COUNTRY_TAG, country);
-            }
-          });
           Cobblemon.INSTANCE.getStorage().getParty(player.getUuid()).forEach(pokemon -> {
+            PokemonUtils.isLegalAbility(player, pokemon);
             if (pokemon.getPersistentData().getString(CobbleUtilsTags.COUNTRY_TAG).isEmpty()) {
               pokemon.getPersistentData().putString(CobbleUtilsTags.COUNTRY_TAG, country);
             }
           });
+          Cobblemon.INSTANCE.getStorage().getPC(player.getUuid()).forEach(pokemon -> {
+            PokemonUtils.isLegalAbility(player, pokemon);
+            if (pokemon.getPersistentData().getString(CobbleUtilsTags.COUNTRY_TAG).isEmpty()) {
+              pokemon.getPersistentData().putString(CobbleUtilsTags.COUNTRY_TAG, country);
+            }
+          });
+
         } catch (NoPokemonStoreException e) {
           e.printStackTrace();
         }
@@ -103,17 +104,13 @@ public class Breeding {
       }
       scheduledTasks.clear();
     });
-
     ChunkEvent.LOAD_DATA.register((chunk, level, nbtCompound) -> {
       if (!CobbleUtils.breedconfig.isSpawnEggWorld()) return;
-      if (nbtCompound.isEmpty()) {
-        EggData.spawnEgg(chunk, level);
-      }
+      //PokemonEntity entity = EggData.spawnEgg(chunk, level);
     });
 
 
-    PlayerEvent.ATTACK_ENTITY
-      .register((player, level, target, hand, result) -> egg(target, (ServerPlayerEntity) player));
+    PlayerEvent.ATTACK_ENTITY.register((player, level, target, hand, result) -> egg(target, (ServerPlayerEntity) player));
 
     InteractionEvent.INTERACT_ENTITY.register((player, entity, hand) -> egg(entity, (ServerPlayerEntity) player));
 
@@ -151,8 +148,7 @@ public class Breeding {
   }
 
   private static void countryPlayer(ServerPlayerEntity player) {
-    if (playerCountry.get(player.getUuid()) != null)
-      return;
+    if (playerCountry.get(player.getUuid()) != null) return;
     CompletableFuture.runAsync(() -> {
       HttpURLConnection conn = null;
       BufferedReader in = null;

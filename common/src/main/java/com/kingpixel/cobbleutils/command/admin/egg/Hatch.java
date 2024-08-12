@@ -1,4 +1,4 @@
-package com.kingpixel.cobbleutils.command.admin;
+package com.kingpixel.cobbleutils.command.admin.egg;
 
 import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.command.argument.PartySlotArgumentType;
@@ -31,7 +31,7 @@ public class Hatch implements Command<ServerCommandSource> {
     dispatcher.register(
       base
         .requires(source -> LuckPermsUtil.checkPermission(source, 2,
-          List.of("cobbleutils.breeding.hatch", "cobbleutils.admin")))
+          List.of("cobbleutils.hatch", "cobbleutils.admin")))
         .then(
           CommandManager.argument("egg", PartySlotArgumentType.Companion.partySlot())
             .executes(context -> {

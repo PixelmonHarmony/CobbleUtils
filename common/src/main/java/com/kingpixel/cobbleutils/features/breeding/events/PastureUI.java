@@ -6,6 +6,7 @@ import com.kingpixel.cobbleutils.features.breeding.ui.PlotBreedingUI;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.InteractionEvent;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.entity.EntityPose;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 
@@ -15,8 +16,17 @@ import net.minecraft.util.math.BlockPos;
 public class PastureUI {
   public static void register() {
     InteractionEvent.RIGHT_CLICK_BLOCK.register((player, hand, blockPos, direction) -> {
-      if (!CobbleUtils.breedconfig.isChangeuipasture())
-        return EventResult.pass();
+      if (!CobbleUtils.breedconfig.isActive()) return EventResult.pass();
+      if (!CobbleUtils.breedconfig.isChangeuipasture()) return EventResult.pass();
+      if (CobbleUtils.breedconfig.isShifttoopen()) {
+        if (player.isInPose(EntityPose.CROUCHING)) {
+          return EventResult.pass();
+        }
+      } else {
+        if (!player.isInPose(EntityPose.CROUCHING)) {
+          return EventResult.pass();
+        }
+      }
       BlockEntity blockEntity = player.getWorld().getBlockEntity(blockPos);
       if (blockEntity == null) {
         blockPos = new BlockPos(blockPos.getX(), blockPos.getY() - 1, blockPos.getZ());

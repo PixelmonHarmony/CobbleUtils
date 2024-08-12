@@ -1,10 +1,8 @@
 package com.kingpixel.cobbleutils.util;
 
-import com.cobblemon.mod.common.api.abilities.Ability;
-import com.cobblemon.mod.common.api.abilities.AbilityPool;
-import com.cobblemon.mod.common.api.abilities.AbilityTemplate;
-import com.cobblemon.mod.common.api.abilities.PotentialAbility;
+import com.cobblemon.mod.common.api.abilities.*;
 import com.cobblemon.mod.common.api.moves.Move;
+import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.api.pokemon.egg.EggGroup;
 import com.cobblemon.mod.common.api.pokemon.stats.Stat;
 import com.cobblemon.mod.common.api.pokemon.stats.Stats;
@@ -16,6 +14,7 @@ import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.CobbleUtilsTags;
 import com.kingpixel.cobbleutils.Model.ScalePokemonData;
 import com.kingpixel.cobbleutils.Model.SizeChanceWithoutItem;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
 import java.util.ArrayList;
@@ -115,12 +114,28 @@ public class PokemonUtils {
     Nature nature = pokemon.getNature();
 
     if (message.contains("%")) {
+      String ah;
+      if (isEgg(pokemon)) {
+        Pokemon p = PokemonProperties.Companion.parse(pokemon.getSpecies().showdownId()).create();
+        p.updateAbility(Abilities.INSTANCE.get(pokemon.getPersistentData().getString("ability")).create(true));
+        if (haveAH(p)) {
+          ah = CobbleUtils.language.getAH();
+        } else {
+          ah = "";
+        }
+      } else {
+        if (haveAH(pokemon)) {
+          ah = CobbleUtils.language.getAH();
+        } else {
+          ah = "";
+        }
+      }
       message = message
         .replace("%level%", String.valueOf(pokemon.getLevel()))
         .replace("%nature%", getNatureTranslate(nature))
-        .replace("%pokemon%", pokemon.getSpecies().getName())
+        .replace("%pokemon%", isEgg(pokemon) ? pokemon.getPersistentData().getString("species") : pokemon.getSpecies().getName())
         .replace("%shiny%", pokemon.getShiny() ? CobbleUtils.language.getSymbolshiny() : "")
-        .replace("%ability%", getAbilityTranslate(pokemon.getAbility()))
+        .replace("%ability%", isEgg(pokemon) ? pokemon.getPersistentData().getString("ability") : getAbilityTranslate(pokemon.getAbility()))
         .replace("%ivshp%", String.valueOf(pokemon.getIvs().get(Stats.HP)))
         .replace("%ivsatk%", String.valueOf(pokemon.getIvs().get(Stats.ATTACK)))
         .replace("%ivsdef%", String.valueOf(pokemon.getIvs().get(Stats.DEFENCE)))
@@ -136,7 +151,9 @@ public class PokemonUtils {
         .replace("%legendary%", pokemon.isLegendary() ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
         .replace("%item%", ItemUtils.getTranslatedName(pokemon.heldItem()))
         .replace("%size%", getSize(pokemon))
-        .replace("%form%",
+        .replace("%form%", isEgg(pokemon) ? (pokemon.getPersistentData().getString("form").isEmpty()
+          ? "Normal"
+          : pokemon.getPersistentData().getString("form")) :
           CobbleUtils.language.getForms().getOrDefault(pokemon.getForm().getName(), pokemon.getForm().getName()))
         .replace("%aspect%", pokemon.getAspects().stream().toList().toString())
         .replace("%up%", getStatTranslate(nature.getIncreasedStat()))
@@ -158,7 +175,7 @@ public class PokemonUtils {
         .replace("%breedable%", isBreedable(pokemon) ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
         .replace("%pokerus%", isPokerus(pokemon) ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
         .replace("%friendship%", String.valueOf(pokemon.getFriendship()))
-        .replace("%ah%", haveAH(pokemon) ? CobbleUtils.language.getAH() : "")
+        .replace("%ah%", ah)
         .replace("%country%", pokemon.getPersistentData().getString(CobbleUtilsTags.COUNTRY_TAG).isEmpty()
           ? CobbleUtils.language.getNone()
           : pokemon.getPersistentData().getString(CobbleUtilsTags.COUNTRY_TAG))
@@ -166,6 +183,10 @@ public class PokemonUtils {
     }
 
     return message;
+  }
+
+  public static boolean isEgg(Pokemon pokemon) {
+    return pokemon.getSpecies().showdownId().equalsIgnoreCase("egg");
   }
 
   private static String eggGroups(Pokemon pokemon) {
@@ -550,24 +571,14 @@ public class PokemonUtils {
    * @return The hidden ability of the pokemon
    */
   public static Ability getAH(Pokemon pokemon) {
-    return getAH(pokemon.getSpecies());
-  }
-
-  /**
-   * Get the hidden ability of the species
-   *
-   * @param species The species to get the hidden ability
-   *
-   * @return The hidden ability of the species
-   */
-  public static Ability getAH(Species species) {
-    for (PotentialAbility ability : species.getAbilities()) {
+    for (PotentialAbility ability : pokemon.getForm().getAbilities()) {
       if (ability.getType() instanceof HiddenAbilityType) {
         return ability.getTemplate().create(true);
       }
     }
-    return null;
+    return getRandomAbility(pokemon);
   }
+
 
   /**
    * Check if the pokemon has the hidden ability
@@ -577,7 +588,7 @@ public class PokemonUtils {
    * @return If the pokemon has the hidden ability
    */
   public static boolean haveAH(Pokemon pokemon) {
-    for (PotentialAbility ability : pokemon.getSpecies().getAbilities()) {
+    for (PotentialAbility ability : pokemon.getForm().getAbilities()) {
       if (ability.getType() instanceof HiddenAbilityType) {
         return ability.getTemplate().getName().equalsIgnoreCase(pokemon.getAbility().getName());
       }
@@ -588,25 +599,32 @@ public class PokemonUtils {
   /**
    * Check if the pokemon has the hidden ability
    *
-   * @param pokemon         The pokemon to check
-   * @param abilityTemplate The ability to check
+   * @param pokemon The pokemon to check
+   * @param ability The ability to check
    *
    * @return If the pokemon has the hidden ability
    */
-  public static boolean isAH(Pokemon pokemon, AbilityTemplate abilityTemplate) {
-    return isAH(pokemon.getSpecies(), abilityTemplate.create(true));
+  public static boolean isAH(Pokemon pokemon, AbilityTemplate ability) {
+    for (PotentialAbility potentialAbility : pokemon.getForm().getAbilities()) {
+      if (potentialAbility.getType() instanceof HiddenAbilityType) {
+        if (potentialAbility.getTemplate().create(true).getName().equalsIgnoreCase(ability.getName())) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   /**
    * Check if the species has the hidden ability
    *
-   * @param species The species to check
+   * @param pokemon The species to check
    * @param ability The ability to check
    *
    * @return If the species has the hidden ability
    */
-  private static boolean isAH(Species species, Ability ability) {
-    for (PotentialAbility potentialAbility : species.getAbilities()) {
+  private static boolean isAH(Pokemon pokemon, Ability ability) {
+    for (PotentialAbility potentialAbility : pokemon.getForm().getAbilities()) {
       if (potentialAbility.getType() instanceof HiddenAbilityType) {
         if (potentialAbility.getTemplate().create(true).getName().equalsIgnoreCase(ability.getName())) {
           return true;
@@ -617,11 +635,7 @@ public class PokemonUtils {
   }
 
   public static Ability getRandomAbility(Pokemon pokemon) {
-    return getRandomAbility(pokemon.getSpecies());
-  }
-
-  public static Ability getRandomAbility(Species species) {
-    AbilityPool abilities = species.getAbilities();
+    AbilityPool abilities = pokemon.getForm().getAbilities();
     List<Ability> abilityList = new ArrayList<>();
 
     for (PotentialAbility potentialAbility : abilities) {
@@ -637,8 +651,26 @@ public class PokemonUtils {
     }
   }
 
+  public static boolean isLegalAbility(ServerPlayerEntity player, Pokemon pokemon) {
+    boolean legal = isLegalAbility(pokemon);
+    if (!legal) {
+      CobbleUtils.LOGGER.info("Fix illegal ability: Player: " + player.getGameProfile().getName() + " Pokemon: " + getTranslatedName(pokemon));
+    }
+    return legal;
+  }
+
+  public static boolean isLegalAbility(Pokemon pokemon) {
+    for (PotentialAbility potentialAbility : pokemon.getForm().getAbilities()) {
+      if (pokemon.getAbility().getTemplate().getName().equalsIgnoreCase(potentialAbility.getTemplate().getName())) {
+        return true;
+      }
+    }
+    pokemon.updateAbility(getRandomAbility(pokemon));
+    return false;
+  }
+
+
   public static boolean isBoss(Pokemon pokemon) {
     return pokemon.getPersistentData().getBoolean(CobbleUtilsTags.BOSS_TAG);
   }
-
 }

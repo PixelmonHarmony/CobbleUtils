@@ -92,54 +92,60 @@ public class BreedCommand implements Command<ServerCommandSource> {
                     Pokemon female = PartySlotArgumentType.Companion.getPokemon(context, "female");
 
                     if (male == null || female == null) {
+                      player.sendMessage(AdventureBreeding.adventure(
+                        CobbleUtils.breedconfig.getNotCompatible()));
+
                       return 0;
                     }
                     if (male != female && EggData.isCompatible(male, female)) {
                       try {
-                        if (!CobbleUtils.breedconfig.isDitto()) {
-                          return dittos(male, player, female);
+                        // Verifica si el breeding está configurado para Ditto
+                        boolean isDittoMale = male.getSpecies().showdownId().equalsIgnoreCase("ditto");
+                        boolean isDittoFemale = female.getSpecies().showdownId().equalsIgnoreCase("ditto");
+
+                        // Caso especial: Ditto con otro Pokémon
+                        if (isDittoMale || isDittoFemale) {
+                          if (!CobbleUtils.breedconfig.isDitto()) {
+                            player.sendMessage(AdventureBreeding.adventure(PokemonUtils.replace(
+                              CobbleUtils.breedconfig.getNotCompatible(), List.of(male, female))));
+                            return 0;
+                          }
                         }
-                        if (!CobbleUtils.breedconfig.isDoubleditto()) {
-                          return dittos(male, player, female);
+
+                        // Caso especial: Dos Ditto no deberían poder criar
+                        if (isDittoMale && isDittoFemale) {
+                          if (!CobbleUtils.breedconfig.isDoubleditto()) {
+                            player.sendMessage(AdventureBreeding.adventure(PokemonUtils.replace(
+                              CobbleUtils.breedconfig.getNotCompatible(), List.of(male, female))));
+                            return 0;
+                          }
                         }
-                        if (male.getGender() == Gender.FEMALE) {
+
+                        // Comprobaciones de género cruzado incorrecto (ej. macho con macho, hembra con hembra)
+                        if (male.getGender() == Gender.FEMALE || female.getGender() == Gender.MALE) {
                           player.sendMessage(AdventureBreeding.adventure(PokemonUtils.replace(
-                            CobbleUtils.breedconfig.getNotCompatible(),
-                            List.of(male, female))));
-                          return 0;
-                        }
-                        if (female.getGender() == Gender.MALE) {
-                          player.sendMessage(AdventureBreeding.adventure(PokemonUtils.replace(
-                            CobbleUtils.breedconfig.getNotCompatible(),
-                            List.of(male, female))));
+                            CobbleUtils.breedconfig.getNotCompatible(), List.of(male, female))));
                           return 0;
                         }
 
-                        if (!EggData.isCompatible(male, female)) {
+                        // Comprobaciones de lista negra por especies
+                        if (CobbleUtils.breedconfig.getBlacklist().contains(male.getSpecies().showdownId()) ||
+                          CobbleUtils.breedconfig.getBlacklist().contains(female.getSpecies().showdownId())) {
                           player.sendMessage(AdventureBreeding.adventure(PokemonUtils.replace(
                             CobbleUtils.breedconfig.getNotCompatible(), List.of(male, female))));
                           return 0;
                         }
-                        if (CobbleUtils.breedconfig.getBlacklist().contains(male.getSpecies().showdownId())) {
-                          player.sendMessage(AdventureBreeding.adventure(PokemonUtils.replace(
-                            CobbleUtils.breedconfig.getNotCompatible(), List.of(male, female))));
-                          return 0;
-                        }
-                        if (CobbleUtils.breedconfig.getBlacklist().contains(female.getSpecies().showdownId())) {
-                          player.sendMessage(AdventureBreeding.adventure(PokemonUtils.replace(
-                            CobbleUtils.breedconfig.getNotCompatible(), List.of(male, female))));
-                          return 0;
-                        }
+
+                        // Creación del huevo y manejo del cooldown
                         Pokemon egg = EggData.createEgg(male, female, player);
                         if (egg != null) {
                           Cobblemon.INSTANCE.getStorage().getParty(player).add(egg);
                           cooldowns.put(player.getUuid(),
-                            new Date().getTime() + TimeUnit.SECONDS
-                              .toMillis(CobbleUtils.breedconfig.getCooldowninstaBreedInSeconds()));
+                            new Date().getTime() + TimeUnit.SECONDS.toMillis(
+                              CobbleUtils.breedconfig.getCooldowninstaBreedInSeconds()));
                         } else {
                           player.sendMessage(AdventureBreeding.adventure(PokemonUtils.replace(
-                            CobbleUtils.breedconfig.getNotCompatible(),
-                            List.of(male, female))));
+                            CobbleUtils.breedconfig.getNotCompatible(), List.of(male, female))));
                           return 0;
                         }
                       } catch (NoPokemonStoreException e) {
@@ -147,8 +153,7 @@ public class BreedCommand implements Command<ServerCommandSource> {
                       }
                     } else {
                       player.sendMessage(AdventureBreeding.adventure(PokemonUtils.replace(
-                        CobbleUtils.breedconfig.getNotCompatible(),
-                        List.of(male, female))));
+                        CobbleUtils.breedconfig.getNotCompatible(), List.of(male, female))));
                       return 0;
                     }
                     return 1;

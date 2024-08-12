@@ -3,6 +3,7 @@ package com.kingpixel.cobbleutils.command.base;
 import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.storage.party.PlayerPartyStore;
 import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.LuckPermsUtil;
 import com.kingpixel.cobbleutils.util.Utils;
 import com.mojang.brigadier.Command;
@@ -33,8 +34,16 @@ public class PokeShoutAll implements Command<ServerCommandSource> {
           }
           ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
           PlayerPartyStore playerPartyStore = Cobblemon.INSTANCE.getStorage().getParty(player);
+          if (playerPartyStore.size() == 0) {
+            player.sendMessage(
+              AdventureTranslator.toNative(
+                CobbleUtils.language.getMessageNoPokemon()
+              )
+            );
+            return 0;
+          }
           playerPartyStore.forEach(pokemon -> Utils.broadcastMessage(PokeShout.getMessage(player, pokemon)));
-          return 0;
+          return 1;
         }));
   }
 

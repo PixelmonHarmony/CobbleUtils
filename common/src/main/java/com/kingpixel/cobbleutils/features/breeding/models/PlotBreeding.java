@@ -33,24 +33,36 @@ public class PlotBreeding {
     male = null;
     female = null;
     eggs = new ArrayList<>();
-    cooldown = new Date(1).getTime();
+    cooldown = new Date(new Date().getTime() + TimeUnit.MINUTES.toMillis(CobbleUtils.breedconfig.getCooldown())).getTime();
   }
 
   public void checking(ServerPlayerEntity player) {
     if (male == null || female == null)
       return;
 
+    // Obtiene el cooldown configurado en minutos
+    long newCooldownMinutes = CobbleUtils.breedconfig.getCooldown();
+    long newCooldownMillis = TimeUnit.MINUTES.toMillis(newCooldownMinutes);
+
+    // Si el cooldown actual es mayor que el nuevo cooldown configurado, actualiza el cooldown
+    if (cooldown > new Date().getTime() + newCooldownMillis) {
+      cooldown = new Date().getTime() + newCooldownMillis;
+    }
+
     if (cooldown < new Date().getTime()) {
       try {
-        Pokemon pokemon = EggData.createEgg(Pokemon.Companion.loadFromJSON(male),
+        Pokemon pokemon = EggData.createEgg(
+          Pokemon.Companion.loadFromJSON(male),
           Pokemon.Companion.loadFromJSON(female),
-          player, this);
+          player, this
+        );
         if (pokemon != null) {
           if (eggs.size() >= CobbleUtils.breedconfig.getMaxeggperplot())
             return;
 
-          cooldown = new Date(new Date().getTime() + TimeUnit.MINUTES.toMillis(CobbleUtils.breedconfig.getCooldown()))
-            .getTime();
+          // Establece el nuevo cooldown después de la cría
+          cooldown = new Date(new Date().getTime() + newCooldownMillis).getTime();
+
           if (CobbleUtils.breedconfig.isAutoclaim()) {
             RewardsUtils.saveRewardPokemon(player, pokemon);
           } else {
@@ -63,6 +75,7 @@ public class PlotBreeding {
       }
     }
   }
+
 
   public boolean addMale(Pokemon pokemon) {
     if (pokemon.isLegendary() || pokemon.isUltraBeast())

@@ -2,6 +2,7 @@ package com.kingpixel.cobbleutils.features.breeding.events;
 
 import com.cobblemon.mod.common.api.Priority;
 import com.cobblemon.mod.common.api.events.CobblemonEvents;
+import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.CobbleUtilsTags;
 import com.kingpixel.cobbleutils.features.breeding.Breeding;
 import kotlin.Unit;
@@ -12,6 +13,7 @@ import kotlin.Unit;
 public class NationalityPokemon {
   public static void register() {
     CobblemonEvents.POKEMON_CAPTURED.subscribe(Priority.NORMAL, (evt) -> {
+      if (!CobbleUtils.breedconfig.isActive()) return Unit.INSTANCE;
       String country = Breeding.playerCountry.get(evt.getPlayer().getUuid());
       if (country == null) return Unit.INSTANCE;
       evt.getPokemon().getPersistentData().putString(CobbleUtilsTags.COUNTRY_TAG, country);

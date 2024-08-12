@@ -24,6 +24,7 @@ import dev.architectury.event.events.common.CommandRegistrationEvent;
 import dev.architectury.event.events.common.InteractionEvent;
 import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.event.events.common.PlayerEvent;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 
@@ -65,10 +66,10 @@ public class CobbleUtils {
 
   public static void init() {
     events();
-    PartyPlaceholder.register();
   }
 
   public static void load() {
+    addAllPermissions();
     checks();
     files();
     spawnRates.init();
@@ -76,7 +77,6 @@ public class CobbleUtils {
     sign();
     tasks();
     Features.register();
-    permissions();
   }
 
   private static void checks() {
@@ -106,6 +106,7 @@ public class CobbleUtils {
       config.getDatabase().getUrl()
       , config.getDatabase().getUser(),
       config.getDatabase().getPassword());
+
   }
 
   private static void sign() {
@@ -137,15 +138,17 @@ public class CobbleUtils {
 
   private static void events() {
     files();
-    Utils.removeFiles(PATH_PARTY_DATA);
 
-    LifecycleEvent.SERVER_STARTED.register(server -> load());
+    Utils.removeFiles(PATH_PARTY_DATA);
 
     CommandRegistrationEvent.EVENT.register((dispatcher, registry, selection) -> {
       CommandTree.register(dispatcher, registry);
       CommandsParty.register(dispatcher, registry);
     });
 
+    LifecycleEvent.SERVER_STARTED.register(server -> {
+      load();
+    });
 
     LifecycleEvent.SERVER_STOPPING.register(server -> {
       scheduledTasks.forEach(task -> task.cancel(true));
@@ -156,7 +159,7 @@ public class CobbleUtils {
     LifecycleEvent.SERVER_LEVEL_LOAD.register(level -> server = level.getServer());
 
     PlayerEvent.PLAYER_JOIN.register(player -> {
-
+      fixInventory(player);
       partyManager.getUserParty().put(player.getUuid(), new UserParty("", false));
       RewardsData rewardsData = rewardsManager.getRewardsData().computeIfAbsent(
         player.getUuid(),
@@ -192,25 +195,25 @@ public class CobbleUtils {
     PlayerEvent.DROP_ITEM.register(DropItemEvent::register);
 
 
-  }
-
-  private static void permissions() {
-    new Thread(() -> {
-      try {
-        Thread.sleep(TimeUnit.SECONDS.toMillis(60));
-      } catch (InterruptedException e) {
-        // Registrar la interrupción y restablecer el estado de interrupción del hilo
-        Thread.currentThread().interrupt();
-        return; // Salir del hilo si fue interrumpido
+    // Fix empty nbt
+    PlayerEvent.PICKUP_ITEM_PRE.register((player, itemEntity, itemStack) -> {
+      NbtCompound nbt = itemStack.getNbt();
+      if (nbt != null) {
+        if (nbt.isEmpty()) {
+          if (config.isDebug()) {
+            LOGGER.info("Item: " + ItemUtils.getTranslatedName(itemStack) + " has been fixed");
+          }
+          itemStack.setNbt(null);
+        }
       }
+      return EventResult.pass();
+    });
 
-      server.execute(() -> {
-        addAllPermissions();
-      });
-    }).start();
+    PartyPlaceholder.register();
   }
 
-  private static void addAllPermissions() {
+
+  public static void addAllPermissions() {
     String[] permissions = {
       "cobbleutils.user",
       "cobbleutils.admin",
@@ -220,7 +223,23 @@ public class CobbleUtils {
       "cobbleutils.bosses",
       "cobbleutils.pokerus",
       "cobbleutils.pokeshout",
-      "cobbleutils.pokeshoutall"
+      "cobbleutils.pokeshoutall",
+      "cobbleutils.hatch",
+      "cobbleutils.scale",
+      "cobbleutils.endbattle",
+      "cobbleutils.giveitem",
+      "cobbleutils.givepoke",
+      "cobbleutils.givemoney",
+      "cobbleutils.reload",
+      "cobbleutils.shinytoken",
+      "cobbleutils.pokerename",
+      "cobbleutils.breedable",
+      "cobbleutils.egg",
+      "cobbleutils.egginfo",
+      "cobbleutils.breed.other",
+      "cobbleutils.breed.pokemons",
+      "cobbleutils.breedable",
+      "cobbleutils.boss",
     };
 
     for (String permission : permissions) {
@@ -246,7 +265,30 @@ public class CobbleUtils {
         }
       }), 0, CobbleUtils.config.getAlertreward(), TimeUnit.MINUTES);
 
+    ScheduledFuture<?> fixnbt =
+      scheduler.scheduleAtFixedRate(
+        () -> server.getPlayerManager().getPlayerList().forEach(CobbleUtils::fixInventory),
+        0, 15, TimeUnit.SECONDS);
+
     scheduledTasks.add(alertreward);
+    scheduledTasks.add(fixnbt);
+  }
+
+
+  private static void fixInventory(ServerPlayerEntity player) {
+    player.getInventory().combinedInventory.forEach(inv -> {
+      inv.forEach(itemStack -> {
+        NbtCompound nbt = itemStack.getNbt();
+        if (nbt != null) {
+          if (nbt.isEmpty()) {
+            if (config.isDebug()) {
+              LOGGER.info("Item: " + ItemUtils.getTranslatedName(itemStack) + " has been fixed");
+            }
+            itemStack.setNbt(null);
+          }
+        }
+      });
+    });
   }
 
   private static String isActive(boolean active) {

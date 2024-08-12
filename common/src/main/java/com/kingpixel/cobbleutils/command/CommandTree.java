@@ -1,8 +1,15 @@
 package com.kingpixel.cobbleutils.command;
 
+import com.cobblemon.mod.common.api.moves.BenchedMove;
+import com.cobblemon.mod.common.command.argument.PartySlotArgumentType;
+import com.cobblemon.mod.common.pokemon.Pokemon;
+import com.google.gson.JsonObject;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.command.admin.*;
 import com.kingpixel.cobbleutils.command.admin.boss.SpawnBoss;
+import com.kingpixel.cobbleutils.command.admin.egg.EggCommand;
+import com.kingpixel.cobbleutils.command.admin.egg.Hatch;
+import com.kingpixel.cobbleutils.command.admin.egg.IncenseCommand;
 import com.kingpixel.cobbleutils.command.admin.random.RandomItem;
 import com.kingpixel.cobbleutils.command.admin.random.RandomMoney;
 import com.kingpixel.cobbleutils.command.admin.random.RandomPokemon;
@@ -71,6 +78,8 @@ public class CommandTree {
         // /cobbleutils egg <pokemon>
         EggCommand.register(dispatcher, base);
 
+        // /cobbleutils incense <item>
+        IncenseCommand.register(dispatcher, base);
         // /egginfo <slot>
         EggInfoCommand.register(dispatcher, CommandManager.literal("egginfo"));
       }
@@ -102,6 +111,22 @@ public class CommandTree {
       }
     }
 
+    dispatcher.register(
+      CommandManager.literal("eggmoves")
+        .then(
+          CommandManager.argument("slot", PartySlotArgumentType.Companion.partySlot())
+            .executes(context -> {
+              Pokemon pokemon = PartySlotArgumentType.Companion.getPokemon(context, "slot");
+              if (pokemon == null) {
+                return 0;
+              }
+              pokemon.getForm().getMoves().getEggMoves().forEach(move -> {
+                pokemon.getBenchedMoves().add(BenchedMove.Companion.loadFromJSON(move.create().saveToJSON(new JsonObject())));
+              });
+              return 1;
+            })
+        )
+    );
 
   }
 

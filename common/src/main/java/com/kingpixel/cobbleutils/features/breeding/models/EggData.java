@@ -5,9 +5,13 @@ import com.cobblemon.mod.common.CobblemonItems;
 import com.cobblemon.mod.common.api.abilities.Abilities;
 import com.cobblemon.mod.common.api.abilities.Ability;
 import com.cobblemon.mod.common.api.abilities.AbilityTemplate;
+import com.cobblemon.mod.common.api.moves.BenchedMove;
+import com.cobblemon.mod.common.api.moves.Move;
+import com.cobblemon.mod.common.api.moves.Moves;
 import com.cobblemon.mod.common.api.pokemon.Natures;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.api.pokemon.PokemonPropertyExtractor;
+import com.cobblemon.mod.common.api.pokemon.egg.EggGroup;
 import com.cobblemon.mod.common.api.pokemon.stats.Stats;
 import com.cobblemon.mod.common.api.storage.NoPokemonStoreException;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
@@ -15,6 +19,9 @@ import com.cobblemon.mod.common.item.CobblemonItem;
 import com.cobblemon.mod.common.pokemon.FormData;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.cobblemon.mod.common.pokemon.Species;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.CobbleUtilsTags;
 import com.kingpixel.cobbleutils.Model.ScalePokemonData;
@@ -37,6 +44,7 @@ import net.minecraft.world.chunk.Chunk;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.cobblemon.mod.common.CobblemonItems.*;
 
@@ -54,9 +62,10 @@ public class EggData {
   private String ability;
   private String size;
   private String form;
+  private String moves;
   private boolean random;
 
-  public static void spawnEgg(Chunk chunkAccess, ServerWorld level) {
+  public static PokemonEntity spawnEgg(Chunk chunkAccess, ServerWorld level) {
     try {
       // Generar una posición aleatoria dentro del chunk
       int offsetX = Utils.RANDOM.nextInt(16);
@@ -70,8 +79,7 @@ public class EggData {
       int worldY = level.getTopY(Heightmap.Type.MOTION_BLOCKING, worldX, worldZ);
 
       // Verificar que la altura no sea menor que -60
-      if (worldY < -60)
-        return;
+      if (worldY < -60) return null;
 
       // Crear y configurar el huevo
       PokemonEntity egg = createEgg(ArraysPokemons.getRandomPokemon(), level);
@@ -93,11 +101,12 @@ public class EggData {
       egg.setNoGravity(false); // Esto puede ser redundante ya que la gravedad es habilitada por defecto
 
       // Añadir el huevo al nivel
-      level.spawnEntity(egg);
+      return egg;
     } catch (Exception e) {
       CobbleUtils.LOGGER.error("Error spawning egg: " + e.getMessage());
       e.printStackTrace();
     }
+    return null;
   }
 
   public void EggToPokemon(Pokemon pokemon) {
@@ -117,9 +126,33 @@ public class EggData {
     pokemon.heal();
     pokemon.setNickname(null);
 
-    // pokemon.getSpecies().getMoves().getEggMoves().forEach(move ->
-    // pokemon.getBenchedMoves().add(BenchedMove
-    // .Companion.loadFromJSON(move.create().saveToJSON(new JsonObject()))));
+
+    if (moves != null && !moves.isEmpty()) {
+      try {
+        // Parsear el JSON string como un JsonObject
+        JsonObject jsonObject = JsonParser.parseString(moves).getAsJsonObject();
+
+        // Obtener el JsonArray bajo la clave "moves"
+        JsonArray jsonArray = jsonObject.getAsJsonArray("moves");
+        CobbleUtils.LOGGER.info("JsonArray Moves: " + jsonArray.toString());
+        jsonArray.forEach(element -> {
+          CobbleUtils.LOGGER.info(element.getAsString());
+
+          // Validar y agregar los movimientos a BenchedMoves
+          Move move = Moves.INSTANCE.getByName(element.getAsString()).create();
+          if (move != null) {
+            JsonObject moveJson = move.saveToJSON(new JsonObject());
+            BenchedMove benchedMove = BenchedMove.Companion.loadFromJSON(moveJson);
+            pokemon.getBenchedMoves().add(benchedMove);
+          } else {
+            CobbleUtils.LOGGER.error("Move not found: " + element.getAsString());
+          }
+        });
+      } catch (Exception e) {
+        CobbleUtils.LOGGER.error("Error to process JSON ARRAY: " + e.getMessage());
+      }
+    }
+
 
     removeAllpersistent(pokemon);
     HatchEggEvent.HATCH_EGG_EVENT.emit(pokemon);
@@ -135,6 +168,7 @@ public class EggData {
     pokemon.getPersistentData().remove("size");
     pokemon.getPersistentData().remove("form");
     pokemon.getPersistentData().remove("random");
+    pokemon.getPersistentData().remove("moves");
   }
 
   public static EggData from(Pokemon pokemon) {
@@ -149,6 +183,7 @@ public class EggData {
     eggData.setSize(pokemon.getPersistentData().getString("size"));
     eggData.setForm(pokemon.getPersistentData().getString("form"));
     eggData.setRandom(pokemon.getPersistentData().getBoolean("random"));
+    eggData.setMoves(pokemon.getPersistentData().getString("moves"));
     return eggData;
   }
 
@@ -236,6 +271,7 @@ public class EggData {
     }
 
     mecanicsLogic(male, female, usePokemonToEgg, egg);
+
     ScalePokemonData.getScalePokemonData(usePokemonToEgg).getRandomPokemonSize().apply(egg);
 
     player.sendMessage(
@@ -273,8 +309,7 @@ public class EggData {
       usePokemonToEgg = female;
       egg = EggData.pokemonToEgg(usePokemonToEgg, false);
     } else if (female.getSpecies().showdownId().equalsIgnoreCase("ditto")) {
-      if (!CobbleUtils.breedconfig.isDitto())
-        return null;
+      if (!CobbleUtils.breedconfig.isDitto()) return null;
       usePokemonToEgg = male;
       egg = EggData.pokemonToEgg(usePokemonToEgg, false);
     } else if (male.getSpecies().showdownId().equalsIgnoreCase(female.getSpecies().showdownId())) {
@@ -302,13 +337,17 @@ public class EggData {
   }
 
   public static boolean isCompatible(Pokemon male, Pokemon female) {
-    return female.getSpecies().getEggGroups().stream()
-      .anyMatch(eggGroup -> male.getSpecies().getEggGroups().contains(eggGroup));
+    if (male.getForm().getEggGroups().contains(EggGroup.UNDISCOVERED)) return false;
+    if (female.getForm().getEggGroups().contains(EggGroup.UNDISCOVERED)) return false;
+    return female.getForm().getEggGroups().stream()
+      .anyMatch(eggGroup -> male.getForm().getEggGroups().contains(eggGroup));
   }
 
   private static void mecanicsLogic(Pokemon male, Pokemon female, Pokemon usePokemonToEgg, Pokemon egg) {
-    Species firstEvolution = PokemonUtils.getFirstEvolution(usePokemonToEgg.getSpecies());
-
+    Species firstspecie = PokemonUtils.getFirstEvolution(usePokemonToEgg.getSpecies());
+    Pokemon firstEvolution =
+      PokemonProperties.Companion.parse(firstspecie.showdownId() + " form=" + female.getForm().showdownId() + " " + female.getForm().showdownId() + " " + female.getForm().getName()).create();
+    firstEvolution.setForm(female.getForm());
     // IVS
     egg.createPokemonProperties(List.of(PokemonPropertyExtractor.IVS, PokemonPropertyExtractor.GENDER)).apply(egg);
     applyInitialIvs(egg, male, female);
@@ -367,12 +406,44 @@ public class EggData {
     egg.createPokemonProperties(PokemonPropertyExtractor.GENDER).apply(egg);
 
     // Egg Moves
-    /*
-     * List<Move> eggMoves = new ArrayList<>();
-     * male.getMoveSet().forEach(move -> {
-     * PokemonUtils.isEggMove(male, move);
-     * });
-     */
+    List<String> moves = new ArrayList<>();
+    male.getMoveSet().getMoves().forEach(move -> moves.add(move.getName()));
+    female.getMoveSet().getMoves().forEach(move -> moves.add(move.getName()));
+
+    List<String> names = new ArrayList<>();
+    female.getForm().getMoves().getEggMoves().forEach(eggmove -> {
+      if (moves.contains(eggmove.getName())) {
+        names.add(eggmove.getName());
+      }
+    });
+
+    /*if (names.isEmpty()) {
+      List<MoveTemplate> movesegg = female.getForm().getMoves().getEggMoves();
+      if (!movesegg.isEmpty()) {
+        names.add(movesegg.get(Utils.RANDOM.nextInt(movesegg.size())).getName());
+      }
+    }*/
+
+    if (!names.isEmpty()) {
+      JsonArray jsonArray = new JsonArray();
+      names.forEach(jsonArray::add);
+
+      JsonObject jsonObject = new JsonObject();
+      jsonObject.add("moves", jsonArray);
+
+      // Verificar la estructura JSON antes de almacenarla
+      System.out.println("JSON a almacenar: " + jsonObject.toString());
+
+      egg.getPersistentData().putString("moves", jsonObject.toString());
+
+      // Verificar si se almacenó correctamente
+      String storedJson = egg.getPersistentData().getString("moves");
+      System.out.println("JSON almacenado: " + storedJson);
+    }
+
+
+    CobbleUtils.LOGGER.info("Egg Moves: " + egg.getPersistentData().getString("moves"));
+
   }
 
   private static void applyInitialIvs(Pokemon egg, Pokemon male, Pokemon female) {
@@ -454,19 +525,18 @@ public class EggData {
     }
   }
 
-  private static void applyAbility(Pokemon male, Pokemon female, Species firstEvolution, Pokemon egg) {
+  private static void applyAbility(Pokemon male, Pokemon female, Pokemon firstEvolution, Pokemon egg) {
     boolean maleHiddenAbility = PokemonUtils.haveAH(male);
     boolean femaleHiddenAbility = PokemonUtils.haveAH(female);
-    Ability obtainHability = null;
-    if (maleHiddenAbility && femaleHiddenAbility) {
+    if (maleHiddenAbility || femaleHiddenAbility) {
       if (Utils.RANDOM.nextInt(100) < 70) {
-        egg.getPersistentData().putString("ability", obtainHability.getName());
+        egg.getPersistentData().putString("ability", PokemonUtils.getAH(female).getName());
       } else {
-        Ability randomAbility = PokemonUtils.getRandomAbility(firstEvolution);
+        Ability randomAbility = PokemonUtils.getRandomAbility(female);
         egg.getPersistentData().putString("ability", randomAbility.getName());
       }
     } else {
-      Ability randomAbility = PokemonUtils.getRandomAbility(firstEvolution);
+      Ability randomAbility = PokemonUtils.getRandomAbility(female);
       egg.getPersistentData().putString("ability", randomAbility.getName());
     }
   }
@@ -480,32 +550,27 @@ public class EggData {
     pokemonProperties.add(PokemonPropertyExtractor.NATURE);
     egg.getPokemon().createPokemonProperties(pokemonProperties).apply(egg);
     ScalePokemonData.getScalePokemonData(pokemon).getRandomPokemonSize().apply(egg.getPokemon());
-    String specie = getExcepcionalSpecie(pokemon);
-    EggData.applyPersistent(egg.getPokemon(), pokemon, specie, false);
+    EggData.applyPersistent(egg.getPokemon(), pokemon, null, false);
     return egg;
   }
 
-  private static Pokemon pokemonToEgg(Pokemon pokemon, boolean dittos) {
-    String specie = getExcepcionalSpecie(pokemon);
+  private static Pokemon pokemonToEgg(Pokemon usePokemon, boolean dittos) {
+    String specie = getExcepcionalSpecie(usePokemon);
     Pokemon egg = PokemonProperties.Companion.parse("egg type_egg=" + specie).create();
-    EggData.applyPersistent(egg, pokemon, specie, dittos);
+    EggData.applyPersistent(egg, usePokemon, specie, dittos);
     return egg;
   }
 
-  private static List<String> pokemonExceptions = new ArrayList<>();
-
-  static {
-    pokemonExceptions.add("snorlax");
-  }
 
   private static String getExcepcionalSpecie(Pokemon pokemon) {
-    pokemonExceptions.forEach(
-      pokemonException -> CobbleUtils.LOGGER.info("Pokemon Exception: " + pokemonException));
-    if (pokemonExceptions.contains(pokemon.getSpecies().showdownId())) {
-      return pokemon.getSpecies().showdownId();
-    } else {
-      return null;
-    }
+    AtomicReference<String> s = new AtomicReference<>();
+    CobbleUtils.breedconfig.getIncenses().forEach(incense -> {
+      if (s.get() == null) {
+        s.set(incense.getChild(pokemon));
+      }
+    });
+    CobbleUtils.LOGGER.info("Excepcional Specie: " + s.get());
+    return s.get();
   }
 
   private static void applyPersistent(Pokemon egg, Pokemon pokemon, String species, boolean dittos) {
@@ -575,6 +640,6 @@ public class EggData {
 
   public String getInfo() {
     return "Species: " + species + " Level: " + level + " Steps: " + steps + " Cycles: " + cycles + " Ability: "
-      + ability + " Form:" + form;
+      + ability + " Form:" + form + " Moves:" + moves;
   }
 }

@@ -4,23 +4,23 @@ import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.storage.NoPokemonStoreException;
 import com.cobblemon.mod.common.api.storage.party.PlayerPartyStore;
 import com.cobblemon.mod.common.pokemon.Pokemon;
-import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.features.breeding.models.EggData;
 import dev.architectury.event.events.common.TickEvent;
 import net.minecraft.entity.EntityPose;
 import net.minecraft.util.math.Vec3d;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author Carlos Varas Alonso - 23/07/2024 21:49
  */
 public class WalkBreeding {
-  private static Map<UUID, Vec3d> lastPosition = new HashMap<>();
-  private static Map<UUID, Integer> ticks = new HashMap<>();
+  private static Map<UUID, Vec3d> lastPosition = new ConcurrentHashMap<>();
+  private static Map<UUID, Integer> ticks = new ConcurrentHashMap<>() {
+  };
 
   public static void register() {
 
@@ -36,11 +36,7 @@ public class WalkBreeding {
             return;
           } else {
             Vec3d currentPosition = new Vec3d(player.getX(), 0, player.getZ());
-            if (CobbleUtils.config.isDebug()) {
-              distanceMoved.set(999);
-            } else {
-              distanceMoved.set((int) Math.min(20, currentPosition.distanceTo(lastPosition.get(player.getUuid()))));
-            }
+            distanceMoved.set((int) Math.min(20, currentPosition.distanceTo(lastPosition.get(player.getUuid()))));
             lastPosition.put(player.getUuid(), currentPosition);
           }
           PlayerPartyStore playerPartyStore = Cobblemon.INSTANCE.getStorage().getParty(player.getUuid());
@@ -66,11 +62,11 @@ public class WalkBreeding {
             EggData eggData = EggData.from(pokemon);
             if (eggData == null)
               return;
-
+            int distance = distanceMoved.get();
             if (duplicate) {
-              distanceMoved.set(distanceMoved.get() * 2);
+              distance = distance * 2;
             }
-            eggData.steps(pokemon, distanceMoved.get());
+            eggData.steps(pokemon, distance);
           });
         } catch (NoPokemonStoreException e) {
           throw new RuntimeException(e);

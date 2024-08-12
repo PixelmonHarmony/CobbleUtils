@@ -3,10 +3,7 @@ package com.kingpixel.cobbleutils.command.base;
 import com.cobblemon.mod.common.command.argument.PartySlotArgumentType;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.CobbleUtils;
-import com.kingpixel.cobbleutils.util.AdventureTranslator;
-import com.kingpixel.cobbleutils.util.LuckPermsUtil;
-import com.kingpixel.cobbleutils.util.PlayerUtils;
-import com.kingpixel.cobbleutils.util.PokemonUtils;
+import com.kingpixel.cobbleutils.util.*;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -43,12 +40,12 @@ public class PokeShout implements Command<CommandSource> {
               Pokemon pokemon = PartySlotArgumentType.Companion.getPokemon(context, "slot");
               ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
               if (pokemon != null) {
-                //Utils.broadcastMessage(getMessage(player, pokemon));
+                Utils.broadcastMessage(getMessage(player, pokemon));
+                return 1;
               } else {
                 PlayerUtils.sendMessage(player, CobbleUtils.language.getMessageNoPokemon());
+                return 0;
               }
-
-              return 0;
             })));
   }
 

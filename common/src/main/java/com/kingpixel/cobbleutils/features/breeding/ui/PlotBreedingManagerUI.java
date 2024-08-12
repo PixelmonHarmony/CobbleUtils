@@ -12,17 +12,16 @@ import com.cobblemon.mod.common.item.PokemonItem;
 import com.cobblemon.mod.common.pokemon.Gender;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.Model.ItemModel;
 import com.kingpixel.cobbleutils.features.breeding.Breeding;
 import com.kingpixel.cobbleutils.features.breeding.models.PlotBreeding;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.PokemonUtils;
 import com.kingpixel.cobbleutils.util.RewardsUtils;
 import com.kingpixel.cobbleutils.util.UIUtils;
-import net.minecraft.item.Items;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
-import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -45,7 +44,7 @@ public class PlotBreedingManagerUI {
       plotBreeding.setMale(null);
       Breeding.managerPlotEggs.writeInfo(player);
       open(player, plotBreeding);
-    });
+    }, Gender.MALE);
 
     GooeyButton female = createButton(pokemonfemale, action -> {
       if (pokemonfemale == null) {
@@ -56,7 +55,7 @@ public class PlotBreedingManagerUI {
       plotBreeding.setFemale(null);
       Breeding.managerPlotEggs.writeInfo(player);
       open(player, plotBreeding);
-    });
+    }, Gender.FEMALE);
 
     Pokemon pokemonegg = null;
 
@@ -99,13 +98,20 @@ public class PlotBreedingManagerUI {
     UIManager.openUIForcefully(player, page);
   }
 
-  private static GooeyButton createButton(Pokemon pokemon, Consumer<ButtonAction> action) {
+  private static GooeyButton createButton(Pokemon pokemon, Consumer<ButtonAction> action, Gender gender) {
+    ItemModel itemModel = new ItemModel();
+    if (gender == Gender.MALE) {
+      itemModel = CobbleUtils.breedconfig.getMaleSelectItem();
+    } else if (gender == Gender.FEMALE) {
+      itemModel = CobbleUtils.breedconfig.getFemaleSelectItem();
+    }
     return GooeyButton.builder()
-      .display((pokemon != null ? PokemonItem.from(pokemon) : Items.BARRIER.getDefaultStack()))
+      .display((pokemon != null ? PokemonItem.from(pokemon) : itemModel.getItemStack()))
       .title(AdventureTranslator
-        .toNative((pokemon != null ? PokemonUtils.replace(pokemon) : CobbleUtils.language.getEmpty())))
+        .toNative((pokemon != null ? PokemonUtils.replace(pokemon) :
+          CobbleUtils.language.getGender().getOrDefault(gender.getShowdownName(), gender.name()))))
       .lore(Text.class,
-        AdventureTranslator.toNativeL((pokemon != null ? PokemonUtils.replaceLore(pokemon) : List.of(""))))
+        AdventureTranslator.toNativeL((pokemon != null ? PokemonUtils.replaceLore(pokemon) : itemModel.getLore())))
       .onClick(action)
       .build();
   }
