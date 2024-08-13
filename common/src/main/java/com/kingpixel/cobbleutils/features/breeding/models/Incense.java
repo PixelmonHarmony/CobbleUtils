@@ -1,7 +1,6 @@
 package com.kingpixel.cobbleutils.features.breeding.models;
 
 import com.cobblemon.mod.common.pokemon.Pokemon;
-import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.ItemModel;
 import com.kingpixel.cobbleutils.Model.PokemonData;
 import lombok.Getter;
@@ -45,31 +44,24 @@ public class Incense extends ItemModel {
   }
 
   public String getChild(Pokemon pokemon) {
+    if (pokemonIncense.isEmpty()) return null;
     String pokemonName = pokemon.getSpecies().showdownId();
-    CobbleUtils.LOGGER.info("Looking for: " + pokemonName);
 
     if (isIncense(pokemon.heldItem())) {
-      CobbleUtils.LOGGER.info("Pokemon holds incense");
       for (PokemonIncense pokemonIncense1 : pokemonIncense) {
-        CobbleUtils.LOGGER.info("Checking Parent: " + pokemonIncense1.getParent().getPokename());
         if (pokemonIncense1.getParent().getPokename().equalsIgnoreCase(pokemonName)) {
           String childName = pokemonIncense1.getChild().getPokename();
-          CobbleUtils.LOGGER.info("Match found! Child: " + childName);
           return childName;
         }
       }
     } else {
-      CobbleUtils.LOGGER.info("Pokemon does not hold incense");
       for (PokemonIncense pokemonIncense1 : pokemonIncense) {
-        CobbleUtils.LOGGER.info("Checking Parent: " + pokemonIncense1.getParent().getPokename());
         if (pokemonIncense1.getParent().getPokename().equalsIgnoreCase(pokemonName)) {
-          CobbleUtils.LOGGER.info("Match found! Parent: " + pokemonIncense1.getParent().getPokename());
           return pokemonIncense1.getParent().getPokename();
         }
       }
     }
 
-    CobbleUtils.LOGGER.info("No match found in Incense list.");
     return null;
   }
 

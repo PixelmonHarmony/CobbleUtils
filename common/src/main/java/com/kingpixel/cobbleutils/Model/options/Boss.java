@@ -28,8 +28,8 @@ public class Boss {
   private List<BossChance> bossChances;
 
   public Boss() {
-    this.active = true;
-    this.shiny = true;
+    this.active = false;
+    this.shiny = false;
     this.forceAspectBoss = false;
     this.rarity = 8192;
     this.blacklist = List.of("ditto");

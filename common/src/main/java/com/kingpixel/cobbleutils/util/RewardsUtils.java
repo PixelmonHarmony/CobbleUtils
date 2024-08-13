@@ -184,9 +184,7 @@ public class RewardsUtils {
         return newRewardsData;
       });
     rewardsData.getCommands().add(command.replace("%player%", player.getGameProfile().getName()));
-    if (!CobbleUtils.config.isRewards() || CobbleUtils.config.isDirectreward()) {
-      giveCommandRewards(rewardsData.getCommands());
-    }
+    giveCommandRewards(rewardsData.getCommands());
     rewardsData.writeInfo();
     return true;
   }
@@ -207,23 +205,20 @@ public class RewardsUtils {
       });
     commands.replaceAll(command -> command.replace("%player%", player.getGameProfile().getName()));
     rewardsData.getCommands().addAll(commands);
-    if (!CobbleUtils.config.isRewards() || CobbleUtils.config.isDirectreward()) {
-      giveCommandRewards(rewardsData.getCommands());
-    }
+    giveCommandRewards(rewardsData.getCommands());
     rewardsData.writeInfo();
   }
 
   private static void giveCommandRewards(List<String> commands) {
-    if (CobbleUtils.config.isDirectreward() || !CobbleUtils.config.isRewards()) {
-      commands.forEach(c -> {
-        try {
-          CobbleUtilities.executeCommand(c);
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-      });
-      commands.clear();
-    }
+    commands.forEach(c -> {
+      try {
+        CobbleUtilities.executeCommand(c);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    });
+    commands.clear();
+
   }
 
   /**

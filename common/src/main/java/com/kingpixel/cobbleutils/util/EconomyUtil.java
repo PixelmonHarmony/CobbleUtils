@@ -14,10 +14,28 @@ import java.util.UUID;
 /**
  * @author Carlos Varas Alonso - 06/08/2024 11:50
  */
-public class EconomyUtil {
+public abstract class EconomyUtil {
 
   // The impactor service
   private static EconomyService service = EconomyService.instance();
+
+  public static boolean isImpactorPresent() {
+    try {
+      Class.forName("net.impactdev.impactor.api.Impactor");
+      return true;
+    } catch (ClassNotFoundException e) {
+      return false;
+    }
+  }
+
+  public static boolean isVaultApi() {
+    try {
+      Class.forName("net.milkbowl.vault.economy.Economy");
+      return true;
+    } catch (ClassNotFoundException e) {
+      return false;
+    }
+  }
 
   public static Account getAccount(UUID uuid, String c) {
     if (!service.hasAccount(uuid).join()) {
@@ -27,29 +45,67 @@ public class EconomyUtil {
     return service.account(currency, uuid).join();
   }
 
+  public static Account getAccount(UUID uuid) {
+    if (!service.hasAccount(uuid).join()) {
+      return service.account(uuid).join();
+    }
+    return service.account(uuid).join();
+  }
+
   /**
    * Method to add to the balance of an account.
    *
-   * @param account The account to add the balance to.
-   * @param amount  The amount to add.
+   * @param player   The account to add the balance to.
+   * @param currency The currency to add the balance to.
+   * @param amount   The amount to add.
    *
    * @return true if the transaction was successful.
    */
-  public static boolean add(Account account, double amount) {
-    EconomyTransaction transaction = account.deposit(new BigDecimal(amount));
-    return transaction.successful();
+  public static boolean addMoney(ServerPlayerEntity player, String currency, BigDecimal amount) {
+    if (isImpactorPresent()) {
+      Account account;
+      if (currency.isEmpty()) {
+        account = getAccount(player.getUuid());
+      } else {
+        account = getAccount(player.getUuid(), currency);
+      }
+      EconomyTransaction transaction = account.deposit(amount);
+      return transaction.successful();
+    } else if (isVaultApi()) {
+      return false;
+    } else {
+      return false;
+    }
   }
 
   /**
    * Method to remove a balance from an account.
    *
-   * @param account The account to remove the balance from.
-   * @param amount  The amount to remove from the account.
+   * @param player   The player to remove the balance from.
+   * @param amount   The amount to remove from the account.
+   * @param currency The currency to remove the balance from.
    *
    * @return true if the transaction was successful.
    */
-  public static boolean remove(Account account, double amount) {
-    EconomyTransaction transaction = account.withdraw(new BigDecimal(amount));
+  public static boolean removeMoney(ServerPlayerEntity player, String currency, BigDecimal amount) {
+    if (isImpactorPresent()) {
+      Account account;
+      if (currency.isEmpty()) {
+        account = getAccount(player.getUuid());
+      } else {
+        account = getAccount(player.getUuid(), currency);
+      }
+      EconomyTransaction transaction = account.withdraw(amount);
+      return transaction.successful();
+    } else if (isVaultApi()) {
+      return false;
+    } else {
+      return false;
+    }
+  }
+
+  public static boolean removeMoney(Account account, BigDecimal amount) {
+    EconomyTransaction transaction = account.withdraw(amount);
     return transaction.successful();
   }
 
@@ -62,14 +118,9 @@ public class EconomyUtil {
    *
    * @return true if the account has enough balance.
    */
-  public static boolean hasEnough(Account account, double amount) {
-    if (CobbleUtils.config.isDebug()) {
-      CobbleUtils.LOGGER.info("Checking if account has enough money: ");
-      CobbleUtils.LOGGER.info("Account: " + account.owner());
-      CobbleUtils.LOGGER.info("Amount: " + amount);
-    }
-    if (account.balance().compareTo(new BigDecimal(amount)) >= 0) {
-      remove(account, amount);
+  public static boolean hasEnoughImpactor(Account account, BigDecimal amount) {
+    if (account.balance().compareTo(amount) >= 0) {
+      removeMoney(account, amount);
       CobbleUtils.server.getPlayerManager().getPlayer(account.owner()).sendMessage(AdventureTranslator.toNative(
         CobbleUtils.language.getMessageBought()
           .replace("%price%", String.valueOf(amount))
@@ -77,17 +128,34 @@ public class EconomyUtil {
           .replace("%prefix%", CobbleUtils.language.getPrefixShop())));
       return true;
     } else {
-      CobbleUtils.server.getPlayerManager().getPlayer(account.owner()).sendMessage(AdventureTranslator.toNative(
-        CobbleUtils.language.getMessageNotHaveMoney()
-          .replace("%price%", String.valueOf(amount))
-          .replace("%bal%", account.balance().toString())
-          .replace("%prefix%", CobbleUtils.language.getPrefixShop())));
+      CobbleUtils.server.getPlayerManager().getPlayer(account.owner()).sendMessage(
+        AdventureTranslator.toNative(
+          CobbleUtils.language.getMessageNotHaveMoney()
+            .replace("%price%", String.valueOf(amount))
+            .replace("%bal%", account.balance().toString())
+            .replace("%prefix%", CobbleUtils.language.getPrefixShop())));
       return false;
     }
   }
 
-  public static boolean hasEnough(ServerPlayerEntity player, String currency, double amount) {
-    return hasEnough(getAccount(player.getUuid(), currency), amount);
+  public static boolean hasEnough(ServerPlayerEntity player, BigDecimal amount) {
+    if (isImpactorPresent()) {
+      return hasEnoughImpactor(getAccount(player.getUuid()), amount);
+    } else if (isVaultApi()) {
+      return false;
+    } else {
+      return false;
+    }
+  }
+
+  public static boolean hasEnough(ServerPlayerEntity player, String currency, BigDecimal amount) {
+    if (isImpactorPresent()) {
+      return hasEnoughImpactor(getAccount(player.getUuid(), currency), amount);
+    } else if (isVaultApi()) {
+      return false;
+    } else {
+      return false;
+    }
   }
 
 }

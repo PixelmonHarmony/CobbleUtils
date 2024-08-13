@@ -36,6 +36,7 @@ public class Config {
   private List<String> commandparty;
   private List<String> commmandplugin;
   private boolean randomsize;
+  private boolean shops;
   private boolean shulkers;
   private boolean fossil;
   private boolean shinyparticle;
@@ -46,8 +47,6 @@ public class Config {
   private boolean directreward;
   private boolean solveSizeRandom;
   private int alertreward;
-  private float minpokemonsize;
-  private float maxpokemonsize;
   private String pokeshout;
   private String pokeshoutall;
   private Pokerus pokerus;
@@ -74,6 +73,7 @@ public class Config {
     commandparty = List.of("party", "cuparty");
     commandrewards = List.of("rewards", "curewards");
     commmandplugin = List.of("cobbleutils", "pokeutils");
+    shops = true;
     shulkers = true;
     randomsize = false;
     fossil = true;
@@ -84,8 +84,6 @@ public class Config {
     rewards = true;
     directreward = true;
     activeshinytoken = true;
-    minpokemonsize = 0.01f;
-    maxpokemonsize = 10f;
     alertreward = 15;
     pokeshout = "pokeshoutplus";
     pokeshoutall = "pokeshoutplusall";
@@ -128,6 +126,7 @@ public class Config {
         debug = config.isDebug();
         prefix = config.getPrefix();
         lang = config.getLang();
+        shops = config.isShops();
         fill = config.getFill();
         shinytoken = config.getShinytoken();
         directreward = config.isDirectreward();
@@ -137,8 +136,6 @@ public class Config {
         pickup = config.isPickup();
         database = config.getDatabase();
         shinyparticle = config.isShinyparticle();
-        minpokemonsize = config.getMinpokemonsize();
-        maxpokemonsize = config.getMaxpokemonsize();
         pokemonsizes = config.getPokemonsizes();
         solveSizeRandom = config.isSolveSizeRandom();
         defaultsize = config.getDefaultsize();

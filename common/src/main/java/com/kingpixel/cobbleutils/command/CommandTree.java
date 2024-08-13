@@ -1,9 +1,5 @@
 package com.kingpixel.cobbleutils.command;
 
-import com.cobblemon.mod.common.api.moves.BenchedMove;
-import com.cobblemon.mod.common.command.argument.PartySlotArgumentType;
-import com.cobblemon.mod.common.pokemon.Pokemon;
-import com.google.gson.JsonObject;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.command.admin.*;
 import com.kingpixel.cobbleutils.command.admin.boss.SpawnBoss;
@@ -111,22 +107,9 @@ public class CommandTree {
       }
     }
 
-    dispatcher.register(
-      CommandManager.literal("eggmoves")
-        .then(
-          CommandManager.argument("slot", PartySlotArgumentType.Companion.partySlot())
-            .executes(context -> {
-              Pokemon pokemon = PartySlotArgumentType.Companion.getPokemon(context, "slot");
-              if (pokemon == null) {
-                return 0;
-              }
-              pokemon.getForm().getMoves().getEggMoves().forEach(move -> {
-                pokemon.getBenchedMoves().add(BenchedMove.Companion.loadFromJSON(move.create().saveToJSON(new JsonObject())));
-              });
-              return 1;
-            })
-        )
-    );
+    if (CobbleUtils.config.isShops()) {
+      ShopCommand.register(dispatcher, CommandManager.literal("shop"));
+    }
 
   }
 

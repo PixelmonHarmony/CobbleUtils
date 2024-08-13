@@ -6,6 +6,7 @@ import com.kingpixel.cobbleutils.util.Utils;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -80,6 +81,11 @@ public class ScalePokemonData {
    */
   public static SizeChanceWithoutItem getRandomSize(List<SizeChanceWithoutItem> SizeChance) {
     int totalWeight = SizeChance.stream().mapToInt(SizeChanceWithoutItem::getChance).sum();
+    return getSizeChanceWithoutItem(SizeChance, totalWeight);
+  }
+
+  @NotNull
+  private static SizeChanceWithoutItem getSizeChanceWithoutItem(List<SizeChanceWithoutItem> SizeChance, int totalWeight) {
     int randomValue = Utils.RANDOM.nextInt(totalWeight) + 1;
 
     int currentWeight = 0;
@@ -129,16 +135,7 @@ public class ScalePokemonData {
    */
   public SizeChanceWithoutItem getRandomPokemonSize() {
     int totalWeight = sizes.stream().mapToInt(SizeChanceWithoutItem::getChance).sum();
-    int randomValue = Utils.RANDOM.nextInt(totalWeight) + 1;
-
-    int currentWeight = 0;
-    for (SizeChanceWithoutItem sizeChance : sizes) {
-      currentWeight += sizeChance.getChance();
-      if (randomValue <= currentWeight) {
-        return sizeChance;
-      }
-    }
-    return new SizeChanceWithoutItem();
+    return getSizeChanceWithoutItem(sizes, totalWeight);
   }
 
   /**
@@ -179,7 +176,8 @@ public class ScalePokemonData {
 
   public SizeChanceWithoutItem getSize(Pokemon pokemon) {
     String size = pokemon.getPersistentData().getString("size");
-    return getScalePokemonData(pokemon).getSizes()
+    return getScalePokemonData(pokemon)
+      .getSizes()
       .stream()
       .filter(sizeChanceWithoutItem -> sizeChanceWithoutItem.getId().equalsIgnoreCase(size))
       .findFirst()

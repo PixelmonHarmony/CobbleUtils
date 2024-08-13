@@ -25,6 +25,7 @@ allprojects {
         maven("https://maven.impactdev.net/repository/development/")
         maven("https://cursemaven.com")
         maven("https://thedarkcolour.github.io/KotlinForForge/")
+        maven(url = "https://jitpack.io")
         maven(url = "https://maven.fabricmc.net/")
         maven(url = "https://maven.architectury.dev/")
         maven(url = "https://maven.impactdev.net/repository/development")

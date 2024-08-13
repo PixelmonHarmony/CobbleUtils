@@ -28,8 +28,8 @@ public class PokemonSize implements Command<ServerCommandSource> {
 
   public static void register(CommandDispatcher<ServerCommandSource> dispatcher,
                               LiteralArgumentBuilder<ServerCommandSource> base) {
-    float minsize = CobbleUtils.config.getMinpokemonsize();
-    float maxsize = CobbleUtils.config.getMaxpokemonsize();
+    float minsize = 0.01f;
+    float maxsize = 25f;
     dispatcher.register(
       base
 

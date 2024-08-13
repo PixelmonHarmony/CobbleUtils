@@ -32,8 +32,8 @@ public class BossChance {
     this.chance = 0.1;
     this.minlevel = 105;
     this.maxlevel = 110;
-    this.minsize = 2.5f;
-    this.maxsize = 5.0f;
+    this.minsize = 1.5f;
+    this.maxsize = 2.0f;
     this.amountrewards = 1;
     this.allrewards = false;
     this.pokemons = new PokemonDataBoss();
@@ -45,8 +45,8 @@ public class BossChance {
     this.chance = 0.1;
     this.minlevel = 1;
     this.maxlevel = 100;
-    this.minsize = 2.5f;
-    this.maxsize = 5.0f;
+    this.minsize = 1.5f;
+    this.maxsize = 2.0f;
     this.amountrewards = 1;
     this.allrewards = false;
     this.pokemons = new PokemonDataBoss();

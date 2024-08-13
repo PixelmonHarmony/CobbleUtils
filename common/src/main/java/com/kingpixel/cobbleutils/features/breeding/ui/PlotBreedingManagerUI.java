@@ -46,6 +46,19 @@ public class PlotBreedingManagerUI {
       open(player, plotBreeding);
     }, Gender.MALE);
 
+    CobbleUtils.breedconfig.getMaleSlots().forEach(slot -> {
+      template.set(slot, createEmptyButton(pokemonmale, action -> {
+        if (pokemonmale == null) {
+          PlotSelectPokemonUI.selectPokemon(player, plotBreeding, Gender.MALE);
+          return;
+        }
+        Cobblemon.INSTANCE.getStorage().getParty(player).add(pokemonmale);
+        plotBreeding.setMale(null);
+        Breeding.managerPlotEggs.writeInfo(player);
+        open(player, plotBreeding);
+      }, Gender.MALE));
+    });
+    // Female
     GooeyButton female = createButton(pokemonfemale, action -> {
       if (pokemonfemale == null) {
         PlotSelectPokemonUI.selectPokemon(player, plotBreeding, Gender.FEMALE);
@@ -56,6 +69,19 @@ public class PlotBreedingManagerUI {
       Breeding.managerPlotEggs.writeInfo(player);
       open(player, plotBreeding);
     }, Gender.FEMALE);
+
+    CobbleUtils.breedconfig.getFemaleSlots().forEach(slot -> {
+      template.set(slot, createEmptyButton(pokemonfemale, action -> {
+        if (pokemonfemale == null) {
+          PlotSelectPokemonUI.selectPokemon(player, plotBreeding, Gender.FEMALE);
+          return;
+        }
+        Cobblemon.INSTANCE.getStorage().getParty(player).add(pokemonfemale);
+        plotBreeding.setFemale(null);
+        Breeding.managerPlotEggs.writeInfo(player);
+        open(player, plotBreeding);
+      }, Gender.FEMALE));
+    });
 
     Pokemon pokemonegg = null;
 
@@ -90,9 +116,16 @@ public class PlotBreedingManagerUI {
     template.set(16, female);
     template.set((row * 9) - 5, UIUtils.getCloseButton(action -> PlotBreedingUI.open(player)));
 
+    String title = "";
+    if (!plotBreeding.getEggs().isEmpty()) {
+      title = CobbleUtils.breedconfig.getTitleplot();
+    } else {
+      title = CobbleUtils.breedconfig.getTitleemptyplot();
+    }
+
     GooeyPage page = GooeyPage.builder()
       .template(template)
-      .title(AdventureTranslator.toNative(CobbleUtils.breedconfig.getTitleplot()))
+      .title(AdventureTranslator.toNative(title))
       .build();
 
     UIManager.openUIForcefully(player, page);
@@ -112,6 +145,25 @@ public class PlotBreedingManagerUI {
           CobbleUtils.language.getGender().getOrDefault(gender.getShowdownName(), gender.name()))))
       .lore(Text.class,
         AdventureTranslator.toNativeL((pokemon != null ? PokemonUtils.replaceLore(pokemon) : itemModel.getLore())))
+      .onClick(action)
+      .build();
+  }
+
+  private static GooeyButton createEmptyButton(Pokemon pokemon, Consumer<ButtonAction> action, Gender gender) {
+    ItemModel supportItemModel = new ItemModel();
+    ItemModel emptyItemModel = CobbleUtils.breedconfig.getEmptySlots();
+    if (gender == Gender.MALE) {
+      supportItemModel = CobbleUtils.breedconfig.getMaleSelectItem();
+    } else if (gender == Gender.FEMALE) {
+      supportItemModel = CobbleUtils.breedconfig.getFemaleSelectItem();
+    }
+    return GooeyButton.builder()
+      .display(emptyItemModel.getItemStack())
+      .title(AdventureTranslator
+        .toNative((pokemon != null ? PokemonUtils.replace(pokemon) :
+          CobbleUtils.language.getGender().getOrDefault(gender.getShowdownName(), gender.name()))))
+      .lore(Text.class,
+        AdventureTranslator.toNativeL((pokemon != null ? PokemonUtils.replaceLore(pokemon) : supportItemModel.getLore())))
       .onClick(action)
       .build();
   }

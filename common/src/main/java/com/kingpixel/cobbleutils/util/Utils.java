@@ -231,7 +231,7 @@ public abstract class Utils {
     itemStack.setCustomName(AdventureTranslator.toNativeWithOutPrefix(
       itemModel.getDisplayname() != null ? itemModel.getDisplayname() : "Please set a displayname for this item"));
     if (itemModel.getCustomModelData() != 0)
-      itemStack.getOrCreateNbt().putInt("CustomModelData", itemModel.getCustomModelData());
+      itemStack.getOrCreateNbt().putLong("CustomModelData", itemModel.getCustomModelData());
     if (itemModel.getLore() != null && !itemModel.getLore().isEmpty()) {
       NbtList nbtLore = new NbtList();
       List<Text> lorecomp = AdventureTranslator.toNativeL(itemModel.getLore());
@@ -263,6 +263,12 @@ public abstract class Utils {
     ItemStack itemStack = Items.PLAYER_HEAD.getDefaultStack();
     itemStack.getOrCreateNbt().putString("SkullOwner", replace);
     itemStack.setCount(amount);
+    return itemStack;
+  }
+
+  public static ItemStack parseItemId(String item, int amount, long customModelData) {
+    ItemStack itemStack = parseItemId(item, amount);
+    if (customModelData != 0) itemStack.getOrCreateNbt().putLong("CustomModelData", customModelData);
     return itemStack;
   }
 }

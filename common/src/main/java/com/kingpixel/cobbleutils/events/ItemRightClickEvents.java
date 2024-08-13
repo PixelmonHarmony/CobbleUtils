@@ -17,12 +17,10 @@ public class ItemRightClickEvents {
   public static CompoundEventResult register(PlayerEntity player, Hand hand) {
     ItemStack itemStack = player.getStackInHand(hand);
     NbtCompound tag = itemStack.getNbt();
-    if (tag == null)
-      return CompoundEventResult.pass();
+    if (tag == null) return CompoundEventResult.pass();
     if (itemStack.hasNbt() && tag.contains("shinytoken")
       && itemStack.getItem() == CobbleUtils.config.getShinytoken().getItemStack().getItem()) {
-      if (!CobbleUtils.config.isActiveshinytoken())
-        return CompoundEventResult.pass();
+      if (!CobbleUtils.config.isActiveshinytoken()) return CompoundEventResult.pass();
       ShinyTokenUI.openmenu((ServerPlayerEntity) player);
     }
     if (itemStack.getItem().getTranslationKey(player.getMainHandStack()).contains("shulker_box")) {

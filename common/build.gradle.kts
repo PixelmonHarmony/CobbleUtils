@@ -29,19 +29,20 @@ dependencies {
     modImplementation("me.clip:placeholderapi:${property("placeholder_api_version_spigot")}")
 
     // Database
-    api("org.mongodb:mongodb-driver-reactivestreams:5.1.2")
+    //api("org.mongodb:mongodb-driver-reactivestreams:5.1.2")
 
     // Lombok
     annotationProcessor("org.projectlombok:lombok:1.18.20")
     implementation("org.projectlombok:lombok:1.18.20")
 
     // LuckPerms
-    compileOnly("net.luckperms:api:${property("luckperms_version")}")
+    api("net.luckperms:api:${property("luckperms_version")}")
 
-    // Impactor
-    implementation("net.impactdev.impactor.api:economy:${property("impactor_version")}")
-
+    // Economy
+    api("net.impactdev.impactor.api:economy:${property("impactor_version")}")
+    api("com.github.MilkBowl:VaultAPI:1.7")
     // Kyori Adventure
+
     api("net.kyori:examination-api:1.3.0")
     api("net.kyori:examination-string:1.3.0")
     api("net.kyori:adventure-api:4.14.0")

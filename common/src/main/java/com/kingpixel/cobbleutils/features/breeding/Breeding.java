@@ -98,11 +98,15 @@ public class Breeding {
       countryPlayer(player);
     });
 
+    PlayerEvent.PLAYER_QUIT.register(player -> managerPlotEggs.writeInfo(player));
+
     LifecycleEvent.SERVER_STOPPING.register(instance -> {
       for (ScheduledFuture<?> task : scheduledTasks) {
         task.cancel(false);
       }
       scheduledTasks.clear();
+      CobbleUtils.LOGGER.info("Writing info breeding");
+      managerPlotEggs.getEggs().forEach((key, value) -> managerPlotEggs.writeInfo(key));
     });
     ChunkEvent.LOAD_DATA.register((chunk, level, nbtCompound) -> {
       if (!CobbleUtils.breedconfig.isSpawnEggWorld()) return;
@@ -118,6 +122,8 @@ public class Breeding {
     EggThrow.register();
     PastureUI.register();
     NationalityPokemon.register();
+
+
   }
 
   private static EventResult egg(Entity entity, ServerPlayerEntity player) {

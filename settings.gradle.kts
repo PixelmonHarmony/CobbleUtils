@@ -10,6 +10,7 @@ pluginManagement {
         maven(url = "https://repo.spongepowered.org/maven/")
         maven(url = "https://files.minecraftforge.net/maven/")
         maven(url = "https://papermc.io/repo/repository/maven-public/")
+        maven(url = "https://jitpack.io")
         maven {
             name = "sonatype-oss-snapshots1"
             url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")

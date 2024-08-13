@@ -29,10 +29,20 @@ public class ItemModel {
   private String item;
   private String displayname;
   private List<String> lore = new ArrayList<>();
-  private int CustomModelData = 0;
+  private long CustomModelData = 0;
   private String nbt;
 
+
   public ItemModel() {
+  }
+
+  public ItemModel(String item) {
+    this.slot = 0;
+    this.item = item;
+    this.displayname = "";
+    this.lore = new ArrayList<>();
+    this.CustomModelData = 0;
+    this.nbt = "";
   }
 
   public ItemModel(String item, String displayname, List<String> lore) {
@@ -57,6 +67,30 @@ public class ItemModel {
   }
 
   public ItemModel(Integer slot, String item, String displayname, List<String> lore, int customModelData, String nbt) {
+    this.slot = slot;
+    this.item = item;
+    this.displayname = displayname;
+    this.lore = lore;
+    CustomModelData = customModelData;
+    this.nbt = nbt;
+  }
+
+  public ItemModel(String item, String displayname, List<String> lore, long customModelData) {
+    this.item = item;
+    this.displayname = displayname;
+    this.lore = lore;
+    this.CustomModelData = customModelData;
+  }
+
+  public ItemModel(Integer slot, String item, String displayname, List<String> lore, long customModelData) {
+    this.slot = slot;
+    this.item = item;
+    this.displayname = displayname;
+    this.lore = lore;
+    CustomModelData = customModelData;
+  }
+
+  public ItemModel(Integer slot, String item, String displayname, List<String> lore, long customModelData, String nbt) {
     this.slot = slot;
     this.item = item;
     this.displayname = displayname;
@@ -120,7 +154,7 @@ public class ItemModel {
       String command = itemModel.getItem().replace("command:", "");
       for (Map.Entry<String, ItemModel> entry : CobbleUtils.config.getItemsCommands().entrySet()) {
         if (command.startsWith(entry.getKey())) {
-          return Utils.parseItemId(entry.getValue().getItem(), amount);
+          return Utils.parseItemId(entry.getValue().getItem(), amount, entry.getValue().getCustomModelData());
         }
       }
       return Utils.parseItemId("minecraft:command_block", amount);

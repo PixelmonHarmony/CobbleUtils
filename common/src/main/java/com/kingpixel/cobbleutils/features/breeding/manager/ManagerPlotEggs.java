@@ -106,4 +106,16 @@ public class ManagerPlotEggs {
       }
     });
   }
+
+  public CompletableFuture<Void> writeInfo(UUID uuid) {
+    return CompletableFuture.runAsync(() -> {
+      File playerFile = Utils.getAbsolutePath(CobbleUtils.PATH_BREED_DATA + uuid + ".json");
+      List<PlotBreeding> playerEggs = eggs.get(uuid);
+      try (FileWriter writer = new FileWriter(playerFile)) {
+        Utils.newWithoutSpacingGson().toJson(playerEggs, writer);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    });
+  }
 }

@@ -22,36 +22,40 @@ import java.util.List;
 @Data
 public class Shop {
   private boolean active;
+  private String id;
   private String title;
-  private int slot;
-  private int rows;
+  private short slot;
+  private short rows;
   private String currency;
   private TemplateType templateType;
   private ItemModel display;
-  private List<SellItem> products;
+  private List<Product> products;
   private List<FillItems> fillItems;
 
   public Shop() {
     active = true;
-    title = "Shop";
+    id = "default";
+    title = "Default";
     rows = 6;
-    currency = "tokens";
+    currency = "dollars";
     templateType = TemplateType.CHEST;
     products = new ArrayList<>();
+    products.add(new Product());
     fillItems = new ArrayList<>();
+    fillItems.add(new FillItems());
   }
 
   @Getter
   @ToString
   @Data
-  public static class SellItem {
+  public static class Product {
     private ItemChance product;
-    private int slot;
-    private int page;
-    private int buy;
-    private int sell;
+    private short slot;
+    private short page;
+    private long buy;
+    private long sell;
 
-    public SellItem() {
+    public Product() {
       product = new ItemChance();
       page = 0;
       buy = 0;
@@ -64,11 +68,11 @@ public class Shop {
   @ToString
   @Data
   public static class FillItems extends ItemModel {
-    private int page;
+    private short page;
     private List<Integer> slots;
 
     public FillItems() {
-      super();
+      super("minecraft:gray_stained_glass_pane");
       page = 0;
       slots = new ArrayList<>();
     }

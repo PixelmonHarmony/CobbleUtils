@@ -216,7 +216,7 @@ public class ItemChance {
       String command = item.replace("command:", "");
       for (Map.Entry<String, ItemModel> entry : CobbleUtils.config.getItemsCommands().entrySet()) {
         if (command.startsWith(entry.getKey())) {
-          return Utils.parseItemId(entry.getValue().getItem(), amount);
+          return Utils.parseItemId(entry.getValue().getItem(), amount, entry.getValue().getCustomModelData());
         }
       }
       return Utils.parseItemId("minecraft:command_block", amount);

@@ -4,7 +4,9 @@ import ca.landonjw.gooeylibs2.api.UIManager;
 import ca.landonjw.gooeylibs2.api.button.GooeyButton;
 import ca.landonjw.gooeylibs2.api.page.GooeyPage;
 import ca.landonjw.gooeylibs2.api.template.types.ChestTemplate;
+import com.google.gson.Gson;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
+import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,6 +14,9 @@ import lombok.ToString;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
+import java.io.File;
+import java.io.FileReader;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -47,6 +52,36 @@ public class ShopMenu {
     this.filler = new ItemModel();
     this.shops = shops;
   }
+
+  public static List<Shop> getShops(String path) {
+    List<Shop> shops = new ArrayList<>();
+    File folder = Utils.getAbsolutePath(path);
+
+    if (folder.exists() && folder.isDirectory()) {
+      File[] files = folder.listFiles((dir, name) -> name.endsWith(".json"));
+
+      if (files != null) {
+        Gson gson = Utils.newGson();
+
+        for (File file : files) {
+          try (FileReader reader = new FileReader(file)) {
+            Shop shop = gson.fromJson(reader, Shop.class);
+            shops.add(shop);
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+        }
+      }
+    }
+
+    return shops;
+  }
+
+  public static void createDefaultShop(String path) {
+    Shop shop = new Shop();
+    Utils.writeFileAsync(path, "default.json", Utils.newGson().toJson(shop)).join();
+  }
+
 
   public void open(ServerPlayerEntity player) {
     ChestTemplate chestTemplate = ChestTemplate

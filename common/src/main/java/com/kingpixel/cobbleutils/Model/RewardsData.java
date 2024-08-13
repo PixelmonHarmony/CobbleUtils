@@ -56,13 +56,9 @@ public class RewardsData {
         this.playername = rewards.getPlayername();
         this.playeruuid = rewards.getPlayeruuid();
         this.items = rewards.getItems();
-        if (items == null) items = new ArrayList<>();
         this.pokemons = rewards.getPokemons();
-        if (pokemons == null) pokemons = new ArrayList<>();
         this.commands = rewards.getCommands();
-        if (commands == null) commands = new ArrayList<>();
         this.lastjoin = new Date();
-        if (lastjoin == null) lastjoin = new Date();
         String data = gson.toJson(this);
         CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(CobbleUtils.PATH_REWARDS_DATA, playeruuid + ".json",
           data);

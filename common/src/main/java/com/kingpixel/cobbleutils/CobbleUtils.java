@@ -52,6 +52,7 @@ public class CobbleUtils {
   public static PoolItems poolItems = new PoolItems();
   public static PoolPokemons poolPokemons = new PoolPokemons();
   public static SpawnRates spawnRates = new SpawnRates();
+  public static ShopConfig shopConfig = new ShopConfig();
 
 
   // Party
@@ -101,6 +102,7 @@ public class CobbleUtils {
     poolMoney.init();
     partyConfig.init();
     partyLang.init();
+    shopConfig.init();
     DatabaseClientFactory.createDatabaseClient(config.getDatabase().getType(),
       config.getDatabase().getDatabase(),
       config.getDatabase().getUrl()

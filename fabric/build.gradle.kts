@@ -55,7 +55,7 @@ dependencies {
     implementation("net.kyori:adventure-platform-api:4.3.0")
     implementation("net.kyori:adventure-text-serializer-ansi:4.14.0")
     implementation("net.kyori:adventure-text-serializer-gson:4.14.0")
-    implementation("org.mongodb:mongodb-driver-reactivestreams:5.1.2")
+    // implementation("org.mongodb:mongodb-driver-reactivestreams:5.1.2")
 
     shadowCommon("net.kyori:adventure-text-serializer-gson:4.14.0")
     shadowCommon("net.kyori:adventure-api:4.14.0")
@@ -71,7 +71,7 @@ dependencies {
     shadowCommon("net.kyori:adventure-platform-api:4.3.0")
     shadowCommon("net.kyori:adventure-text-serializer-ansi:4.14.0")
     shadowCommon("net.kyori:adventure-text-serializer-gson:4.14.0")
-    shadowCommon("org.mongodb:mongodb-driver-reactivestreams:5.1.2")
+    //shadowCommon("org.mongodb:mongodb-driver-reactivestreams:5.1.2")
 }
 
 tasks.processResources {
@@ -110,8 +110,8 @@ tasks {
         exclude("org/intellij/**/*")
         exclude("org/jetbrains/**/*")
 
-        relocate("org.reactivestreams", "com.kingpixel.cobbleutils.reactivestreams")
-        relocate("com.mongodb", "com.kingpixel.cobbleutils.mongodb")
+        //relocate("org.reactivestreams", "com.kingpixel.cobbleutils.reactivestreams")
+        //relocate("com.mongodb", "com.kingpixel.cobbleutils.mongodb")
         relocate("org.bson", "com.kingpixel.cobbleutils.bson")
         relocate("net.kyori", "com.kingpixel.cobbleutils.kyori")
         relocate("org.slf4j", "com.kingpixel.cobbleutils.slf4j")

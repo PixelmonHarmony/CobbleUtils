@@ -34,7 +34,7 @@ public class ShinyTokenUI {
             if (CobbleUtils.config.isShinyTokenBlacklisted(pokemon))
               return;
             if (!pokemon.getShiny()) {
-              UIManager.openUIForcefully((ServerPlayerEntity) player, confirmShiny(player, pokemon));
+              UIManager.openUIForcefully(player, confirmShiny(player, pokemon));
             }
           } catch (NoPokemonStoreException e) {
             e.printStackTrace();

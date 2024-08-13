@@ -188,10 +188,8 @@ public class EggData {
   }
 
   public void steps(Pokemon pokemon, int stepsremove) {
-    if (pokemon == null)
-      return;
-    if (stepsremove == 0)
-      return;
+    if (pokemon == null) return;
+    if (stepsremove == 0) return;
     this.steps -= stepsremove;
 
     if (steps <= 0) {
