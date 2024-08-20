@@ -82,6 +82,8 @@ public class UIUtils {
     return GooeyPage.builder()
       .template(template)
       .title(AdventureTranslator.toNative(CobbleUtils.language.getTitleconfirm()))
+      .onClose(pageAction -> SoundUtil.playSound(CobbleUtils.language.getSoundclose(), pageAction.getPlayer()))
+      .onOpen(pageAction -> SoundUtil.playSound(CobbleUtils.language.getSoundopen(), pageAction.getPlayer()))
       .build();
   }
 
@@ -289,13 +291,15 @@ public class UIUtils {
       // Añadir los botones a la plantilla
       template.fill(GooeyButton.of(Utils.parseItemId(CobbleUtils.config.getFill())))
         .rectangle(0, 0, 5, 9, new PlaceholderButton())
-        .fillFromList(buttonsList)
         .set(5, 4, getCloseButton(closeaction))
         .set(5, 0, getLinkedPageButton(CobbleUtils.language.getItemPrevious(), LinkType.Previous))
         .set(5, 8, getLinkedPageButton(CobbleUtils.language.getItemNext(), LinkType.Next));
 
       // Construir la página vinculada
-      LinkedPage.Builder linkedPageBuilder = LinkedPage.builder().title(AdventureTranslator.toNative(titlemenu));
+      LinkedPage.Builder linkedPageBuilder = LinkedPage.builder()
+        .title(AdventureTranslator.toNative(titlemenu))
+        .onClose(pageAction -> SoundUtil.playSound(CobbleUtils.language.getSoundclose(), pageAction.getPlayer()))
+        .onOpen(pageAction -> SoundUtil.playSound(CobbleUtils.language.getSoundopen(), pageAction.getPlayer()));
 
       return PaginationHelper.createPagesFromPlaceholders(template, buttonsList, linkedPageBuilder);
     }).get();
@@ -341,6 +345,8 @@ public class UIUtils {
       return GooeyPage.builder()
         .template(template)
         .title(AdventureTranslator.toNative(CobbleUtils.language.getTitleparty()))
+        .onClose(pageAction -> SoundUtil.playSound(CobbleUtils.language.getSoundclose(), pageAction.getPlayer()))
+        .onOpen(pageAction -> SoundUtil.playSound(CobbleUtils.language.getSoundopen(), pageAction.getPlayer()))
         .build();
     }).get();
   }
@@ -384,9 +390,12 @@ public class UIUtils {
     return allSlotsFuture.thenApplyAsync(v -> {
       template.fill(GooeyButton.of(Utils.parseItemId(CobbleUtils.config.getFill())));
       template.set(0, 4, getPcButton(player, actionpokemon, actionclose));
+
       return GooeyPage.builder()
         .template(template)
         .title(AdventureTranslator.toNative(CobbleUtils.language.getTitleparty()))
+        .onClose(pageAction -> SoundUtil.playSound(CobbleUtils.language.getSoundclose(), pageAction.getPlayer()))
+        .onOpen(pageAction -> SoundUtil.playSound(CobbleUtils.language.getSoundopen(), pageAction.getPlayer()))
         .build();
     }).get();
   }

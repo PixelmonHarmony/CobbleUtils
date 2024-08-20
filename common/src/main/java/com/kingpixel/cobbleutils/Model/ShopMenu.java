@@ -97,7 +97,7 @@ public class ShopMenu {
 
   public void open(ServerPlayerEntity player) {
     try {
-      SoundUtil.playSound(SoundUtil.getSound(getSoundopen()), player);
+
 
       ChestTemplate template = ChestTemplate
         .builder(this.rows)
@@ -127,6 +127,12 @@ public class ShopMenu {
         .builder()
         .template(template)
         .title(AdventureTranslator.toNative(this.title))
+        .onOpen(pageAction -> {
+          SoundUtil.playSound(getSoundopen(), player);
+        })
+        .onClose(pageAction -> {
+          SoundUtil.playSound(getSoundclose(), player);
+        })
         .build();
 
       UIManager.openUIForcefully(player, page);

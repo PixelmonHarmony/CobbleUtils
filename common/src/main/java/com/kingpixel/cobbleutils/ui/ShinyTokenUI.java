@@ -12,6 +12,7 @@ import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.UIUtils;
 import com.kingpixel.cobbleutils.util.Utils;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 /**
@@ -91,6 +92,9 @@ public class ShinyTokenUI {
   }
 
   public static boolean haveShinyToken(ServerPlayerEntity player) {
-    return player.getInventory().contains(CobbleUtils.config.getShinytoken().getItemStack());
+    return false;
+  }
+
+  public static void openmenu(PlayerEntity player) {
   }
 }

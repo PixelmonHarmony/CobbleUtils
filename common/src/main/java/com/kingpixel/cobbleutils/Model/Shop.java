@@ -143,12 +143,10 @@ public class Shop {
   @ToString
   @Data
   public static class FillItems extends ItemModel {
-    private short page;
     private List<Integer> slots;
 
     public FillItems() {
       super("minecraft:gray_stained_glass_pane");
-      page = 0;
       slots = new ArrayList<>();
     }
   }
@@ -281,11 +279,15 @@ public class Shop {
       template.set((this.rows * 9) - 5, close);
       template.set((this.rows * 9) - 9, previous);
 
-
-      SoundUtil.playSound(SoundUtil.getSound(getSoundopen()), player);
-
-      LinkedPage.Builder linkedPageBuilder = LinkedPage.builder()
-        .title(AdventureTranslator.toNative(this.title));
+      LinkedPage.Builder linkedPageBuilder = LinkedPage
+        .builder()
+        .title(AdventureTranslator.toNative(this.title))
+        .onOpen(pageAction -> {
+          SoundUtil.playSound(getSoundopen(), player);
+        })
+        .onClose(pageAction -> {
+          SoundUtil.playSound(getSoundclose(), player);
+        });
 
       GooeyPage page = PaginationHelper.createPagesFromPlaceholders(template, buttons, linkedPageBuilder);
       UIManager.openUIForcefully(player, page);
@@ -370,6 +372,12 @@ public class Shop {
     GooeyPage page = GooeyPage.builder()
       .title(AdventureTranslator.toNative(title))
       .template(template)
+      .onOpen(pageAction -> {
+        SoundUtil.playSound(getSoundopen(), player);
+      })
+      .onClose(pageAction -> {
+        SoundUtil.playSound(getSoundclose(), player);
+      })
       .build();
 
     UIManager.openUIForcefully(player, page);
@@ -436,7 +444,6 @@ public class Shop {
       .title(AdventureTranslator.toNative(buyStacks.getDisplayname()))
       .lore(Text.class, AdventureTranslator.toNativeL(buyStacks.getLore()))
       .onClick(action -> {
-        SoundUtil.playSound(getSoundopen(), player);
         openStackMenu(player, product, typeMenu, maxStack);
       })
       .build());
@@ -445,14 +452,12 @@ public class Shop {
   private void createCancelButton(ChestTemplate template, ServerPlayerEntity player) {
     ItemModel cancel = CobbleUtils.shopLang.getCancel();
     template.set(cancel.getSlot(), cancel.getButton(action -> {
-      SoundUtil.playSound(getSoundclose(), player);
       open(player, CobbleUtils.shopConfig.getShop());
     }));
   }
 
   private void createCloseButton(ChestTemplate template, ServerPlayerEntity player) {
     template.set((getRows() * 9) - 5, UIUtils.getCloseButton(action -> {
-      SoundUtil.playSound(getSoundclose(), player);
       open(player, CobbleUtils.shopConfig.getShop());
     }));
   }

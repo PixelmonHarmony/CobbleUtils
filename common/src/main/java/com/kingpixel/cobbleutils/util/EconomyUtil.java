@@ -61,7 +61,7 @@ public abstract class EconomyUtil {
     if (!service.hasAccount(uuid).join()) {
       return service.account(uuid).join();
     }
-    return service.account(getCurrency(currency), uuid).join();
+    return service.account(getCurrency(currency.trim()), uuid).join();
   }
 
   /**
@@ -93,7 +93,7 @@ public abstract class EconomyUtil {
       if (currency.isEmpty()) {
         account = getAccount(player.getUuid());
       } else {
-        account = getAccount(player.getUuid(), currency);
+        account = getAccount(player.getUuid(), currency.trim());
       }
       EconomyTransaction transaction = account.deposit(amount);
       return transaction.successful();
@@ -119,7 +119,7 @@ public abstract class EconomyUtil {
       if (currency.isEmpty()) {
         account = getAccount(player.getUuid());
       } else {
-        account = getAccount(player.getUuid(), currency);
+        account = getAccount(player.getUuid(), currency.trim());
       }
       EconomyTransaction transaction = account.withdraw(amount);
       return transaction.successful();
@@ -203,7 +203,7 @@ public abstract class EconomyUtil {
    */
   public static boolean hasEnough(ServerPlayerEntity player, @Subst("") String currency, BigDecimal amount) {
     if (isImpactorPresent()) {
-      return hasEnoughImpactor(getAccount(player.getUuid(), currency), amount);
+      return hasEnoughImpactor(getAccount(player.getUuid(), currency.trim()), amount);
     } else if (isVaultApi()) {
       return false;
     } else {
@@ -228,7 +228,8 @@ public abstract class EconomyUtil {
         CobbleUtils.LOGGER.error("Currency is empty");
         return service.currencies().primary();
       }
-      return service.currencies().currency(Key.key(currency)).orElseGet(() -> service.currencies().primary());
+      String c = currency.trim();
+      return service.currencies().currency(Key.key(c)).orElseGet(() -> service.currencies().primary());
     } catch (NoSuchElementException e) {
       CobbleUtils.LOGGER.error("Error getting currency");
       return service.currencies().primary();
@@ -245,7 +246,7 @@ public abstract class EconomyUtil {
   public static String getSymbol(@Subst("") String currency) {
     if (isImpactorPresent()) {
       try {
-        return getCurrency(currency).symbol().insertion();
+        return getCurrency(currency.trim()).symbol().insertion();
       } catch (NoSuchMethodError | Exception e) {
         CobbleUtils.LOGGER.error("Error getting currency symbol");
         return "$";
@@ -268,7 +269,7 @@ public abstract class EconomyUtil {
   public static BigDecimal getBalance(ServerPlayerEntity player, @Subst("") String currency) {
     if (isImpactorPresent()) {
       try {
-        return getAccount(player.getUuid(), currency).balance();
+        return getAccount(player.getUuid(), currency.trim()).balance();
       } catch (NoSuchMethodError | Exception e) {
         CobbleUtils.LOGGER.error("Error getting balance");
         return BigDecimal.ZERO;

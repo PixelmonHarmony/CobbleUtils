@@ -2,6 +2,7 @@ package com.kingpixel.cobbleutils.events;
 
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.ui.ShinyTokenUI;
+import com.kingpixel.cobbleutils.util.PlayerUtils;
 import dev.architectury.event.CompoundEventResult;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -21,12 +22,16 @@ public class ItemRightClickEvents {
     if (itemStack.hasNbt() && tag.contains("shinytoken")
       && itemStack.getItem() == CobbleUtils.config.getShinytoken().getItemStack().getItem()) {
       if (!CobbleUtils.config.isActiveshinytoken()) return CompoundEventResult.pass();
-      ShinyTokenUI.openmenu((ServerPlayerEntity) player);
+      try {
+        ShinyTokenUI.openmenu((ServerPlayerEntity) player);
+      } catch (ClassCastException ignored) {
+        ShinyTokenUI.openmenu(PlayerUtils.castPlayer(player));
+      }
     }
     if (itemStack.getItem().getTranslationKey(player.getMainHandStack()).contains("shulker_box")) {
       if (!CobbleUtils.config.isShulkers())
         return CompoundEventResult.pass();
-      return shulkers((ServerPlayerEntity) player, hand, itemStack);
+      return shulkers(PlayerUtils.castPlayer(player), hand, itemStack);
     }
     return CompoundEventResult.pass();
 

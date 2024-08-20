@@ -1,6 +1,7 @@
 package com.kingpixel.cobbleutils.util;
 
 import com.kingpixel.cobbleutils.CobbleUtils;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -71,5 +72,9 @@ public class PlayerUtils {
 
   public static boolean isCooldown(Long cooldown) {
     return new Date().getTime() < cooldown;
+  }
+
+  public static ServerPlayerEntity castPlayer(PlayerEntity player) {
+    return new ServerPlayerEntity(CobbleUtils.server, CobbleUtils.server.getOverworld(), player.getGameProfile());
   }
 }
