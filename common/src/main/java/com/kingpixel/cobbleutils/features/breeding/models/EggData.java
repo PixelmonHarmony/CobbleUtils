@@ -429,19 +429,8 @@ public class EggData {
       JsonObject jsonObject = new JsonObject();
       jsonObject.add("moves", jsonArray);
 
-      // Verificar la estructura JSON antes de almacenarla
-      System.out.println("JSON a almacenar: " + jsonObject.toString());
-
       egg.getPersistentData().putString("moves", jsonObject.toString());
-
-      // Verificar si se almacenó correctamente
-      String storedJson = egg.getPersistentData().getString("moves");
-      System.out.println("JSON almacenado: " + storedJson);
     }
-
-
-    CobbleUtils.LOGGER.info("Egg Moves: " + egg.getPersistentData().getString("moves"));
-
   }
 
   private static void applyInitialIvs(Pokemon egg, Pokemon male, Pokemon female) {
@@ -462,11 +451,11 @@ public class EggData {
     }
 
     List<Pokemon> parents = List.of(male, female);
-    Pokemon random = parents.get(Utils.RANDOM.nextInt(parents.size()));
+    Pokemon select = parents.get(Utils.RANDOM.nextInt(parents.size()));
     if (ItemSame == CobblemonItems.DESTINY_KNOT) {
       applyDestinyKnot(male, female, egg);
     } else if (sameItem) {
-      applyIvsPower(random, egg, ItemSame);
+      applyIvsPower(select, egg, ItemSame);
     } else {
       applyIvs(male, maleItem, female, femaleItem, egg);
     }
@@ -475,35 +464,72 @@ public class EggData {
 
   private static void applyIvs(Pokemon male, CobblemonItem maleItem, Pokemon female, CobblemonItem femaleItem,
                                Pokemon egg) {
-    if (maleItem != null) {
-      logicIvs(male, female, maleItem, egg);
+    if (hasPowerItem(male)) {
+      if (femaleItem != null) {
+        logicIvs(male, female, female, femaleItem, egg);
+      }
+      if (maleItem != null) {
+        logicIvs(male, female, male, maleItem, egg);
+      }
+    } else if (hasPowerItem(female)) {
+      if (maleItem != null) {
+        logicIvs(male, female, male, maleItem, egg);
+      }
+      if (femaleItem != null) {
+        logicIvs(male, female, female, femaleItem, egg);
+      }
+    } else {
+      if (maleItem != null) {
+        logicIvs(male, female, male, maleItem, egg);
+      }
+      if (femaleItem != null) {
+        logicIvs(male, female, female, femaleItem, egg);
+      }
     }
-    if (femaleItem != null) {
-      logicIvs(male, female, femaleItem, egg);
-    }
+
   }
 
-  private static void logicIvs(Pokemon male, Pokemon female, CobblemonItem item, Pokemon egg) {
+  private static void logicIvs(Pokemon male, Pokemon female, Pokemon select, CobblemonItem item, Pokemon egg) {
     if (item == DESTINY_KNOT) {
       applyDestinyKnot(male, female, egg);
+    } else if (isPowerItem(item)) {
+      applyIvsPower(select, egg, item);
     } else {
-      applyIvsPower(male, egg, item);
+      // Todo: Do something ?
     }
   }
 
-  private static void applyIvsPower(Pokemon random, Pokemon egg, CobblemonItem itemSame) {
+  private static boolean isPowerItem(CobblemonItem item) {
+    return item == POWER_WEIGHT ||
+      item == POWER_BRACER ||
+      item == POWER_BELT ||
+      item == POWER_ANKLET ||
+      item == POWER_LENS ||
+      item == POWER_BAND;
+  }
+
+  private static boolean hasPowerItem(Pokemon pokemon) {
+    return pokemon.heldItem().getItem() == POWER_WEIGHT ||
+      pokemon.heldItem().getItem() == POWER_BRACER ||
+      pokemon.heldItem().getItem() == POWER_BELT ||
+      pokemon.heldItem().getItem() == POWER_ANKLET ||
+      pokemon.heldItem().getItem() == POWER_LENS ||
+      pokemon.heldItem().getItem() == POWER_BAND;
+  }
+
+  private static void applyIvsPower(Pokemon select, Pokemon egg, CobblemonItem itemSame) {
     if (itemSame.equals(POWER_WEIGHT)) {
-      egg.setIV(Stats.HP, random.getIvs().get(Stats.HP));
+      egg.setIV(Stats.HP, select.getIvs().get(Stats.HP));
     } else if (itemSame.equals(POWER_BRACER)) {
-      egg.setIV(Stats.ATTACK, random.getIvs().get(Stats.ATTACK));
+      egg.setIV(Stats.ATTACK, select.getIvs().get(Stats.ATTACK));
     } else if (itemSame.equals(POWER_BELT)) {
-      egg.setIV(Stats.DEFENCE, random.getIvs().get(Stats.DEFENCE));
+      egg.setIV(Stats.DEFENCE, select.getIvs().get(Stats.DEFENCE));
     } else if (itemSame.equals(POWER_ANKLET)) {
-      egg.setIV(Stats.SPEED, random.getIvs().get(Stats.SPEED));
+      egg.setIV(Stats.SPEED, select.getIvs().get(Stats.SPEED));
     } else if (itemSame.equals(POWER_LENS)) {
-      egg.setIV(Stats.SPECIAL_ATTACK, random.getIvs().get(Stats.SPECIAL_ATTACK));
+      egg.setIV(Stats.SPECIAL_ATTACK, select.getIvs().get(Stats.SPECIAL_ATTACK));
     } else if (itemSame.equals(POWER_BAND)) {
-      egg.setIV(Stats.SPECIAL_DEFENCE, random.getIvs().get(Stats.SPECIAL_DEFENCE));
+      egg.setIV(Stats.SPECIAL_DEFENCE, select.getIvs().get(Stats.SPECIAL_DEFENCE));
     }
   }
 
@@ -515,11 +541,16 @@ public class EggData {
       List<Pokemon> pokemons = List.of(male, female);
       Pokemon pokemon = pokemons.get(Utils.RANDOM.nextInt(pokemons.size()));
       Stats stat = stats.get(Utils.RANDOM.nextInt(stats.size()));
-      Integer n = pokemon.getIvs().get(stat);
-      if (n == null) {
-        n = Utils.RANDOM.nextInt(32);
+      Integer ivsPokemon = pokemon.getIvs().get(stat);
+
+      if (ivsPokemon == null) {
+        ivsPokemon = Utils.RANDOM.nextInt(32);
       }
-      egg.setIV(stat, n);
+
+      if (ivsPokemon > egg.getIvs().get(stat)) {
+        egg.setIV(stat, ivsPokemon);
+      }
+
     }
   }
 
@@ -567,7 +598,6 @@ public class EggData {
         s.set(incense.getChild(pokemon));
       }
     });
-    CobbleUtils.LOGGER.info("Excepcional Specie: " + s.get());
     return s.get();
   }
 
@@ -584,9 +614,6 @@ public class EggData {
     egg.getPersistentData().putString("ability", pokemon.getAbility().getTemplate().getName().toLowerCase().trim());
     if (dittos) {
       List<FormData> forms = pokemon.getSpecies().getForms();
-      if (CobbleUtils.config.isDebug()) {
-        forms.forEach(form -> CobbleUtils.LOGGER.info("Form: " + form.getAspects()));
-      }
       if (!forms.isEmpty()) {
         int rforms = forms.size() > 1 ? Utils.RANDOM.nextInt(forms.size() - 1) : 0;
         List<String> aspects = forms.get(rforms).getAspects();

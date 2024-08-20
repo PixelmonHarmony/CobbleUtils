@@ -22,7 +22,6 @@ import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.ItemModel;
 import com.kingpixel.cobbleutils.action.PokemonButtonAction;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import org.joml.Vector4f;
@@ -288,10 +287,7 @@ public class UIUtils {
     // Obtener la lista de botones una vez completados todos los futuros
     return allButtonsFuture.thenApplyAsync(buttonsList -> {
       // Añadir los botones a la plantilla
-      template.fill(GooeyButton.builder()
-          .display(Utils.parseItemId("minecraft:gray_stained_glass_pane")
-            .setCustomName(Text.literal("")))
-          .build())
+      template.fill(GooeyButton.of(Utils.parseItemId(CobbleUtils.config.getFill())))
         .rectangle(0, 0, 5, 9, new PlaceholderButton())
         .fillFromList(buttonsList)
         .set(5, 4, getCloseButton(closeaction))
@@ -341,10 +337,7 @@ public class UIUtils {
       slotFutures.toArray(new CompletableFuture[0]));
 
     return allSlotsFuture.thenApplyAsync(v -> {
-      template.fill(GooeyButton.builder()
-        .display(new ItemStack(Items.GRAY_STAINED_GLASS_PANE)
-          .setCustomName(AdventureTranslator.toNative("")))
-        .build());
+      template.fill(GooeyButton.of(Utils.parseItemId(CobbleUtils.config.getFill())));
       return GooeyPage.builder()
         .template(template)
         .title(AdventureTranslator.toNative(CobbleUtils.language.getTitleparty()))
@@ -389,10 +382,7 @@ public class UIUtils {
       slotFutures.toArray(new CompletableFuture[0]));
 
     return allSlotsFuture.thenApplyAsync(v -> {
-      template.fill(GooeyButton.builder()
-        .display(new ItemStack(Items.GRAY_STAINED_GLASS_PANE)
-          .setCustomName(AdventureTranslator.toNative("")))
-        .build());
+      template.fill(GooeyButton.of(Utils.parseItemId(CobbleUtils.config.getFill())));
       template.set(0, 4, getPcButton(player, actionpokemon, actionclose));
       return GooeyPage.builder()
         .template(template)
@@ -413,6 +403,9 @@ public class UIUtils {
     return LinkedPageButton.builder()
       .display(itemModel.getItemStack())
       .title(AdventureTranslator.toNative(itemModel.getDisplayname()))
+      .onClick(action -> {
+        SoundUtil.playSound(CobbleUtils.language.getSoundopen(), action.getPlayer());
+      })
       .linkType(linkType)
       .build();
   }

@@ -92,7 +92,8 @@ public class ManagerPlotEggs {
   }
 
   public void checking(ServerPlayerEntity player) {
-    eggs.get(player.getUuid()).forEach(plotBreeding -> plotBreeding.checking(player));
+    eggs.computeIfAbsent(player.getUuid(), k -> new ArrayList<>())
+      .forEach(plotBreeding -> plotBreeding.checking(player));
   }
 
   public CompletableFuture<Void> writeInfo(ServerPlayerEntity player) {

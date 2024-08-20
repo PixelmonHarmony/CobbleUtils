@@ -189,7 +189,7 @@ public class PokemonUtils {
     return pokemon.getSpecies().showdownId().equalsIgnoreCase("egg");
   }
 
-  private static String eggGroups(Pokemon pokemon) {
+  public static String eggGroups(Pokemon pokemon) {
     StringBuilder s = new StringBuilder();
     for (EggGroup eggGroup : pokemon.getSpecies().getEggGroups()) {
       s.append("&e").append(eggGroup).append(" ");
@@ -425,13 +425,17 @@ public class PokemonUtils {
     return "<lang:cobblemon.nature." + nature.getName().getPath() + ">";
   }
 
-  private static String getMoveColor(ElementalType type, String lang) {
+  public static String getMoveColor(ElementalType type, String lang) {
     if (type == null)
       return CobbleUtils.language.getNone();
     String color = CobbleUtils.language.getMovecolor().getOrDefault(type.getName(), "");
     if (color.contains("gradient"))
       return color + "<lang:" + lang + ">" + "</gradient>";
     return color + "<lang:" + lang + ">";
+  }
+
+  public static String getType(ElementalType type) {
+    return CobbleUtils.language.getTypes().getOrDefault(type.getName(), type.getName());
   }
 
   /**
@@ -623,7 +627,7 @@ public class PokemonUtils {
    *
    * @return If the species has the hidden ability
    */
-  private static boolean isAH(Pokemon pokemon, Ability ability) {
+  public static boolean isAH(Pokemon pokemon, Ability ability) {
     for (PotentialAbility potentialAbility : pokemon.getForm().getAbilities()) {
       if (potentialAbility.getType() instanceof HiddenAbilityType) {
         if (potentialAbility.getTemplate().create(true).getName().equalsIgnoreCase(ability.getName())) {
@@ -653,8 +657,8 @@ public class PokemonUtils {
 
   public static boolean isLegalAbility(ServerPlayerEntity player, Pokemon pokemon) {
     boolean legal = isLegalAbility(pokemon);
-    if (!legal) {
-      CobbleUtils.LOGGER.info("Fix illegal ability: Player: " + player.getGameProfile().getName() + " Pokemon: " + getTranslatedName(pokemon));
+    if (!legal && CobbleUtils.config.isDebug()) {
+      CobbleUtils.LOGGER.info("Fix illegal ability: Player: " + player.getGameProfile().getName());
     }
     return legal;
   }
@@ -665,7 +669,13 @@ public class PokemonUtils {
         return true;
       }
     }
+    if (CobbleUtils.config.isDebug()) {
+      CobbleUtils.LOGGER.info("Illegal ability: Pokemon: " + getTranslatedName(pokemon) + "\n Ability: " + getAbilityTranslate(pokemon.getAbility()));
+    }
     pokemon.updateAbility(getRandomAbility(pokemon));
+    if (CobbleUtils.config.isDebug()) {
+      CobbleUtils.LOGGER.info("New ability: Pokemon: " + getTranslatedName(pokemon) + "\n Ability: " + getAbilityTranslate(pokemon.getAbility()));
+    }
     return false;
   }
 

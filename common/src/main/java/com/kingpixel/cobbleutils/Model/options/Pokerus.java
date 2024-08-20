@@ -26,11 +26,11 @@ public class Pokerus {
   private final boolean canspawnwithpokerus;
 
   public Pokerus() {
-    this.active = false;
+    this.active = true;
     this.multiplier = 2;
     this.rarity = 10000;
     this.roundup = true;
-    this.canspawnwithpokerus = false;
+    this.canspawnwithpokerus = true;
   }
 
   public Pokerus(boolean active, double multiplier, int rarity, boolean roundup, boolean canspawnwithpokerus) {

@@ -31,7 +31,7 @@ dependencies {
     //minecraft("net.minecraft:minecraft:${property("minecraft_version")}")
     //mappings(loom.officialMojangMappings())
 
-    minecraft("net.minecraft:minecraft:${property("minecraft_version")}")
+    minecraft("com.mojang:minecraft:${property("minecraft_version")}")
     mappings("net.fabricmc:yarn:${property("yarn_mappings")}:v2")
 
     modImplementation("com.cobblemon:fabric:${property("cobblemon_version")}")

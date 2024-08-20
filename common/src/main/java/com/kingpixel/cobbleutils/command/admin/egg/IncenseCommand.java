@@ -25,6 +25,7 @@ public class IncenseCommand implements Command<ServerCommandSource> {
     dispatcher.register(
       base.then(
         CommandManager.literal("incense")
+          
           .then(
             CommandManager.argument("item", StringArgumentType.greedyString())
               .suggests((context, builder) -> {

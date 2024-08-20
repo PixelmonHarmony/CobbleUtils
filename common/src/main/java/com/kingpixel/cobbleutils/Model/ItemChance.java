@@ -30,6 +30,27 @@ public class ItemChance {
   private final String item;
   private final int chance;
 
+  public ItemChanceType getType() {
+    if (item.startsWith("pokemon:")) {
+      return ItemChanceType.POKEMON;
+    } else if (item.startsWith("command:")) {
+      return ItemChanceType.COMMAND;
+    } else if (item.startsWith("money:")) {
+      return ItemChanceType.MONEY;
+    } else if (item.startsWith("item:")) {
+      return ItemChanceType.ITEM;
+    } else {
+      return ItemChanceType.ITEM;
+    }
+  }
+
+  public enum ItemChanceType {
+    POKEMON,
+    COMMAND,
+    MONEY,
+    ITEM
+  }
+
   public ItemChance() {
     this.item = "minecraft:dirt";
     this.chance = 100;
@@ -103,7 +124,6 @@ public class ItemChance {
   public static boolean giveReward(ServerPlayerEntity player, ItemChance itemChance, int amount) throws NoPokemonStoreException {
     try {
       String item = itemChance.getItem();
-      CobbleUtils.LOGGER.info("ItemChance: " + item);
       if (item.startsWith("pokemon:")) {
         Pokemon pokemon = getRewardPokemon(item);
         return RewardsUtils.saveRewardPokemon(player, pokemon);
@@ -112,7 +132,6 @@ public class ItemChance {
         return RewardsUtils.saveRewardCommand(player, command);
       } else if (item.startsWith("money:")) {
         int money;
-        CobbleUtils.LOGGER.info("Logintud de money:" + item.split(":").length);
         if (item.split(":").length < 3) {
           money = Integer.parseInt(item.replace("money:", ""));
           player.sendMessage(AdventureTranslator.toNativeWithOutPrefix(
@@ -129,16 +148,10 @@ public class ItemChance {
           player.sendMessage(AdventureTranslator.toNativeWithOutPrefix(
             impactorItem.getMessage()
               .replace("%amount%", String.valueOf(money))));
-
           command = command
             .replace("%player%", player.getGameProfile().getName())
             .replace("%amount%", String.valueOf(money))
             .replace("%currency%", currency);
-
-          if (CobbleUtils.config.isDebug()) {
-            CobbleUtils.LOGGER.info("Command: " + command);
-          }
-
           return RewardsUtils.saveRewardCommand(player, command);
         }
       } else if (item.startsWith("item:")) {

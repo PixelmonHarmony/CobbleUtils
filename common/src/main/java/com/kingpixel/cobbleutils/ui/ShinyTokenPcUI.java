@@ -5,6 +5,7 @@ import ca.landonjw.gooeylibs2.api.page.GooeyPage;
 import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.storage.NoPokemonStoreException;
 import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.util.SoundUtil;
 import com.kingpixel.cobbleutils.util.UIUtils;
 import net.minecraft.server.network.ServerPlayerEntity;
 
@@ -21,9 +22,14 @@ public class ShinyTokenPcUI {
           try {
             if (CobbleUtils.config.isShinyTokenBlacklisted(actionpokemon.getPokemon()))
               return;
-            if (!actionpokemon.getPokemon().getShiny())
+            if (!actionpokemon.getPokemon().getShiny()) {
+              SoundUtil.playSound(CobbleUtils.language.getSoundopen(), actionpokemon.getAction().getPlayer());
               UIManager.openUIForcefully(actionpokemon.getAction().getPlayer(), ShinyTokenUI.confirmShiny(player,
                 actionpokemon.getPokemon()));
+
+            }
+
+
           } catch (NoPokemonStoreException e) {
             throw new RuntimeException(e);
           }

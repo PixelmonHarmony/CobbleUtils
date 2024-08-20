@@ -41,6 +41,7 @@ public class BreedConfig {
   private float multipliermasuda;
   private float multiplierShiny;
   private int checkEggToBreedInSeconds;
+  private int tickstocheck;
   private int cooldown;
   private int maxeggperplot;
   private int maxplots;
@@ -58,6 +59,7 @@ public class BreedConfig {
   private String notCompatible;
   private String blacklisted;
   private ItemModel plotItem;
+  private ItemModel plotThereAreEggs;
   private ItemModel maleSelectItem;
   private ItemModel femaleSelectItem;
   private List<Integer> plotSlots;
@@ -79,7 +81,7 @@ public class BreedConfig {
     this.titleplot = "<#82d448>Plot";
     this.titleemptyplot = "<#82d448>Plot";
     this.titleselectpokemon = "<#82d448>Select Pokemon";
-    this.active = false;
+    this.active = true;
     this.autoclaim = false;
     this.obtainAspect = false;
     this.changeuipasture = true;
@@ -88,6 +90,7 @@ public class BreedConfig {
     this.doubleditto = true;
     this.spawnEggWorld = false;
     this.shifttoopen = true;
+    this.tickstocheck = 20;
     this.multipliermasuda = 1.5f;
     this.multiplierShiny = 1.5f;
     this.cooldown = 30;
@@ -117,6 +120,8 @@ public class BreedConfig {
       22,
       24,
       26);
+    this.plotThereAreEggs = new ItemModel(0, "minecraft:lime_wool", "", List.of(
+    ), 0);
     this.maleSlots = List.of(0, 1, 2, 9, 11, 18, 19, 20);
     this.emptySlots = new ItemModel(0, "minecraft:paper", "", List.of(""), 0);
     this.femaleSlots = List.of(6, 7, 8, 15, 17, 24, 25, 26);
@@ -150,6 +155,7 @@ public class BreedConfig {
         doubleditto = config.isDoubleditto();
         cooldown = config.getCooldown();
         maxeggperplot = config.getMaxeggperplot();
+        tickstocheck = config.getTickstocheck();
         maxplots = config.getMaxplots();
         notcancreateEgg = config.getNotcancreateEgg();
         autoclaim = config.isAutoclaim();
@@ -187,6 +193,7 @@ public class BreedConfig {
         shifttoopen = config.isShifttoopen();
         incenses = config.getIncenses();
         emptySlots = config.getEmptySlots();
+        plotThereAreEggs = config.getPlotThereAreEggs();
 
 
         String data = gson.toJson(this);

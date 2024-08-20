@@ -41,7 +41,8 @@ public class LuckPermsUtil {
     ServerPlayerEntity player = source.getPlayer();
     if (player != null) {
       boolean hasPermission = source.hasPermissionLevel(level);
-      if (!hasPermission && isLuckPermsPresent()) {
+      if (hasPermission) return true;
+      if (isLuckPermsPresent()) {
         LuckPerms luckPermsApi = getLuckPermsApi();
         for (String permission : permissions) {
           //addPermission(permission);
@@ -53,30 +54,46 @@ public class LuckPermsUtil {
       }
       return hasPermission;
     }
-    return source.getEntity() == null;
+    return source.hasPermissionLevel(level) || source.getEntity() == null;
   }
+
 
   public static boolean checkPermission(ServerCommandSource source, int level, String permission) {
     ServerPlayerEntity player = source.getPlayer();
     if (player != null) {
       boolean hasPermission = source.hasPermissionLevel(level);
-      if (!hasPermission && isLuckPermsPresent()) {
+      if (hasPermission) return true;
+      if (isLuckPermsPresent()) {
+        if (permission.isEmpty()) return true;
         LuckPerms luckPermsApi = getLuckPermsApi();
         if (luckPermsApi != null) {
           UserManager userManager = luckPermsApi.getUserManager();
-          if (userManager != null) {
-            User user = userManager.getUser(player.getUuid());
-            if (user != null) {
-              hasPermission = user.getCachedData().getPermissionData().checkPermission(permission).asBoolean();
-            }
+          User user = userManager.getUser(player.getUuid());
+          if (user != null) {
+            hasPermission = user.getCachedData().getPermissionData().checkPermission(permission).asBoolean();
           }
         }
       }
       return hasPermission;
     }
-    return source.getEntity() == null;
+    return source.hasPermissionLevel(level) || source.getEntity() == null;
   }
 
+  public static boolean checkPermission(ServerPlayerEntity player, String permission) {
+    if (permission.isEmpty()) return true;
+    if (player.hasPermissionLevel(4)) return true;
+    if (isLuckPermsPresent()) {
+      LuckPerms luckPermsApi = getLuckPermsApi();
+      if (luckPermsApi != null) {
+        UserManager userManager = luckPermsApi.getUserManager();
+        User user = userManager.getUser(player.getUuid());
+        if (user != null) {
+          return user.getCachedData().getPermissionData().checkPermission(permission).asBoolean();
+        }
+      }
+    }
+    return false;
+  }
 
   public static void addPermission(String permission) {
     if (isLuckPermsPresent()) {

@@ -4,6 +4,7 @@ import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.storage.NoPokemonStoreException;
 import com.cobblemon.mod.common.api.storage.party.PlayerPartyStore;
 import com.cobblemon.mod.common.pokemon.Pokemon;
+import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.features.breeding.models.EggData;
 import dev.architectury.event.events.common.TickEvent;
 import net.minecraft.entity.EntityPose;
@@ -25,9 +26,10 @@ public class WalkBreeding {
   public static void register() {
 
     TickEvent.PLAYER_POST.register(player -> {
-      if (!player.isInPose(EntityPose.FALL_FLYING)) {
+      if (!player.isInPose(EntityPose.FALL_FLYING) &&
+        !player.isInPose(EntityPose.SLEEPING)) {
         ticks.compute(player.getUuid(), (uuid, integer) -> integer == null ? 1 : integer + 1);
-        if (ticks.get(player.getUuid()) % 20 != 0)
+        if (ticks.get(player.getUuid()) % CobbleUtils.breedconfig.getTickstocheck() != 0)
           return;
         AtomicInteger distanceMoved = new AtomicInteger();
         try {
@@ -36,7 +38,12 @@ public class WalkBreeding {
             return;
           } else {
             Vec3d currentPosition = new Vec3d(player.getX(), 0, player.getZ());
-            distanceMoved.set((int) Math.min(20, currentPosition.distanceTo(lastPosition.get(player.getUuid()))));
+            double total = currentPosition.distanceTo(lastPosition.get(player.getUuid()));
+            if (total >= 25) {
+              lastPosition.put(player.getUuid(), currentPosition);
+              return;
+            }
+            distanceMoved.set((int) Math.min(20, total));
             lastPosition.put(player.getUuid(), currentPosition);
           }
           PlayerPartyStore playerPartyStore = Cobblemon.INSTANCE.getStorage().getParty(player.getUuid());

@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -18,22 +19,30 @@ import java.util.concurrent.CompletableFuture;
 @ToString
 public class ShopConfig {
   public static String PATH_SHOP = CobbleUtils.PATH + "/shop/";
+  public static String PATH_SHOPS = PATH_SHOP + "/shops/";
+  private short rowsBuySellMenu;
+  private short slotViewProduct;
   private ShopMenu shop;
 
   public ShopConfig() {
+    this.rowsBuySellMenu = 6;
+    this.slotViewProduct = 22;
     shop = new ShopMenu();
     shop.setShops(null);
   }
 
   public void init() {
-    CompletableFuture<Boolean> futureRead = Utils.readFileAsync(CobbleUtils.PATH, "shopconfig.json",
+    CompletableFuture<Boolean> futureRead = Utils.readFileAsync(PATH_SHOP, "shopconfig.json",
       el -> {
         Gson gson = Utils.newGson();
         ShopConfig config = gson.fromJson(el, ShopConfig.class);
         this.shop = config.shop;
-        config.getShop().setShops(ShopMenu.getShops(PATH_SHOP));
+        getShop().setShops(new ArrayList<>());
+        this.rowsBuySellMenu = config.getRowsBuySellMenu();
+        this.slotViewProduct = config.getSlotViewProduct();
         String data = gson.toJson(this);
-        CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(CobbleUtils.PATH, "shopconfig.json",
+        config.getShop().setShops(ShopMenu.getShops(PATH_SHOPS));
+        CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(PATH_SHOP, "shopconfig.json",
           data);
         if (!futureWrite.join()) {
           CobbleUtils.LOGGER.fatal("Could not write shopconfig.json file for " + CobbleUtils.MOD_NAME + ".");
@@ -44,10 +53,10 @@ public class ShopConfig {
       CobbleUtils.LOGGER.info("No shopconfig.json file found for" + CobbleUtils.MOD_NAME + ". Attempting to generate one.");
       Gson gson = Utils.newGson();
       String data = gson.toJson(this);
-      ShopMenu.createDefaultShop(PATH_SHOP);
-      CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(CobbleUtils.PATH, "shopconfig.json",
+      ShopMenu.createDefaultShop(PATH_SHOPS);
+      CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(PATH_SHOP, "shopconfig.json",
         data);
-      this.getShop().setShops(ShopMenu.getShops(PATH_SHOP));
+      this.getShop().setShops(ShopMenu.getShops(PATH_SHOPS));
 
       if (!futureWrite.join()) {
         CobbleUtils.LOGGER.fatal("Could not write config.json file for " + CobbleUtils.MOD_NAME + ".");

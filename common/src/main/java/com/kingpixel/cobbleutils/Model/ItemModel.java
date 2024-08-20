@@ -34,6 +34,12 @@ public class ItemModel {
 
 
   public ItemModel() {
+    this.slot = 0;
+    this.item = "";
+    this.displayname = "";
+    this.lore = new ArrayList<>();
+    this.CustomModelData = 0;
+    this.nbt = "";
   }
 
   public ItemModel(String item) {
@@ -105,6 +111,7 @@ public class ItemModel {
     this.displayname = itemMoney.getDisplayname();
     this.lore = itemMoney.getLore();
     CustomModelData = itemMoney.getCustomModelData();
+    this.nbt = itemMoney.getNbt();
   }
 
   /**

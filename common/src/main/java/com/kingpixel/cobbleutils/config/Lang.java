@@ -15,6 +15,8 @@ import java.util.concurrent.CompletableFuture;
 public class Lang {
   private String prefixShop;
   // Messages
+
+
   private String titlemenushiny;
   private String titlemenushinyoperation;
   private String titlemenurewards;
@@ -52,6 +54,12 @@ public class Lang {
   private String coloritem;
   private List<String> lorepokemon;
   private List<String> lorechance;
+
+  // Sounds
+  private String soundopen;
+  private String soundclose;
+  private String soundConfirm;
+  private String soundCancel;
   // Time
   private String days;
   private String day;
@@ -81,6 +89,8 @@ public class Lang {
    */
   public Lang() {
     prefixShop = "&eShop";
+    soundopen = "cobblemon:pc.on";
+    soundclose = "cobblemon:pc.off";
     confirm = "&aConfirm";
     cancel = "&cCancel";
     close = "&cClose";
@@ -250,6 +260,11 @@ public class Lang {
         nocooldown = lang.getNocooldown();
         movecolor = lang.getMovecolor();
 
+        // Sound
+        soundopen = lang.getSoundopen();
+        soundclose = lang.getSoundclose();
+        soundConfirm = lang.getSoundConfirm();
+        soundCancel = lang.getSoundCancel();
 
         // Messages
         messagerandomitem = lang.getMessagerandomitem();

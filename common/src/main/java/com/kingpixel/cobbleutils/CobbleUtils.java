@@ -47,14 +47,14 @@ public class CobbleUtils {
   public static MinecraftServer server;
   public static Config config = new Config();
   public static BreedConfig breedconfig = new BreedConfig();
-  public static Lang language = new Lang();
   public static PoolMoney poolMoney = new PoolMoney();
   public static PoolItems poolItems = new PoolItems();
   public static PoolPokemons poolPokemons = new PoolPokemons();
   public static SpawnRates spawnRates = new SpawnRates();
   public static ShopConfig shopConfig = new ShopConfig();
-
-
+  // Lang
+  public static Lang language = new Lang();
+  public static ShopLang shopLang = new ShopLang();
   // Party
   public static PartyConfig partyConfig = new PartyConfig();
   public static PartyLang partyLang = new PartyLang();
@@ -94,9 +94,10 @@ public class CobbleUtils {
 
 
   private static void files() {
+    language.init();
+    shopLang.init();
     config.init();
     breedconfig.init();
-    language.init();
     poolItems.init();
     poolPokemons.init();
     poolMoney.init();
@@ -105,8 +106,8 @@ public class CobbleUtils {
     shopConfig.init();
     DatabaseClientFactory.createDatabaseClient(config.getDatabase().getType(),
       config.getDatabase().getDatabase(),
-      config.getDatabase().getUrl()
-      , config.getDatabase().getUser(),
+      config.getDatabase().getUrl(),
+      config.getDatabase().getUser(),
       config.getDatabase().getPassword());
 
   }
@@ -183,7 +184,11 @@ public class CobbleUtils {
 
 
     InteractionEvent.RIGHT_CLICK_BLOCK.register((player, hand, blockpos, direction) -> {
-      BlockRightClickEvents.register((ServerPlayerEntity) player, hand, blockpos, direction);
+      try {
+        BlockRightClickEvents.register((ServerPlayerEntity) player, hand, blockpos, direction);
+      } catch (ClassCastException ignored) {
+        BlockRightClickEvents.register(player, hand, blockpos, direction);
+      }
       return EventResult.pass();
     });
 
