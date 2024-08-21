@@ -18,8 +18,14 @@ public class ShopLang {
   private String soundError;
   private String soundOpen;
   private String soundClose;
+  private String soundAdd;
+  private String soundRemove;
   private String titleBuy;
   private String titleSell;
+  private String messageSellSuccess;
+  private String messageSellErrorInvalidQuantity;
+  private String messageBuySuccess;
+  private String messageSellError;
   private List<String> loreProduct;
   private ItemModel balance;
   private ItemModel add1;
@@ -46,30 +52,38 @@ public class ShopLang {
     this.soundError = "minecraft:block.note_block.bass";
     this.soundOpen = "cobblemon:pc.on";
     this.soundClose = "cobblemon:pc.off";
+    this.soundAdd = "minecraft:entity.experience_orb.pickup";
+    this.soundRemove = "minecraft:entity.experience_orb.pickup";
     this.titleBuy = "&6Buy %product%";
     this.titleSell = "&cSell %product%";
+    this.messageSellSuccess = "&7You sold %amount% %product% for %sell% %symbol%";
+    this.messageBuySuccess = "&7You bought %amount% %product% for %buy% %symbol%";
+    this.messageSellError = "&7You don't have enough %currency% to sell %amount% %product%";
+    this.messageSellErrorInvalidQuantity = "&7You can't sell %amount% %product% because it's not a multiple of %packageSize%";
     this.loreProduct = List.of(
       "",
       "&7Amount: 1x%amount%",
       "&7Buy: &a%buy% %symbol%",
       "&7Sell: &c%sell% %symbol%",
+      "",
+      "&7Left click to buy",
+      "&7Right click to sell",
+      "",
+      "&7Balance: &e%balance% %currency%",
       "");
-    this.balance = new ItemModel("cobblemon:relic_coin_sack");
-    this.balance.setSlot(47);
-    this.balance.setDisplayname("&6Balance");
-    this.balance.setLore(List.of(
+    this.balance = new ItemModel(47, "cobblemon:relic_coin_sack", "&6Balance", List.of(
       "&7You have: &e%balance% %currency%"
-    ));
-    this.add1 = new ItemModel(21, "minecraft:lime_stained_glass_pane", "&aAdd +1", List.of(""), 0);
-    this.add8 = new ItemModel(20, "minecraft:lime_stained_glass_pane", "&aAdd +8", List.of(""), 0);
-    this.add10 = new ItemModel(20, "minecraft:lime_stained_glass_pane", "&aAdd +10", List.of(""), 0);
-    this.add16 = new ItemModel(19, "minecraft:lime_stained_glass_pane", "&aAdd +16", List.of(""), 0);
-    this.add64 = new ItemModel(19, "minecraft:lime_stained_glass_pane", "&aAdd +64", List.of(""), 0);
-    this.remove1 = new ItemModel(23, "minecraft:red_stained_glass_pane", "&cRemove -1", List.of(""), 0);
-    this.remove8 = new ItemModel(24, "minecraft:red_stained_glass_pane", "&cRemove -8", List.of(""), 0);
-    this.remove10 = new ItemModel(24, "minecraft:red_stained_glass_pane", "&cRemove -10", List.of(""), 0);
-    this.remove16 = new ItemModel(25, "minecraft:red_stained_glass_pane", "&cRemove -16", List.of(""), 0);
-    this.remove64 = new ItemModel(25, "minecraft:red_stained_glass_pane", "&cRemove -64", List.of(""), 0);
+    ), 0);
+    this.add1 = new ItemModel(23, "minecraft:lime_stained_glass_pane", "&aAdd +1", List.of(""), 0);
+    this.add8 = new ItemModel(24, "minecraft:lime_stained_glass_pane", "&aAdd +8", List.of(""), 0);
+    this.add10 = new ItemModel(24, "minecraft:lime_stained_glass_pane", "&aAdd +10", List.of(""), 0);
+    this.add16 = new ItemModel(25, "minecraft:lime_stained_glass_pane", "&aAdd +16", List.of(""), 0);
+    this.add64 = new ItemModel(25, "minecraft:lime_stained_glass_pane", "&aAdd +64", List.of(""), 0);
+    this.remove1 = new ItemModel(21, "minecraft:red_stained_glass_pane", "&cRemove -1", List.of(""), 0);
+    this.remove8 = new ItemModel(20, "minecraft:red_stained_glass_pane", "&cRemove -8", List.of(""), 0);
+    this.remove10 = new ItemModel(20, "minecraft:red_stained_glass_pane", "&cRemove -10", List.of(""), 0);
+    this.remove16 = new ItemModel(19, "minecraft:red_stained_glass_pane", "&cRemove -16", List.of(""), 0);
+    this.remove64 = new ItemModel(19, "minecraft:red_stained_glass_pane", "&cRemove -64", List.of(""), 0);
     this.confirm = new ItemModel(39, "minecraft:lime_stained_glass_pane", "&aConfirm", List.of(""), 0);
     this.buyStacks = new ItemModel(40, "minecraft:lime_stained_glass_pane", "&aBuy Stacks", List.of(""), 0);
     this.cancel = new ItemModel(41, "minecraft:red_stained_glass_pane", "&cCancel", List.of(""), 0);
@@ -91,6 +105,8 @@ public class ShopLang {
         this.soundError = lang.getSoundError();
         this.soundOpen = lang.getSoundOpen();
         this.soundClose = lang.getSoundClose();
+        this.soundAdd = lang.getSoundAdd();
+        this.soundRemove = lang.getSoundRemove();
         this.titleBuy = lang.getTitleBuy();
         this.titleSell = lang.getTitleSell();
         this.loreProduct = lang.getLoreProduct();

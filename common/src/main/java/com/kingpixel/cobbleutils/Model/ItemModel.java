@@ -199,4 +199,5 @@ public class ItemModel {
   public GooeyButton getButton(Consumer<ButtonAction> action) {
     return getButton(this, action);
   }
+
 }

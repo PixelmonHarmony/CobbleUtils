@@ -3,15 +3,18 @@ package com.kingpixel.cobbleutils.events.features;
 import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.Priority;
 import com.cobblemon.mod.common.api.events.CobblemonEvents;
+import com.cobblemon.mod.common.api.properties.CustomPokemonProperty;
 import com.cobblemon.mod.common.api.storage.party.PlayerPartyStore;
 import com.cobblemon.mod.common.battles.ActiveBattlePokemon;
 import com.cobblemon.mod.common.battles.actor.PlayerBattleActor;
 import com.cobblemon.mod.common.battles.pokemon.BattlePokemon;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
+import com.cobblemon.mod.common.platform.events.PlatformEvents;
 import com.cobblemon.mod.common.pokemon.EVs;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.options.Pokerus;
+import com.kingpixel.cobbleutils.properties.PokerusPropertyType;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.EntityEvent;
 import kotlin.Unit;
@@ -28,6 +31,8 @@ import static com.kingpixel.cobbleutils.Model.CobbleUtilsTags.POKERUS_TAG;
  * @author Carlos Varas Alonso - 20/07/2024 6:45
  */
 public class PokerusEvents {
+  private static final PokerusPropertyType POKERUS_PROPERTY_TYPE = new PokerusPropertyType();
+
   public static void register() {
     if (CobbleUtils.config.getPokerus().isActive()) {
       EntityEvent.ADD.register((entity, level) -> {
@@ -132,7 +137,10 @@ public class PokerusEvents {
 
         return Unit.INSTANCE;
       });
-
+      PlatformEvents.SERVER_STARTED.subscribe(Priority.NORMAL, (evt) -> {
+        CustomPokemonProperty.Companion.register(POKERUS_PROPERTY_TYPE);
+        return Unit.INSTANCE;
+      });
     }
   }
 

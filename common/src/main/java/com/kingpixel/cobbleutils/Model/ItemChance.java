@@ -319,11 +319,7 @@ public class ItemChance {
       if (split.length > 1) {
         try {
           itemStack.setNbt(NbtHelper.fromNbtProviderString(split[1]));
-          if (itemStack.getNbt().contains("display")) {
-            return ItemUtils.getNameItem(itemStack);
-          } else {
-            return ItemUtils.getTranslatedName(itemStack);
-          }
+          return ItemUtils.getTranslatedName(itemStack);
         } catch (PatternSyntaxException | CommandSyntaxException | ArrayIndexOutOfBoundsException ignored) {
         }
       }

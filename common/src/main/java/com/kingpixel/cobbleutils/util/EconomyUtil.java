@@ -10,7 +10,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import org.intellij.lang.annotations.Subst;
 
 import java.math.BigDecimal;
-import java.util.NoSuchElementException;
 import java.util.UUID;
 
 /**
@@ -156,10 +155,14 @@ public abstract class EconomyUtil {
     if (account.balance().compareTo(amount) >= 0) {
       removeMoney(account, amount);
       CobbleUtils.server.getPlayerManager().getPlayer(account.owner()).sendMessage(AdventureTranslator.toNative(
-        CobbleUtils.language.getMessageBought()
-          .replace("%price%", String.valueOf(amount))
-          .replace("%bal%", account.balance().toString())
-          .replace("%prefix%", CobbleUtils.language.getPrefixShop())));
+          CobbleUtils.language.getMessageBought()
+            .replace("%price%", String.valueOf(amount))
+            .replace("%bal%", account.balance().toString())
+            .replace("%symbol%", account.currency().symbol().toString())
+            .replace("%currency%", account.currency().plural().toString())
+            .replace("%prefix%", CobbleUtils.language.getPrefixShop())
+        )
+      );
       return true;
     } else {
       CobbleUtils.server.getPlayerManager().getPlayer(account.owner()).sendMessage(
@@ -167,26 +170,11 @@ public abstract class EconomyUtil {
           CobbleUtils.language.getMessageNotHaveMoney()
             .replace("%price%", String.valueOf(amount))
             .replace("%bal%", account.balance().toString())
-            .replace("%prefix%", CobbleUtils.language.getPrefixShop())));
-      return false;
-    }
-  }
-
-  /**
-   * Method to check if an account has enough balance and optionally remove the
-   * amount.
-   *
-   * @param player The player to check.
-   * @param amount The amount to check for.
-   *
-   * @return true if the account has enough balance.
-   */
-  public static boolean hasEnough(ServerPlayerEntity player, BigDecimal amount) {
-    if (isImpactorPresent()) {
-      return hasEnoughImpactor(getAccount(player.getUuid()), amount);
-    } else if (isVaultApi()) {
-      return false;
-    } else {
+            .replace("%symbol%", account.currency().symbol().toString())
+            .replace("%currency%", account.currency().plural().toString())
+            .replace("%prefix%", CobbleUtils.language.getPrefixShop())
+        )
+      );
       return false;
     }
   }
@@ -230,7 +218,7 @@ public abstract class EconomyUtil {
       }
       String c = currency.trim();
       return service.currencies().currency(Key.key(c)).orElseGet(() -> service.currencies().primary());
-    } catch (NoSuchElementException e) {
+    } catch (NoSuchMethodError | Exception e) {
       CobbleUtils.LOGGER.error("Error getting currency");
       return service.currencies().primary();
     }
@@ -246,7 +234,7 @@ public abstract class EconomyUtil {
   public static String getSymbol(@Subst("") String currency) {
     if (isImpactorPresent()) {
       try {
-        return getCurrency(currency.trim()).symbol().insertion();
+        return getCurrency(currency.trim()).symbol().toString();
       } catch (NoSuchMethodError | Exception e) {
         CobbleUtils.LOGGER.error("Error getting currency symbol");
         return "$";

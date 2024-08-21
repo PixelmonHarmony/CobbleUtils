@@ -1,10 +1,13 @@
-package com.kingpixel.cobbleutils.Model;
+package com.kingpixel.cobbleutils.Model.shops;
 
 import ca.landonjw.gooeylibs2.api.UIManager;
 import ca.landonjw.gooeylibs2.api.button.GooeyButton;
 import ca.landonjw.gooeylibs2.api.page.GooeyPage;
 import ca.landonjw.gooeylibs2.api.template.types.ChestTemplate;
 import com.google.gson.Gson;
+import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.Model.ItemChance;
+import com.kingpixel.cobbleutils.Model.ItemModel;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.SoundUtil;
 import com.kingpixel.cobbleutils.util.Utils;
@@ -114,6 +117,7 @@ public class ShopMenu {
               shop.open(player, this);
             } else {
               player.sendMessage(Text.literal("Shop is not active"));
+              SoundUtil.playSound(CobbleUtils.shopLang.getSoundError(), player);
             }
           })
           .build();
@@ -127,9 +131,6 @@ public class ShopMenu {
         .builder()
         .template(template)
         .title(AdventureTranslator.toNative(this.title))
-        .onOpen(pageAction -> {
-          SoundUtil.playSound(getSoundopen(), player);
-        })
         .onClose(pageAction -> {
           SoundUtil.playSound(getSoundclose(), player);
         })

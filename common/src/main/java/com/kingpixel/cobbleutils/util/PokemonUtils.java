@@ -117,7 +117,12 @@ public class PokemonUtils {
       String ah;
       if (isEgg(pokemon)) {
         Pokemon p = PokemonProperties.Companion.parse(pokemon.getSpecies().showdownId()).create();
-        p.updateAbility(Abilities.INSTANCE.get(pokemon.getPersistentData().getString("ability")).create(true));
+        String ability = pokemon.getPersistentData().getString("ability");
+        if (!ability.isEmpty()) {
+          p.updateAbility(Abilities.INSTANCE.get(ability).create(false));
+        } else {
+          p.updateAbility(getRandomAbility(p));
+        }
         if (haveAH(p)) {
           ah = CobbleUtils.language.getAH();
         } else {
@@ -135,7 +140,9 @@ public class PokemonUtils {
         .replace("%nature%", getNatureTranslate(nature))
         .replace("%pokemon%", isEgg(pokemon) ? pokemon.getPersistentData().getString("species") : pokemon.getSpecies().getName())
         .replace("%shiny%", pokemon.getShiny() ? CobbleUtils.language.getSymbolshiny() : "")
-        .replace("%ability%", isEgg(pokemon) ? pokemon.getPersistentData().getString("ability") : getAbilityTranslate(pokemon.getAbility()))
+        .replace("%ability%", isEgg(pokemon)
+          ? pokemon.getPersistentData().getString("ability")
+          : getAbilityTranslate(pokemon.getAbility()))
         .replace("%ivshp%", String.valueOf(pokemon.getIvs().get(Stats.HP)))
         .replace("%ivsatk%", String.valueOf(pokemon.getIvs().get(Stats.ATTACK)))
         .replace("%ivsdef%", String.valueOf(pokemon.getIvs().get(Stats.DEFENCE)))
@@ -411,6 +418,7 @@ public class PokemonUtils {
    * @return The ability translation
    */
   public static String getAbilityTranslate(Ability ability) {
+    if (ability == null) return CobbleUtils.language.getNone();
     return "<lang:cobblemon.ability." + ability.getName() + ">";
   }
 
@@ -422,12 +430,12 @@ public class PokemonUtils {
    * @return The nature translation
    */
   public static String getNatureTranslate(Nature nature) {
+    if (nature == null) return CobbleUtils.language.getNone();
     return "<lang:cobblemon.nature." + nature.getName().getPath() + ">";
   }
 
   public static String getMoveColor(ElementalType type, String lang) {
-    if (type == null)
-      return CobbleUtils.language.getNone();
+    if (type == null) return CobbleUtils.language.getNone();
     String color = CobbleUtils.language.getMovecolor().getOrDefault(type.getName(), "");
     if (color.contains("gradient"))
       return color + "<lang:" + lang + ">" + "</gradient>";
@@ -435,6 +443,7 @@ public class PokemonUtils {
   }
 
   public static String getType(ElementalType type) {
+    if (type == null) return CobbleUtils.language.getNone();
     return CobbleUtils.language.getTypes().getOrDefault(type.getName(), type.getName());
   }
 
@@ -520,6 +529,7 @@ public class PokemonUtils {
    * @return The gender translation
    */
   public static String getGenderTranslate(Gender gender) {
+    if (gender == null) return CobbleUtils.language.getNone();
     return CobbleUtils.language.getGender().getOrDefault(gender.getShowdownName(), gender.getShowdownName());
   }
 
@@ -577,7 +587,7 @@ public class PokemonUtils {
   public static Ability getAH(Pokemon pokemon) {
     for (PotentialAbility ability : pokemon.getForm().getAbilities()) {
       if (ability.getType() instanceof HiddenAbilityType) {
-        return ability.getTemplate().create(true);
+        return ability.getTemplate().create(false);
       }
     }
     return getRandomAbility(pokemon);
@@ -611,7 +621,7 @@ public class PokemonUtils {
   public static boolean isAH(Pokemon pokemon, AbilityTemplate ability) {
     for (PotentialAbility potentialAbility : pokemon.getForm().getAbilities()) {
       if (potentialAbility.getType() instanceof HiddenAbilityType) {
-        if (potentialAbility.getTemplate().create(true).getName().equalsIgnoreCase(ability.getName())) {
+        if (potentialAbility.getTemplate().create(false).getName().equalsIgnoreCase(ability.getName())) {
           return true;
         }
       }
@@ -630,7 +640,7 @@ public class PokemonUtils {
   public static boolean isAH(Pokemon pokemon, Ability ability) {
     for (PotentialAbility potentialAbility : pokemon.getForm().getAbilities()) {
       if (potentialAbility.getType() instanceof HiddenAbilityType) {
-        if (potentialAbility.getTemplate().create(true).getName().equalsIgnoreCase(ability.getName())) {
+        if (potentialAbility.getTemplate().create(false).getName().equalsIgnoreCase(ability.getName())) {
           return true;
         }
       }
@@ -644,7 +654,7 @@ public class PokemonUtils {
 
     for (PotentialAbility potentialAbility : abilities) {
       if (!(potentialAbility.getType() instanceof HiddenAbilityType)) {
-        abilityList.add(potentialAbility.getTemplate().create(true));
+        abilityList.add(potentialAbility.getTemplate().create(false));
       }
     }
 
@@ -657,6 +667,9 @@ public class PokemonUtils {
 
   public static boolean isLegalAbility(ServerPlayerEntity player, Pokemon pokemon) {
     boolean legal = isLegalAbility(pokemon);
+    if (pokemon.getAbility().getForced()) {
+      pokemon.getAbility().setForced$common(false);
+    }
     if (!legal && CobbleUtils.config.isDebug()) {
       CobbleUtils.LOGGER.info("Fix illegal ability: Player: " + player.getGameProfile().getName());
     }

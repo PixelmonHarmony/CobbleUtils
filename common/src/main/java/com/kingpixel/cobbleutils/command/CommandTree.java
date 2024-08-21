@@ -11,6 +11,7 @@ import com.kingpixel.cobbleutils.command.admin.random.RandomMoney;
 import com.kingpixel.cobbleutils.command.admin.random.RandomPokemon;
 import com.kingpixel.cobbleutils.command.admin.rewards.*;
 import com.kingpixel.cobbleutils.command.base.*;
+import com.kingpixel.cobbleutils.command.base.shops.ShopCommand;
 import com.kingpixel.cobbleutils.util.LuckPermsUtil;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
