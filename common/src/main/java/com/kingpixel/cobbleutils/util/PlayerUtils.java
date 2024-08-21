@@ -70,10 +70,36 @@ public class PlayerUtils {
     return itemStack;
   }
 
+
+  /**
+   * Method to check if a cooldown is active.
+   *
+   * @param cooldown The cooldown to check.
+   *
+   * @return true if the cooldown is active.
+   */
+  public static boolean isCooldown(Date cooldown) {
+    return new Date().before(cooldown);
+  }
+
+  /**
+   * Method to check if a cooldown is active.
+   *
+   * @param cooldown The cooldown to check.
+   *
+   * @return true if the cooldown is active.
+   */
   public static boolean isCooldown(Long cooldown) {
     return new Date().getTime() < cooldown;
   }
 
+  /**
+   * Method to cast a PlayerEntity to a ServerPlayerEntity.
+   *
+   * @param player The player to cast.
+   *
+   * @return The ServerPlayerEntity.
+   */
   public static ServerPlayerEntity castPlayer(PlayerEntity player) {
     return new ServerPlayerEntity(CobbleUtils.server, CobbleUtils.server.getOverworld(), player.getGameProfile());
   }
