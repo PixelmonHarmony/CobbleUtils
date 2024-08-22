@@ -364,12 +364,17 @@ public class Shop {
     ItemModel confirm = CobbleUtils.shopLang.getConfirm();
     template.set(confirm.getSlot(), confirm.getButton(action -> {
       if (typeMenu == TypeMenu.BUY) {
-        buyProduct(player, product, amount, price);
+        if (buyProduct(player, product, amount, price)) {
+          open(player, CobbleUtils.shopConfig.getShop());
+        }
+
       }
       if (typeMenu == TypeMenu.SELL) {
-        sellProduct(player, product, amount);
+        if (sellProduct(player, product, amount)) {
+          open(player, CobbleUtils.shopConfig.getShop());
+        }
       }
-      open(player, CobbleUtils.shopConfig.getShop());
+
     }));
 
     // Botón de comprar pilas completas
@@ -391,7 +396,7 @@ public class Shop {
     UIManager.openUIPassively(player, page, 10, TimeUnit.MILLISECONDS);
   }
 
-  private void buyProduct(ServerPlayerEntity player, Product product, int amount, BigDecimal price) {
+  private boolean buyProduct(ServerPlayerEntity player, Product product, int amount, BigDecimal price) {
     if (EconomyUtil.hasEnough(player, getCurrency(), price)) {
       SoundUtil.playSound(CobbleUtils.shopLang.getSoundBuy(), player);
       int amount1 = product.getProduct().getItemStack().getCount();
@@ -404,12 +409,14 @@ public class Shop {
           }
         }
       } catch (NoPokemonStoreException e) {
-        throw new RuntimeException(e);
+        return false;
       }
+      return true;
     }
+    return false;
   }
 
-  private void sellProduct(ServerPlayerEntity player, Product product, int amount) {
+  private boolean sellProduct(ServerPlayerEntity player, Product product, int amount) {
     int packageSize = product.getProduct().getItemStack().getCount();
     BigDecimal unitPrice = product.getSell().divide(BigDecimal.valueOf(packageSize), 2, RoundingMode.HALF_UP);
     BigDecimal totalPrice = unitPrice.multiply(BigDecimal.valueOf(amount));
@@ -456,6 +463,7 @@ public class Shop {
             .replace("%balance%", EconomyUtil.getBalance(player, getCurrency()).toString())
         )
       );
+      return true;
     } else {
       // Envía un mensaje de error si el jugador no tiene la cantidad suficiente
       SoundUtil.playSound(CobbleUtils.shopLang.getSoundError(), player);
@@ -474,6 +482,7 @@ public class Shop {
         )
       );
     }
+    return false;
   }
 
 
@@ -545,6 +554,25 @@ public class Shop {
       .display(viewProduct)
       .title(AdventureTranslator.toNative(ItemUtils.getTranslatedName(viewProduct)))
       .lore(Text.class, AdventureTranslator.toNativeL(loreProduct))
+      .onClick(action -> {
+        TypeError typeError = getTypeError(product);
+        if (typeError == TypeError.NONE) {
+          SoundUtil.playSound(CobbleUtils.shopLang.getSoundOpen(), player);
+          if (action.getClickType() == ButtonClick.LEFT_CLICK || action.getClickType() == ButtonClick.SHIFT_LEFT_CLICK) {
+            if (product.getBuy().compareTo(BigDecimal.ZERO) > 0) {
+              SoundUtil.playSound(getSoundopen(), player);
+              openBuySellMenu(player, product, TypeMenu.BUY, 1);
+            }
+          } else if (action.getClickType() == ButtonClick.RIGHT_CLICK || action.getClickType() == ButtonClick.SHIFT_RIGHT_CLICK) {
+            if (product.getSell().compareTo(BigDecimal.ZERO) > 0) {
+              SoundUtil.playSound(getSoundopen(), player);
+              openBuySellMenu(player, product, TypeMenu.SELL, 1);
+            }
+          }
+        } else {
+          sendError(player, typeError);
+        }
+      })
       .build());
   }
 

@@ -30,6 +30,7 @@ public class BreedConfig {
   private boolean ditto;
   private boolean doubleditto;
   private boolean spawnEggWorld;
+  private boolean destinyknotlikepokemon;
   private List<String> eggcommand;
   private String titleselectplot;
   private String titleplot;
@@ -90,6 +91,7 @@ public class BreedConfig {
     this.doubleditto = true;
     this.spawnEggWorld = false;
     this.shifttoopen = true;
+    this.destinyknotlikepokemon = true;
     this.tickstocheck = 20;
     this.multipliermasuda = 1.5f;
     this.multiplierShiny = 1.5f;
@@ -156,6 +158,7 @@ public class BreedConfig {
         cooldown = config.getCooldown();
         maxeggperplot = config.getMaxeggperplot();
         tickstocheck = config.getTickstocheck();
+        destinyknotlikepokemon = config.isDestinyknotlikepokemon();
         maxplots = config.getMaxplots();
         notcancreateEgg = config.getNotcancreateEgg();
         autoclaim = config.isAutoclaim();

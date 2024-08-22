@@ -32,6 +32,7 @@ allprojects {
         maven(url = "https://repo.spongepowered.org/maven/")
         maven(url = "https://files.minecraftforge.net/maven/")
         maven(url = "https://papermc.io/repo/repository/maven-public/")
+        maven("https://maven.impactdev.net/repository/development")
         maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
         gradlePluginPortal()
         mavenCentral()

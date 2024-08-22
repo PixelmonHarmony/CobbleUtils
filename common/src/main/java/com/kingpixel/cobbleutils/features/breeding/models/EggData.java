@@ -41,9 +41,7 @@ import net.minecraft.world.Heightmap;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.cobblemon.mod.common.CobblemonItems.*;
@@ -346,8 +344,10 @@ public class EggData {
     Pokemon firstEvolution =
       PokemonProperties.Companion.parse(firstspecie.showdownId() + " form=" + female.getForm().showdownId() + " " + female.getForm().showdownId() + " " + female.getForm().getName()).create();
     firstEvolution.setForm(female.getForm());
+
     // IVS
     egg.createPokemonProperties(List.of(PokemonPropertyExtractor.IVS, PokemonPropertyExtractor.GENDER)).apply(egg);
+
     applyInitialIvs(egg, male, female);
 
     boolean isDoubleEverStone = (male.heldItem().getItem() == CobblemonItems.EVERSTONE
@@ -533,26 +533,73 @@ public class EggData {
     }
   }
 
+  private enum Family {
+    MALE, FEMALE
+  }
+
   private static void applyDestinyKnot(Pokemon male, Pokemon female, Pokemon egg) {
     List<Stats> stats = new ArrayList<>(Arrays.stream(Stats.values()).toList());
     stats.remove(Stats.EVASION);
     stats.remove(Stats.ACCURACY);
-    for (int i = 0; i < 5; i++) {
-      List<Pokemon> pokemons = List.of(male, female);
-      Pokemon pokemon = pokemons.get(Utils.RANDOM.nextInt(pokemons.size()));
-      Stats stat = stats.get(Utils.RANDOM.nextInt(stats.size()));
-      Integer ivsPokemon = pokemon.getIvs().get(stat);
 
-      if (ivsPokemon == null) {
-        ivsPokemon = Utils.RANDOM.nextInt(32);
+    Map<Family, Set<Stats>> selectedStats = new HashMap<>();
+    selectedStats.put(Family.MALE, new HashSet<>());
+    selectedStats.put(Family.FEMALE, new HashSet<>());
+
+    int attempts = 0;
+    if (!CobbleUtils.breedconfig.isDestinyknotlikepokemon()) {
+      for (int i = 0; i < 5; i++) {
+        List<Pokemon> pokemons = List.of(male, female);
+        Pokemon pokemon;
+        Family family;
+        Stats stat;
+
+        do {
+          int randomPokemonIndex = Utils.RANDOM.nextInt(pokemons.size());
+          pokemon = pokemons.get(randomPokemonIndex);
+          family = randomPokemonIndex == 0 ? Family.MALE : Family.FEMALE;
+
+          stat = stats.get(Utils.RANDOM.nextInt(stats.size()));
+          attempts++;
+
+          if (attempts > 10) {
+            stat = stats.stream().filter(s ->
+              !(selectedStats.get(Family.MALE).contains(s) && selectedStats.get(Family.FEMALE).contains(s))
+            ).findFirst().orElseThrow();
+            break;
+          }
+        } while (selectedStats.get(family).contains(stat) ||
+          (selectedStats.get(Family.MALE).contains(stat) && selectedStats.get(Family.FEMALE).contains(stat)));
+
+        selectedStats.get(family).add(stat);
+
+        Integer ivsPokemon = pokemon.getIvs().get(stat);
+        if (ivsPokemon == null) {
+          ivsPokemon = Utils.RANDOM.nextInt(32);
+        }
+
+        if (ivsPokemon > egg.getIvs().get(stat)) {
+          egg.setIV(stat, ivsPokemon);
+        }
       }
+    } else {
+      for (int i = 0; i < 5; i++) {
+        Stats stat = stats.remove(Utils.RANDOM.nextInt(stats.size()));
 
-      if (ivsPokemon > egg.getIvs().get(stat)) {
-        egg.setIV(stat, ivsPokemon);
+        boolean fromMale = Utils.RANDOM.nextBoolean();
+        Pokemon selectedParent = fromMale ? male : female;
+
+        Integer ivSelectedParent = selectedParent.getIvs().get(stat);
+
+        if (ivSelectedParent == null) {
+          ivSelectedParent = Utils.RANDOM.nextInt(32);
+        }
+
+        egg.setIV(stat, ivSelectedParent);
       }
-
     }
   }
+
 
   private static void applyAbility(Pokemon male, Pokemon female, Pokemon firstEvolution, Pokemon egg) {
     boolean maleHiddenAbility = PokemonUtils.haveAH(male);

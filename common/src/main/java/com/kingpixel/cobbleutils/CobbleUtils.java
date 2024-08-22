@@ -293,6 +293,7 @@ public class CobbleUtils {
             }
             itemStack.setNbt(null);
           }
+          
         }
       });
     });

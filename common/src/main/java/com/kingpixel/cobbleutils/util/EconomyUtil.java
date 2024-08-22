@@ -20,6 +20,25 @@ public abstract class EconomyUtil {
   // The impactor service
   private static EconomyService service = EconomyService.instance();
 
+  private static EconomyType economyType;
+
+  private enum EconomyType {
+    IMPACTOR,
+    VAULT
+  }
+
+  private static void setEconomyType() {
+    if (economyType != null) return;
+    if (isImpactorPresent()) {
+      economyType = EconomyType.IMPACTOR;
+    } else if (isVaultApi()) {
+      economyType = EconomyType.VAULT;
+    } else {
+      CobbleUtils.LOGGER.error("No economy api found");
+      economyType = null;
+    }
+  }
+
   /**
    * Method to check if the impactor api is present.
    *
@@ -30,6 +49,7 @@ public abstract class EconomyUtil {
       Class.forName("net.impactdev.impactor.api.Impactor");
       return true;
     } catch (ClassNotFoundException e) {
+      CobbleUtils.LOGGER.error("Impactor not found");
       return false;
     }
   }
@@ -44,6 +64,7 @@ public abstract class EconomyUtil {
       Class.forName("net.milkbowl.vault.economy.Economy");
       return true;
     } catch (ClassNotFoundException e) {
+      CobbleUtils.LOGGER.error("Vault not found");
       return false;
     }
   }
@@ -87,19 +108,22 @@ public abstract class EconomyUtil {
    * @return true if the transaction was successful.
    */
   public static boolean addMoney(ServerPlayerEntity player, @Subst("") String currency, BigDecimal amount) {
-    if (isImpactorPresent()) {
-      Account account;
-      if (currency.isEmpty()) {
-        account = getAccount(player.getUuid());
-      } else {
-        account = getAccount(player.getUuid(), currency.trim());
+    setEconomyType();
+    switch (economyType) {
+      case IMPACTOR: {
+        Account account;
+        if (currency.isEmpty()) {
+          account = getAccount(player.getUuid());
+        } else {
+          account = getAccount(player.getUuid(), currency.trim());
+        }
+        EconomyTransaction transaction = account.deposit(amount);
+        return transaction.successful();
       }
-      EconomyTransaction transaction = account.deposit(amount);
-      return transaction.successful();
-    } else if (isVaultApi()) {
-      return false;
-    } else {
-      return false;
+      case VAULT:
+        return false;
+      default:
+        return false;
     }
   }
 
@@ -154,27 +178,39 @@ public abstract class EconomyUtil {
   public static boolean hasEnoughImpactor(Account account, BigDecimal amount) {
     if (account.balance().compareTo(amount) >= 0) {
       removeMoney(account, amount);
-      CobbleUtils.server.getPlayerManager().getPlayer(account.owner()).sendMessage(AdventureTranslator.toNative(
-          CobbleUtils.language.getMessageBought()
-            .replace("%price%", String.valueOf(amount))
-            .replace("%bal%", account.balance().toString())
-            .replace("%symbol%", account.currency().symbol().toString())
-            .replace("%currency%", account.currency().plural().toString())
-            .replace("%prefix%", CobbleUtils.language.getPrefixShop())
-        )
-      );
+      try {
+        CobbleUtils.server.getPlayerManager().getPlayer(account.owner()).sendMessage(AdventureTranslator.toNative(
+            CobbleUtils.language.getMessageBought()
+              .replace("%price%", String.valueOf(amount))
+              .replace("%bal%", account.balance().toString())
+              //.replace("%symbol%", account.currency().symbol().toString())
+              //.replace("%currency%", account.currency().plural().toString())
+              .replace("%prefix%", CobbleUtils.language.getPrefixShop())
+          )
+        );
+      } catch (NoSuchMethodError | Exception e) {
+        if (CobbleUtils.config.isDebug()) {
+          CobbleUtils.LOGGER.error("Error sending message");
+        }
+      }
       return true;
     } else {
-      CobbleUtils.server.getPlayerManager().getPlayer(account.owner()).sendMessage(
-        AdventureTranslator.toNative(
-          CobbleUtils.language.getMessageNotHaveMoney()
-            .replace("%price%", String.valueOf(amount))
-            .replace("%bal%", account.balance().toString())
-            .replace("%symbol%", account.currency().symbol().toString())
-            .replace("%currency%", account.currency().plural().toString())
-            .replace("%prefix%", CobbleUtils.language.getPrefixShop())
-        )
-      );
+      try {
+        CobbleUtils.server.getPlayerManager().getPlayer(account.owner()).sendMessage(
+          AdventureTranslator.toNative(
+            CobbleUtils.language.getMessageNotHaveMoney()
+              .replace("%price%", String.valueOf(amount))
+              .replace("%bal%", account.balance().toString())
+              //.replace("%symbol%", account.currency().symbol().toString())
+              //.replace("%currency%", account.currency().plural().toString())
+              .replace("%prefix%", CobbleUtils.language.getPrefixShop())
+          )
+        );
+      } catch (NoSuchMethodError | Exception e) {
+        if (CobbleUtils.config.isDebug()) {
+          CobbleUtils.LOGGER.error("Error sending message");
+        }
+      }
       return false;
     }
   }
@@ -190,14 +226,17 @@ public abstract class EconomyUtil {
    * @return true if the account has enough balance.
    */
   public static boolean hasEnough(ServerPlayerEntity player, @Subst("") String currency, BigDecimal amount) {
-    if (isImpactorPresent()) {
-      return hasEnoughImpactor(getAccount(player.getUuid(), currency.trim()), amount);
-    } else if (isVaultApi()) {
-      return false;
-    } else {
-      return false;
+    setEconomyType();
+    switch (economyType) {
+      case IMPACTOR:
+        return hasEnoughImpactor(getAccount(player.getUuid(), currency.trim()), amount);
+      case VAULT:
+        return false;
+      default:
+        return false;
     }
   }
+
 
   /**
    * Method to get the currency from the impactor api.
@@ -208,18 +247,19 @@ public abstract class EconomyUtil {
    */
   private static Currency getCurrency(@Subst("") String currency) {
     try {
-      if (service == null) {
-        CobbleUtils.LOGGER.error("Service is null");
-        service = EconomyService.instance();
-      }
+      service = EconomyService.instance();
       if (currency.isEmpty()) {
-        CobbleUtils.LOGGER.error("Currency is empty");
+        if (CobbleUtils.config.isDebug()) {
+          CobbleUtils.LOGGER.error("Currency is empty");
+        }
         return service.currencies().primary();
       }
       String c = currency.trim();
       return service.currencies().currency(Key.key(c)).orElseGet(() -> service.currencies().primary());
     } catch (NoSuchMethodError | Exception e) {
-      CobbleUtils.LOGGER.error("Error getting currency");
+      if (CobbleUtils.config.isDebug()) {
+        CobbleUtils.LOGGER.error("Error getting currency");
+      }
       return service.currencies().primary();
     }
   }
@@ -232,16 +272,14 @@ public abstract class EconomyUtil {
    * @return The currency symbol.
    */
   public static String getSymbol(@Subst("") String currency) {
-    if (isImpactorPresent()) {
-      try {
-        return getCurrency(currency.trim()).symbol().toString();
-      } catch (NoSuchMethodError | Exception e) {
-        CobbleUtils.LOGGER.error("Error getting currency symbol");
-        return "$";
-      }
-    } else if (isVaultApi()) {
-      return "$";
-    } else {
+    setEconomyType();
+    try {
+      return switch (economyType) {
+        case IMPACTOR -> getCurrency(currency).symbol().toString();
+        case VAULT -> "$";
+        default -> "$";
+      };
+    } catch (NoSuchMethodError | Exception ignored) {
       return "$";
     }
   }
@@ -255,17 +293,11 @@ public abstract class EconomyUtil {
    * @return The balance of the account.
    */
   public static BigDecimal getBalance(ServerPlayerEntity player, @Subst("") String currency) {
-    if (isImpactorPresent()) {
-      try {
-        return getAccount(player.getUuid(), currency.trim()).balance();
-      } catch (NoSuchMethodError | Exception e) {
-        CobbleUtils.LOGGER.error("Error getting balance");
-        return BigDecimal.ZERO;
-      }
-    } else if (isVaultApi()) {
-      return BigDecimal.ZERO;
-    } else {
-      return BigDecimal.ZERO;
-    }
+    setEconomyType();
+    return switch (economyType) {
+      case IMPACTOR -> getAccount(player.getUuid(), currency).balance();
+      case VAULT -> BigDecimal.ZERO;
+      default -> BigDecimal.ZERO;
+    };
   }
 }

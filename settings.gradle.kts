@@ -14,6 +14,7 @@ pluginManagement {
         maven(url = "https://files.minecraftforge.net/maven/")
         maven(url = "https://papermc.io/repo/repository/maven-public/")
         maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
+        maven("https://maven.impactdev.net/repository/development")
         gradlePluginPortal()
         mavenCentral()
         mavenLocal()
