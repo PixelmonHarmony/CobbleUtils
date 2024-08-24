@@ -400,6 +400,22 @@ public class EggData {
       }
     }
 
+    // PokeBall
+    if (CobbleUtils.breedconfig.isObtainPokeBallFromMother()) {
+      if (female.getSpecies().showdownId().equalsIgnoreCase(male.getSpecies().showdownId())) {
+        if (Utils.RANDOM.nextBoolean()) {
+          egg.setCaughtBall(male.getCaughtBall());
+        } else {
+          egg.setCaughtBall(female.getCaughtBall());
+        }
+      } else {
+        egg.setCaughtBall(female.getCaughtBall());
+      }
+    }
+
+    // Size
+    ScalePokemonData.getScalePokemonData(usePokemonToEgg).getRandomPokemonSize().apply(egg);
+
     // Gender
     egg.createPokemonProperties(PokemonPropertyExtractor.GENDER).apply(egg);
 

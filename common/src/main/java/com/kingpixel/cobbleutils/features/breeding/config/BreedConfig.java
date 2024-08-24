@@ -31,6 +31,7 @@ public class BreedConfig {
   private boolean doubleditto;
   private boolean spawnEggWorld;
   private boolean destinyknotlikepokemon;
+  private boolean obtainPokeBallFromMother;
   private List<String> eggcommand;
   private String titleselectplot;
   private String titleplot;
@@ -92,6 +93,7 @@ public class BreedConfig {
     this.spawnEggWorld = false;
     this.shifttoopen = true;
     this.destinyknotlikepokemon = true;
+    this.obtainPokeBallFromMother = true;
     this.tickstocheck = 20;
     this.multipliermasuda = 1.5f;
     this.multiplierShiny = 1.5f;
@@ -125,8 +127,9 @@ public class BreedConfig {
     this.plotThereAreEggs = new ItemModel(0, "minecraft:lime_wool", "", List.of(
     ), 0);
     this.maleSlots = List.of(0, 1, 2, 9, 11, 18, 19, 20);
-    this.emptySlots = new ItemModel(0, "minecraft:paper", "", List.of(""), 0);
     this.femaleSlots = List.of(6, 7, 8, 15, 17, 24, 25, 26);
+    this.eggSlots = List.of(3, 4, 5, 12, 14, 21, 22, 23);
+    this.emptySlots = new ItemModel(0, "minecraft:paper", "", List.of(""), 0);
     this.createEgg = "%prefix% <#ecca18>%pokemon1% %shiny1% &f(%form1%&f) <#64de7c>and <#ecca18>%pokemon2% %shiny2% &f(%form2%&f) <#64de7c>have created an egg <#ecca18>%egg%<#64de7c>!";
     this.notcancreateEgg = "%prefix% <#ecca18>%pokemon1% %shiny1% &f(%form1%&f) <#d65549>and <#ecca18>%pokemon2% %shiny2% &f(%form2%&f) <#d65549>can't create an egg!";
     this.notdoubleditto = "%prefix% <#d65549>you can't use two dittos!";
@@ -167,6 +170,10 @@ public class BreedConfig {
         notditto = config.getNotditto();
         spawnEggWorld = config.isSpawnEggWorld();
         blacklist = config.getBlacklist();
+        obtainPokeBallFromMother = config.isObtainPokeBallFromMother();
+        femaleSlots = config.getFemaleSlots();
+        maleSlots = config.getMaleSlots();
+        eggSlots = config.getEggSlots();
         blacklisted = config.getBlacklisted();
         percentagespawnegg = config.getPercentagespawnegg();
         plotItem = config.getPlotItem();
@@ -197,6 +204,8 @@ public class BreedConfig {
         incenses = config.getIncenses();
         emptySlots = config.getEmptySlots();
         plotThereAreEggs = config.getPlotThereAreEggs();
+
+        //nationalities = config.getNationalities();
 
 
         String data = gson.toJson(this);

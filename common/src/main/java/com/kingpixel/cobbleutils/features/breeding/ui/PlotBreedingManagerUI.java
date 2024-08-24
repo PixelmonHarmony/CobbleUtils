@@ -111,6 +111,27 @@ public class PlotBreedingManagerUI {
       })
       .build();
 
+    CobbleUtils.breedconfig.getEggSlots().forEach(slot -> {
+      template.set(slot, GooeyButton.builder()
+        .display(CobbleUtils.breedconfig.getEmptySlots().getItemStack())
+        .title("Egg")
+        .onClick(action -> {
+          if (!plotBreeding.getEggs().isEmpty()) {
+            plotBreeding.getEggs().forEach(pokemon -> {
+              try {
+                RewardsUtils.saveRewardPokemon(action.getPlayer(), Pokemon.Companion.loadFromJSON(pokemon));
+              } catch (NoPokemonStoreException e) {
+                throw new RuntimeException(e);
+              }
+            });
+            plotBreeding.getEggs().clear();
+            Breeding.managerPlotEggs.writeInfo(player);
+            open(player, plotBreeding);
+          }
+        })
+        .build());
+    });
+
     template.set(10, male);
     template.set(13, egg);
     template.set(16, female);

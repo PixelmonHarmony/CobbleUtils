@@ -16,9 +16,8 @@ import java.util.List;
 public class LuckPermsUtil {
   public static boolean isLuckPermsPresent() {
     try {
-      Class.forName("net.luckperms.api.LuckPerms");
-      return true;
-    } catch (ClassNotFoundException e) {
+      return LuckPermsProvider.get() != null;
+    } catch (IllegalStateException | NullPointerException e) {
       if (CobbleUtils.config.isDebug()) {
         CobbleUtils.LOGGER.error("LuckPerms is not present");
       }
@@ -38,6 +37,9 @@ public class LuckPermsUtil {
   }
 
   public static boolean checkPermission(ServerCommandSource source, int level, List<String> permissions) {
+    for (String permission : permissions) {
+      addPermission(permission);
+    }
     ServerPlayerEntity player = source.getPlayer();
     if (player != null) {
       boolean hasPermission = source.hasPermissionLevel(level);
@@ -45,10 +47,15 @@ public class LuckPermsUtil {
       if (isLuckPermsPresent()) {
         LuckPerms luckPermsApi = getLuckPermsApi();
         for (String permission : permissions) {
-          //addPermission(permission);
           User user = luckPermsApi.getUserManager().getUser(player.getUuid());
           if (user != null) {
-            hasPermission = user.getCachedData().getPermissionData().checkPermission(permission).asBoolean();
+            boolean restult = user.getCachedData().getPermissionData().checkPermission(permission).asBoolean();
+            if (CobbleUtils.config.isDebug()) {
+              CobbleUtils.LOGGER.info("Checking permission: " + permission);
+              CobbleUtils.LOGGER.info("Result: " + restult);
+            }
+            hasPermission = restult;
+            if (hasPermission) return true;
           }
         }
       }
@@ -59,6 +66,7 @@ public class LuckPermsUtil {
 
 
   public static boolean checkPermission(ServerCommandSource source, int level, String permission) {
+    addPermission(permission);
     ServerPlayerEntity player = source.getPlayer();
     if (player != null) {
       boolean hasPermission = source.hasPermissionLevel(level);
@@ -70,7 +78,13 @@ public class LuckPermsUtil {
           UserManager userManager = luckPermsApi.getUserManager();
           User user = userManager.getUser(player.getUuid());
           if (user != null) {
-            hasPermission = user.getCachedData().getPermissionData().checkPermission(permission).asBoolean();
+            boolean restult = user.getCachedData().getPermissionData().checkPermission(permission).asBoolean();
+            if (CobbleUtils.config.isDebug()) {
+              CobbleUtils.LOGGER.info("Checking permission: " + permission);
+              CobbleUtils.LOGGER.info("Result: " + restult);
+            }
+            hasPermission = restult;
+            if (hasPermission) return true;
           }
         }
       }
@@ -83,6 +97,7 @@ public class LuckPermsUtil {
     if (permission.isEmpty()) return true;
     if (player.hasPermissionLevel(4)) return true;
     if (isLuckPermsPresent()) {
+      addPermission(permission);
       LuckPerms luckPermsApi = getLuckPermsApi();
       if (luckPermsApi != null) {
         UserManager userManager = luckPermsApi.getUserManager();
@@ -97,7 +112,7 @@ public class LuckPermsUtil {
 
   public static void addPermission(String permission) {
     if (isLuckPermsPresent()) {
-      getLuckPermsApi().getNodeBuilderRegistry().forPermission().permission(permission).negated(false).build();
+      getLuckPermsApi().getNodeBuilderRegistry().forPermission().permission(permission).build();
     }
   }
 

@@ -27,7 +27,6 @@ public class EggCommand implements Command<ServerCommandSource> {
   public static void register(CommandDispatcher<ServerCommandSource> dispatcher,
                               LiteralArgumentBuilder<ServerCommandSource> base) {
     dispatcher.register(base.then(
-
       CommandManager.literal("egg")
         .then(
           CommandManager.argument("pokemon", PokemonPropertiesArgumentType.Companion.properties())
