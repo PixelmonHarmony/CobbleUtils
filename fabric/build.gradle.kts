@@ -40,38 +40,58 @@ dependencies {
 
     "common"(project(":common", "namedElements")) { isTransitive = false }
     "shadowCommon"(project(":common", "transformProductionFabric")) { isTransitive = false }
+    /*
+        implementation("net.kyori:adventure-text-serializer-gson:${property("kyori_version")}")
+        implementation("net.kyori:adventure-api:${property("kyori_version")}")
+        //implementation("net.kyori:adventure-key:${property("kyori_version")}")
+        implementation("net.kyori:adventure-text-serializer-plain:${property("kyori_version")}")
+        implementation("net.kyori:adventure-text-serializer-legacy:${property("kyori_version")}")
+        implementation("net.kyori:adventure-text-minimessage:${property("kyori_version")}")
+        implementation("net.kyori:examination-api:1.3.0")
+        implementation("net.kyori:examination-string:1.3.0")
+        implementation("net.kyori:adventure-nbt:${property("kyori_version")}")
+        implementation("net.kyori:adventure-text-serializer-json:${property("kyori_version")}")
+        implementation("net.kyori:adventure-text-logger-slf4j:${property("kyori_version")}")
+        implementation("net.kyori:adventure-platform-api:4.3.0")
+        implementation("net.kyori:adventure-text-serializer-ansi:${property("kyori_version")}")
+        implementation("net.kyori:adventure-text-serializer-gson:${property("kyori_version")}")
+        // implementation("org.mongodb:mongodb-driver-reactivestreams:5.1.2")*/
 
-    implementation("net.kyori:adventure-text-serializer-gson:${property("kyori_version")}")
-    implementation("net.kyori:adventure-api:${property("kyori_version")}")
-    implementation("net.kyori:adventure-key:${property("kyori_version")}")
-    implementation("net.kyori:adventure-text-serializer-plain:${property("kyori_version")}")
-    implementation("net.kyori:adventure-text-serializer-legacy:${property("kyori_version")}")
-    implementation("net.kyori:adventure-text-minimessage:${property("kyori_version")}")
-    implementation("net.kyori:examination-api:1.3.0")
-    implementation("net.kyori:examination-string:1.3.0")
-    implementation("net.kyori:adventure-nbt:${property("kyori_version")}")
-    implementation("net.kyori:adventure-text-serializer-json:${property("kyori_version")}")
-    implementation("net.kyori:adventure-text-logger-slf4j:${property("kyori_version")}")
-    implementation("net.kyori:adventure-platform-api:4.3.0")
-    implementation("net.kyori:adventure-text-serializer-ansi:${property("kyori_version")}")
-    implementation("net.kyori:adventure-text-serializer-gson:${property("kyori_version")}")
-    // implementation("org.mongodb:mongodb-driver-reactivestreams:5.1.2")
-
-    shadowCommon("net.kyori:adventure-text-serializer-gson:${property("kyori_version")}")
+    api("net.kyori:adventure-api:${property("kyori_version")}")
+    api("net.kyori:adventure-nbt:${property("kyori_version")}")
+    api("net.kyori:adventure-text-serializer-plain:${property("kyori_version")}")
+    api("net.kyori:adventure-text-serializer-legacy:${property("kyori_version")}")
+    api("net.kyori:adventure-text-serializer-gson:${property("kyori_version")}")
+    api("net.kyori:adventure-text-minimessage:${property("kyori_version")}")
+    api("net.kyori:adventure-text-logger-slf4j:${property("kyori_version")}")
+    api("net.kyori:adventure-platform-api:4.3.0")
+    api("net.kyori:event-api:5.0.0-SNAPSHOT")
+    /*
+        shadowCommon("net.kyori:adventure-text-serializer-gson:${property("kyori_version")}")
+        shadowCommon("net.kyori:adventure-api:${property("kyori_version")}")
+        //shadowCommon("net.kyori:adventure-key:${property("kyori_version")}")
+        shadowCommon("net.kyori:adventure-text-serializer-plain:${property("kyori_version")}")
+        shadowCommon("net.kyori:adventure-text-serializer-legacy:${property("kyori_version")}")
+        shadowCommon("net.kyori:adventure-text-minimessage:${property("kyori_version")}")
+        shadowCommon("net.kyori:examination-api:1.3.0")
+        shadowCommon("net.kyori:examination-string:1.3.0")
+        shadowCommon("net.kyori:adventure-nbt:${property("kyori_version")}")
+        shadowCommon("net.kyori:adventure-text-serializer-json:${property("kyori_version")}")
+        shadowCommon("net.kyori:adventure-text-logger-slf4j:${property("kyori_version")}")
+        shadowCommon("net.kyori:adventure-platform-api:4.3.0")
+        shadowCommon("net.kyori:adventure-text-serializer-ansi:${property("kyori_version")}")
+        shadowCommon("net.kyori:adventure-text-serializer-gson:${property("kyori_version")}")
+        //shadowCommon("org.mongodb:mongodb-driver-reactivestreams:5.1.2")
+        */
     shadowCommon("net.kyori:adventure-api:${property("kyori_version")}")
-    shadowCommon("net.kyori:adventure-key:${property("kyori_version")}")
+    shadowCommon("net.kyori:adventure-nbt:${property("kyori_version")}")
     shadowCommon("net.kyori:adventure-text-serializer-plain:${property("kyori_version")}")
     shadowCommon("net.kyori:adventure-text-serializer-legacy:${property("kyori_version")}")
+    shadowCommon("net.kyori:adventure-text-serializer-gson:${property("kyori_version")}")
     shadowCommon("net.kyori:adventure-text-minimessage:${property("kyori_version")}")
-    shadowCommon("net.kyori:examination-api:1.3.0")
-    shadowCommon("net.kyori:examination-string:1.3.0")
-    shadowCommon("net.kyori:adventure-nbt:${property("kyori_version")}")
-    shadowCommon("net.kyori:adventure-text-serializer-json:${property("kyori_version")}")
     shadowCommon("net.kyori:adventure-text-logger-slf4j:${property("kyori_version")}")
     shadowCommon("net.kyori:adventure-platform-api:4.3.0")
-    shadowCommon("net.kyori:adventure-text-serializer-ansi:${property("kyori_version")}")
-    shadowCommon("net.kyori:adventure-text-serializer-gson:${property("kyori_version")}")
-    //shadowCommon("org.mongodb:mongodb-driver-reactivestreams:5.1.2")
+    shadowCommon("net.kyori:event-api:5.0.0-SNAPSHOT")
 }
 
 tasks.processResources {
@@ -109,11 +129,14 @@ tasks {
         exclude("com/google/gson/**/*")
         exclude("org/intellij/**/*")
         exclude("org/jetbrains/**/*")
+        // No excluimos el "net/kyori/adventure/key/**" para que siga incluido en el JAR, pero sin relocalizar.
 
         //relocate("org.reactivestreams", "com.kingpixel.cobbleutils.reactivestreams")
         //relocate("com.mongodb", "com.kingpixel.cobbleutils.mongodb")
         relocate("org.bson", "com.kingpixel.cobbleutils.bson")
-        relocate("net.kyori", "com.kingpixel.cobbleutils.kyori")
+        relocate("net.kyori", "com.kingpixel.cobbleutils.kyori") {
+            exclude("net/kyori/adventure/key/**") // Excluir la relocalización de "net.kyori.adventure.key"
+        }
         relocate("org.slf4j", "com.kingpixel.cobbleutils.slf4j")
 
         transformers.add(ServiceFileTransformer())
@@ -121,6 +144,8 @@ tasks {
         configurations = listOf(project.configurations.getByName("shadowCommon"))
         archiveClassifier.set("dev-shadow")
     }
+
+
 
     remapJar {
         injectAccessWidener.set(true)

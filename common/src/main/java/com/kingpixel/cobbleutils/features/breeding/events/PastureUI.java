@@ -3,6 +3,7 @@ package com.kingpixel.cobbleutils.features.breeding.events;
 import com.cobblemon.mod.common.block.entity.PokemonPastureBlockEntity;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.features.breeding.ui.PlotBreedingUI;
+import com.kingpixel.cobbleutils.util.PlayerUtils;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.InteractionEvent;
 import net.minecraft.block.entity.BlockEntity;
@@ -34,13 +35,21 @@ public class PastureUI {
         if (blockEntity == null)
           return EventResult.pass();
         if (blockEntity instanceof PokemonPastureBlockEntity) {
-          PlotBreedingUI.open((ServerPlayerEntity) player);
+          try {
+            PlotBreedingUI.open((ServerPlayerEntity) player);
+          } catch (ClassCastException e) {
+            PlotBreedingUI.open(PlayerUtils.castPlayer(player));
+          }
         } else {
           return EventResult.pass();
         }
       }
       if (blockEntity instanceof PokemonPastureBlockEntity) {
-        PlotBreedingUI.open((ServerPlayerEntity) player);
+        try {
+          PlotBreedingUI.open((ServerPlayerEntity) player);
+        } catch (ClassCastException e) {
+          PlotBreedingUI.open(PlayerUtils.castPlayer(player));
+        }
       }
 
       return EventResult.pass();

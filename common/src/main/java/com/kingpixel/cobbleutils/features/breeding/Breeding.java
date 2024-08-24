@@ -13,6 +13,7 @@ import com.kingpixel.cobbleutils.features.breeding.events.NationalityPokemon;
 import com.kingpixel.cobbleutils.features.breeding.events.PastureUI;
 import com.kingpixel.cobbleutils.features.breeding.events.WalkBreeding;
 import com.kingpixel.cobbleutils.features.breeding.manager.ManagerPlotEggs;
+import com.kingpixel.cobbleutils.util.PlayerUtils;
 import com.kingpixel.cobbleutils.util.PokemonUtils;
 import com.kingpixel.cobbleutils.util.RewardsUtils;
 import dev.architectury.event.EventResult;
@@ -114,9 +115,21 @@ public class Breeding {
     });
 
 
-    PlayerEvent.ATTACK_ENTITY.register((player, level, target, hand, result) -> egg(target, (ServerPlayerEntity) player));
+    PlayerEvent.ATTACK_ENTITY.register((player, level, target, hand, result) -> {
+      try {
+        return egg(target, (ServerPlayerEntity) player);
+      } catch (ClassCastException e) {
+        return egg(target, PlayerUtils.castPlayer(player));
+      }
+    });
 
-    InteractionEvent.INTERACT_ENTITY.register((player, entity, hand) -> egg(entity, (ServerPlayerEntity) player));
+    InteractionEvent.INTERACT_ENTITY.register((player, entity, hand) -> {
+      try {
+        return egg(entity, (ServerPlayerEntity) player);
+      } catch (ClassCastException e) {
+        return egg(entity, PlayerUtils.castPlayer(player));
+      }
+    });
 
     WalkBreeding.register();
     EggThrow.register();

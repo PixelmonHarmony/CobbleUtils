@@ -46,12 +46,15 @@ public abstract class EconomyUtil {
    */
   public static boolean isImpactorPresent() {
     try {
-      Class.forName("net.impactdev.impactor.api.Impactor");
-      return true;
-    } catch (ClassNotFoundException e) {
-      CobbleUtils.LOGGER.error("Impactor not found");
+      EconomyService service = EconomyService.instance();
+      return service != null;
+    } catch (IllegalStateException | NullPointerException e) {
+      if (CobbleUtils.config.isDebug()) {
+        CobbleUtils.LOGGER.error("Impactor not found");
+      }
       return false;
     }
+
   }
 
   /**
@@ -183,8 +186,10 @@ public abstract class EconomyUtil {
             CobbleUtils.language.getMessageBought()
               .replace("%price%", String.valueOf(amount))
               .replace("%bal%", account.balance().toString())
-              //.replace("%symbol%", account.currency().symbol().toString())
-              //.replace("%currency%", account.currency().plural().toString())
+              .replace("%symbol%", getSymbol(account.currency()))
+              .replace("%currency%", account.currency().plural().insertion() == null
+                ? "$"
+                : account.currency().plural().insertion())
               .replace("%prefix%", CobbleUtils.language.getPrefixShop())
           )
         );
@@ -201,8 +206,8 @@ public abstract class EconomyUtil {
             CobbleUtils.language.getMessageNotHaveMoney()
               .replace("%price%", String.valueOf(amount))
               .replace("%bal%", account.balance().toString())
-              //.replace("%symbol%", account.currency().symbol().toString())
-              //.replace("%currency%", account.currency().plural().toString())
+              .replace("%symbol%", getSymbol(account.currency()))
+              .replace("%currency%", getCurrencyName(account.currency()))
               .replace("%prefix%", CobbleUtils.language.getPrefixShop())
           )
         );
@@ -245,7 +250,7 @@ public abstract class EconomyUtil {
    *
    * @return The currency.
    */
-  private static Currency getCurrency(@Subst("") String currency) {
+  private static Currency getCurrency(String currency) {
     try {
       service = EconomyService.instance();
       if (currency.isEmpty()) {
@@ -275,7 +280,39 @@ public abstract class EconomyUtil {
     setEconomyType();
     try {
       return switch (economyType) {
-        case IMPACTOR -> getCurrency(currency).symbol().toString();
+
+        case IMPACTOR -> {
+          Currency c = getCurrency(currency);
+          yield c.symbol().insertion() == null ? "$" : c.symbol().insertion();
+        }
+        case VAULT -> "$";
+        default -> "$";
+      };
+    } catch (NoSuchMethodError | Exception ignored) {
+      return "$";
+    }
+  }
+
+  /**
+   * Method to get the currency symbol.
+   *
+   * @param currency The currency to get the symbol for.
+   *
+   * @return The currency symbol.
+   */
+  public static String getSymbol(Currency currency) {
+    try {
+      return currency.symbol().insertion() == null ? "$" : currency.symbol().insertion();
+    } catch (NoSuchMethodError | Exception ignored) {
+      return "$";
+    }
+  }
+
+  public static String getCurrencyName(Currency currency) {
+    setEconomyType();
+    try {
+      return switch (economyType) {
+        case IMPACTOR -> currency.plural().insertion() == null ? "$" : currency.plural().insertion();
         case VAULT -> "$";
         default -> "$";
       };
