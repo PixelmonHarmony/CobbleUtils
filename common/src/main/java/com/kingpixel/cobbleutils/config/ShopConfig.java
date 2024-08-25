@@ -3,6 +3,7 @@ package com.kingpixel.cobbleutils.config;
 import com.google.gson.Gson;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.shops.ShopMenu;
+import com.kingpixel.cobbleutils.Model.shops.ShopSell;
 import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Getter;
 import lombok.Setter;
@@ -63,6 +64,8 @@ public class ShopConfig {
       }
     }
 
+    shop.getShops().forEach(ShopSell::addProduct);
+    CobbleUtils.LOGGER.info(ShopSell.products.toString());
   }
 
 }

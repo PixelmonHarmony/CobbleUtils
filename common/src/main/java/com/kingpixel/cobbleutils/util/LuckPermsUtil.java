@@ -61,10 +61,6 @@ public abstract class LuckPermsUtil {
         User user = userManager.getUser(player.getUuid());
         if (user != null) {
           boolean restult = user.getCachedData().getPermissionData().checkPermission(permission).asBoolean();
-          if (CobbleUtils.config.isDebug()) {
-            CobbleUtils.LOGGER.info("Checking permission: " + permission);
-            CobbleUtils.LOGGER.info("Result: " + restult);
-          }
           hasPermission = restult;
           if (hasPermission) return true;
         }

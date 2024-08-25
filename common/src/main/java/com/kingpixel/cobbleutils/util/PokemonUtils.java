@@ -697,4 +697,8 @@ public class PokemonUtils {
   public static boolean isBoss(Pokemon pokemon) {
     return pokemon.getPersistentData().getBoolean(CobbleUtilsTags.BOSS_TAG);
   }
+
+  public static void setBreedable(Pokemon pokemon, Boolean value) {
+    pokemon.getPersistentData().putBoolean("breedable", value);
+  }
 }

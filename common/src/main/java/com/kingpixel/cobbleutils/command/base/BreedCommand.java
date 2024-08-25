@@ -132,7 +132,75 @@ public class BreedCommand implements Command<ServerCommandSource> {
                     }
 
                     return 1;
-                  }))));
+                  }).then(
+                  CommandManager.argument("player", EntityArgumentType.players())
+                    .executes(
+                      context -> {
+                        ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
+
+                        if (Cobblemon.INSTANCE.getBattleRegistry()
+                          .getBattleByParticipatingPlayer(player) != null) {
+                          return 0;
+                        }
+                        Long cooldown = cooldowns.get(player.getUuid());
+
+                        if (cooldown != null && PlayerUtils.isCooldown(cooldown)) {
+                          player.sendMessage(AdventureTranslator.toNative(
+                            CobbleUtils.language.getMessageCooldown()
+                              .replace("%cooldown%", PlayerUtils.getCooldown(new Date(cooldown)))));
+                          return 0;
+                        }
+
+                        Pokemon male = PartySlotArgumentType.Companion.getPokemonOf(context, "male", player);
+                        Pokemon female = PartySlotArgumentType.Companion.getPokemonOf(context, "female", player);
+
+                        if (male == null || female == null) {
+                          player.sendMessage(AdventureBreeding.adventure(
+                            CobbleUtils.breedconfig.getNotCompatible()));
+                          return 0;
+                        }
+
+                        try {
+                          if (!PlotSelectPokemonUI.arePokemonsCompatible(
+                            male, female, player, true
+                          )) return 0;
+                          Pokemon egg;
+
+                          if (male.getSpecies().showdownId().equalsIgnoreCase("ditto")) {
+                            egg = EggData.createEgg(male, female, player);
+                          } else if (female.getSpecies().showdownId().equalsIgnoreCase("ditto")) {
+                            egg = EggData.createEgg(female, male, player);
+                          } else {
+                            egg = EggData.createEgg(male, female, player);
+                          }
+
+                          // Creación del huevo y manejo del cooldown
+
+                          if (egg != null) {
+                            Cobblemon.INSTANCE.getStorage().getParty(player).add(egg);
+                            if (LuckPermsUtil.hasOp(player)) {
+                              cooldowns.put(player.getUuid(), new Date(1).getTime());
+                            } else {
+                              cooldowns.put(player.getUuid(),
+                                new Date().getTime()
+                                  + TimeUnit.SECONDS.toMillis(CobbleUtils.breedconfig.getCooldowninstaBreedInSeconds()));
+                            }
+                          } else {
+                            player.sendMessage(AdventureBreeding.adventure(PokemonUtils.replace(
+                              CobbleUtils.breedconfig.getNotCompatible(), List.of(male, female))));
+                            return 0;
+                          }
+                        } catch (NoPokemonStoreException e) {
+                          throw new RuntimeException(e);
+                        }
+
+                        return 1;
+                      }
+                    )
+                )
+            )
+        )
+    );
 
   }
 

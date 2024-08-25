@@ -37,11 +37,13 @@ public class PlotBreeding {
   }
 
   public void checking(ServerPlayerEntity player) {
-    if (male == null || female == null) return;
-    if (eggs == null) {
-      eggs = new ArrayList<>();
+    if (male == null || female == null) {
+      cooldown = new Date(new Date().getTime() + TimeUnit.MINUTES.toMillis(CobbleUtils.breedconfig.getCooldown())).getTime();
+      return;
     }
 
+    if (eggs == null) eggs = new ArrayList<>();
+    
     // Obtiene el cooldown configurado en minutos
     long newCooldownMinutes = CobbleUtils.breedconfig.getCooldown();
     long newCooldownMillis = TimeUnit.MINUTES.toMillis(newCooldownMinutes);

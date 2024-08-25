@@ -107,26 +107,30 @@ public class EggData {
   }
 
   public void EggToPokemon(Pokemon pokemon) {
-    if (species == null || species.isEmpty()) {
-      species = ArraysPokemons.getRandomPokemon().getSpecies().showdownId();
-    }
+    if (!pokemon.getSpecies().showdownId().equalsIgnoreCase("egg")) return;
+
     PokemonProperties pokemonProperties = PokemonProperties.Companion.parse(species + " " + form);
+
     pokemonProperties.setForm(form);
-    pokemon.createPokemonProperties(PokemonPropertyExtractor.GENDER).apply(pokemon);
+
+    pokemon.createPokemonProperties(List.of(
+      PokemonPropertyExtractor.GENDER,
+      PokemonPropertyExtractor.FRIENDSHIP
+    )).apply(pokemon);
+
     pokemonProperties.apply(pokemon);
-    if (CobbleUtils.config.isDebug()) {
-      CobbleUtils.LOGGER.info("Species: " + species);
-      CobbleUtils.LOGGER.info("Ability: " + this.ability);
+
+    AbilityTemplate abilityTemplate;
+    if (ability.isEmpty()) {
+      abilityTemplate = PokemonUtils.getRandomAbility(pokemon).getTemplate();
+    } else {
+      abilityTemplate = Abilities.INSTANCE.get(this.ability);
     }
-    AbilityTemplate abilityTemplate = Abilities.INSTANCE.get(this.ability);
-    if (CobbleUtils.config.isDebug()) {
-      CobbleUtils.LOGGER.info("AbilityTemplate: " + abilityTemplate.getName());
-    }
+
     if (abilityTemplate != null) {
       pokemon.updateAbility(abilityTemplate.create(false));
     }
-
-    pokemon.setFriendship(255, true);
+    
     pokemon.setLevel(level);
     pokemon.heal();
     pokemon.setNickname(null);
@@ -170,7 +174,6 @@ public class EggData {
     pokemon.getPersistentData().remove("nature");
     pokemon.getPersistentData().remove("ability");
     pokemon.getPersistentData().remove("cycles");
-    pokemon.getPersistentData().remove("size");
     pokemon.getPersistentData().remove("form");
     pokemon.getPersistentData().remove("random");
     pokemon.getPersistentData().remove("moves");
@@ -193,7 +196,8 @@ public class EggData {
   }
 
   public void steps(Pokemon pokemon, int stepsremove) {
-    if (pokemon == null) return;
+    if (!pokemon.getSpecies().showdownId().equalsIgnoreCase("egg")) return;
+    checkingdata(pokemon);
     if (stepsremove == 0) return;
     this.steps -= stepsremove;
 
@@ -202,8 +206,26 @@ public class EggData {
       this.steps = getMaxStepsPerCycle();
     }
     updateSteps(pokemon);
-    if (this.steps <= 0 && this.cycles <= 0) {
+    if (this.cycles < 0) {
       EggToPokemon(pokemon);
+    }
+  }
+
+  private void checkingdata(Pokemon pokemon) {
+    Pokemon isempty;
+    if (pokemon.getPersistentData().getString("species").isEmpty()) {
+      isempty = PokemonUtils.getFirstEvolution(ArraysPokemons.getRandomPokemon());
+      pokemon.getPersistentData().putString("species", isempty.getSpecies().showdownId());
+
+      if (pokemon.getPersistentData().getInt("level") == 0) {
+        pokemon.getPersistentData().putInt("level", 1);
+      }
+      if (pokemon.getPersistentData().getString("ability").isEmpty()) {
+        pokemon.getPersistentData().putString("ability", PokemonUtils.getRandomAbility(isempty).getName());
+      }
+      if (pokemon.getPersistentData().getString("size").isEmpty()) {
+        pokemon.getPersistentData().putString("size", ScalePokemonData.getScalePokemonData(isempty).getRandomPokemonSize().getId());
+      }
     }
   }
 

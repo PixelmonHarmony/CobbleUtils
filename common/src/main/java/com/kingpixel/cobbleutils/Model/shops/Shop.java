@@ -126,20 +126,24 @@ public class Shop {
   @ToString
   @Data
   public static class Product {
-    private ItemChance product;
+    private String product;
     private BigDecimal buy;
     private BigDecimal sell;
 
     public Product() {
-      this.product = new ItemChance();
+      this.product = "minecraft:stone";
       this.buy = BigDecimal.ZERO;
       this.sell = BigDecimal.ZERO;
     }
 
-    public Product(ItemChance product, BigDecimal buy, BigDecimal sell) {
+    public Product(String product, BigDecimal buy, BigDecimal sell) {
       this.product = product;
       this.buy = buy;
       this.sell = sell;
+    }
+
+    public ItemChance getItemchance() {
+      return new ItemChance(product, 100);
     }
   }
 
@@ -189,7 +193,7 @@ public class Shop {
           .replace("%sell%", String.valueOf(sell))
           .replace("%currency%", getCurrency())
           .replace("%symbol%", symbol)
-          .replace("%amount%", String.valueOf(product.getProduct().getItemStack().getCount()))
+          .replace("%amount%", String.valueOf(product.getItemchance().getItemStack().getCount()))
           .replace("%balance%", EconomyUtil.getBalance(player, getCurrency()).toString())
         );
 
@@ -199,13 +203,13 @@ public class Shop {
           lore = new ArrayList<>();
           lore.add("&cError in this product");
           lore.add("&cContact the server administrator");
-          lore.add(product.getProduct().toString());
+          lore.add(product.getItemchance().toString());
           lore.add("&cError: " + typeError.name());
         }
 
         ItemStack itemStack;
         if (typeError == TypeError.NONE) {
-          itemStack = product.getProduct().getItemStack();
+          itemStack = product.getItemchance().getItemStack();
         } else {
           itemStack = Utils.parseItemId("minecraft:barrier");
         }
@@ -331,7 +335,7 @@ public class Shop {
       .builder(CobbleUtils.shopConfig.getRowsBuySellMenu())
       .build();
 
-    int maxStack = product.getProduct().getItemStack(amount).getMaxCount();
+    int maxStack = product.getItemchance().getItemStack(amount).getMaxCount();
     BigDecimal price = calculatePrice(product, typeMenu, amount);
     String title = generateTitle(product, typeMenu);
     String symbol = EconomyUtil.getSymbol(getCurrency());
@@ -397,13 +401,13 @@ public class Shop {
   private boolean buyProduct(ServerPlayerEntity player, Product product, int amount, BigDecimal price) {
     if (EconomyUtil.hasEnough(player, getCurrency(), price)) {
       SoundUtil.playSound(CobbleUtils.shopLang.getSoundBuy(), player);
-      int amount1 = product.getProduct().getItemStack().getCount();
+      int amount1 = product.getItemchance().getItemStack().getCount();
       try {
-        if (product.getProduct().getItemStack().getCount() == 1) {
-          ItemChance.giveReward(player, product.getProduct(), amount);
+        if (product.getItemchance().getItemStack().getCount() == 1) {
+          ItemChance.giveReward(player, product.getItemchance(), amount);
         } else {
           for (int i = 0; i < amount; i++) {
-            ItemChance.giveReward(player, product.getProduct(), amount1);
+            ItemChance.giveReward(player, product.getItemchance(), amount1);
           }
         }
       } catch (NoPokemonStoreException e) {
@@ -415,13 +419,13 @@ public class Shop {
   }
 
   private boolean sellProduct(ServerPlayerEntity player, Product product, int amount) {
-    int packageSize = product.getProduct().getItemStack().getCount();
+    int packageSize = product.getItemchance().getItemStack().getCount();
     BigDecimal unitPrice = product.getSell().divide(BigDecimal.valueOf(packageSize), 2, RoundingMode.HALF_UP);
     BigDecimal totalPrice = unitPrice.multiply(BigDecimal.valueOf(amount));
 
     // Verifica si el jugador tiene la cantidad requerida del producto en su inventario
     int amountItemInv = player.getInventory().main.stream()
-      .filter(itemInv -> !itemInv.isEmpty() && ItemStack.canCombine(itemInv, product.getProduct().getItemStack(amount)))
+      .filter(itemInv -> !itemInv.isEmpty() && ItemStack.canCombine(itemInv, product.getItemchance().getItemStack(amount)))
       .mapToInt(ItemStack::getCount)
       .sum();
 
@@ -430,7 +434,7 @@ public class Shop {
 
       // Remueve los ítems del inventario del jugador
       for (ItemStack itemStack : player.getInventory().main) {
-        if (!itemStack.isEmpty() && ItemStack.canCombine(itemStack, product.getProduct().getItemStack(amount))) {
+        if (!itemStack.isEmpty() && ItemStack.canCombine(itemStack, product.getItemchance().getItemStack(amount))) {
           int count = itemStack.getCount();
 
           if (count >= remaining) {
@@ -451,7 +455,7 @@ public class Shop {
         AdventureTranslator.toNative(
           CobbleUtils.shopLang.getMessageSellSuccess()
             .replace("%amount%", String.valueOf(amount))
-            .replace("%product%", ItemUtils.getTranslatedName(product.getProduct().getItemStack()))
+            .replace("%product%", ItemUtils.getTranslatedName(product.getItemchance().getItemStack()))
             .replace("%price%", totalPrice.toString())
             .replace("%unitprice%", unitPrice.toString())
             .replace("%sell%", totalPrice.toString())
@@ -469,7 +473,7 @@ public class Shop {
         AdventureTranslator.toNative(
           CobbleUtils.shopLang.getMessageSellError()
             .replace("%amount%", String.valueOf(amount))
-            .replace("%product%", ItemUtils.getTranslatedName(product.getProduct().getItemStack()))
+            .replace("%product%", ItemUtils.getTranslatedName(product.getItemchance().getItemStack()))
             .replace("%price%", totalPrice.toString())
             .replace("%unitprice%", unitPrice.toString())
             .replace("%sell%", totalPrice.toString())
@@ -492,15 +496,15 @@ public class Shop {
 
   private String generateTitle(Product product, TypeMenu typeMenu) {
     return (typeMenu == TypeMenu.BUY) ?
-      CobbleUtils.shopLang.getTitleBuy().replace("%product%", ItemUtils.getTranslatedName(product.getProduct().getItemStack())) :
-      CobbleUtils.shopLang.getTitleSell().replace("%product%", ItemUtils.getTranslatedName(product.getProduct().getItemStack()));
+      CobbleUtils.shopLang.getTitleBuy().replace("%product%", ItemUtils.getTranslatedName(product.getItemchance().getItemStack())) :
+      CobbleUtils.shopLang.getTitleSell().replace("%product%", ItemUtils.getTranslatedName(product.getItemchance().getItemStack()));
   }
 
   private void createAmountButton(ChestTemplate template, ServerPlayerEntity player,
                                   Product product, TypeMenu typeMenu,
                                   ItemModel addModel, ItemModel removeModel,
                                   int increment, int amount) {
-    int maxStack = product.getProduct().getItemStack().getMaxCount();
+    int maxStack = product.getItemchance().getItemStack().getMaxCount();
     if (amount != maxStack) {
       template.set(addModel.getSlot(), GooeyButton.builder()
         .display(addModel.getItemStack(increment))
@@ -541,12 +545,12 @@ public class Shop {
       .replace("%sell%", String.valueOf(price))
       .replace("%currency%", getCurrency())
       .replace("%symbol%", symbol)
-      .replace("%amount%", String.valueOf(product.getProduct().getItemStack().getCount()))
+      .replace("%amount%", String.valueOf(product.getItemchance().getItemStack().getCount()))
       .replace("%balance%", EconomyUtil.getBalance(player, getCurrency()).toString())
     );
 
 
-    ItemStack viewProduct = product.getProduct().getItemStack(amount);
+    ItemStack viewProduct = product.getItemchance().getItemStack(amount);
     viewProduct.setCount(amount);
     template.set(CobbleUtils.shopConfig.getSlotViewProduct(), GooeyButton.builder()
       .display(viewProduct)
@@ -577,7 +581,7 @@ public class Shop {
   private void createMaxStackButton(ChestTemplate template, ServerPlayerEntity player, Product product, TypeMenu typeMenu, int maxStack) {
     ItemModel buyStacks = CobbleUtils.shopLang.getBuyStacks();
     template.set(buyStacks.getSlot(), GooeyButton.builder()
-      .display(product.getProduct().getItemStack(maxStack))
+      .display(product.getItemchance().getItemStack(maxStack))
       .title(AdventureTranslator.toNative(buyStacks.getDisplayname()))
       .lore(Text.class, AdventureTranslator.toNativeL(buyStacks.getLore()))
       .onClick(action -> openStackMenu(player, product, TypeMenu.STACK, maxStack))

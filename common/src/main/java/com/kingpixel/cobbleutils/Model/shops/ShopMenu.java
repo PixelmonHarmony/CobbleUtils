@@ -6,7 +6,6 @@ import ca.landonjw.gooeylibs2.api.page.GooeyPage;
 import ca.landonjw.gooeylibs2.api.template.types.ChestTemplate;
 import com.google.gson.Gson;
 import com.kingpixel.cobbleutils.CobbleUtils;
-import com.kingpixel.cobbleutils.Model.ItemChance;
 import com.kingpixel.cobbleutils.Model.ItemModel;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.SoundUtil;
@@ -163,7 +162,7 @@ public class ShopMenu {
     Shop shop = new Shop("pokeballs", "<#de504b>Pokeballs", (short) 6, "impactor:dollars", new ItemModel("cobblemon" +
       ":poke_ball"));
     List<Shop.Product> products = new ArrayList<>();
-    products.add(new Shop.Product(new ItemChance("cobblemon:poke_ball", 1), BigDecimal.valueOf(100), BigDecimal.ZERO));
+    products.add(new Shop.Product("minecraft:stone", BigDecimal.valueOf(100), BigDecimal.ZERO));
     shop.setProducts(products);
     return shop;
   }

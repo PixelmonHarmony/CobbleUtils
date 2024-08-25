@@ -5,6 +5,7 @@ import com.cobblemon.mod.common.api.storage.NoPokemonStoreException;
 import com.cobblemon.mod.common.command.argument.PartySlotArgumentType;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.features.breeding.models.EggData;
 import com.kingpixel.cobbleutils.features.breeding.util.AdventureBreeding;
 import com.kingpixel.cobbleutils.util.LuckPermsUtil;
 import com.kingpixel.cobbleutils.util.PlayerUtils;
@@ -13,6 +14,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -36,36 +38,17 @@ public class Hatch implements Command<ServerCommandSource> {
         .then(
           CommandManager.argument("egg", PartySlotArgumentType.Companion.partySlot())
             .executes(context -> {
-              if (!context.getSource().isExecutedByPlayer())
-                return 0;
+              if (!context.getSource().isExecutedByPlayer()) return 0;
               ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
-              Long cooldown = cooldowns.get(player.getUuid());
-
-              if (cooldown != null && PlayerUtils.isCooldown(cooldown)) {
-                player.sendMessage(AdventureBreeding.adventure(
-                  CobbleUtils.language.getMessageCooldown()
-                    .replace("%cooldown%", PlayerUtils.getCooldown(new Date(cooldown)))));
-                return 0;
-              }
-
-              if (Cobblemon.INSTANCE.getBattleRegistry().getBattleByParticipatingPlayer(player) != null)
-                return 0;
-              Pokemon egg = PartySlotArgumentType.Companion.getPokemon(context, "egg");
-
-              if (egg.getSpecies().showdownId().equalsIgnoreCase("egg")) {
-                if (LuckPermsUtil.hasOp(player)) {
-                  cooldowns.put(player.getUuid(), new Date(1).getTime());
-                } else {
-                  cooldowns.put(player.getUuid(),
-                    new Date().getTime()
-                      + TimeUnit.SECONDS.toMillis(CobbleUtils.breedconfig.getCooldowninstaHatchInSeconds()));
-                }
-
-                egg.getPersistentData().putInt("steps", 0);
-                egg.getPersistentData().putInt("cycles", 0);
-              }
-              return 1;
-            })
+              return hatch(context, player);
+            }).then(
+              CommandManager.argument("player", EntityArgumentType.player())
+                .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.hatch.other", "cobbleutils.admin")))
+                .executes(context -> {
+                  ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
+                  return hatch(context, player);
+                })
+            )
         ).then(
           CommandManager.literal("all")
             .requires(source -> LuckPermsUtil.checkPermission(source, 2,
@@ -74,17 +57,7 @@ public class Hatch implements Command<ServerCommandSource> {
               if (!context.getSource().isExecutedByPlayer())
                 return 0;
               ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
-              Long cooldown = cooldowns.get(player.getUuid());
-
-              if (cooldown != null && PlayerUtils.isCooldown(cooldown)) {
-                player.sendMessage(AdventureBreeding.adventure(
-                  CobbleUtils.language.getMessageCooldown()
-                    .replace("%cooldown%", PlayerUtils.getCooldown(new Date(cooldown)))));
-                return 0;
-              }
-
-              if (Cobblemon.INSTANCE.getBattleRegistry().getBattleByParticipatingPlayer(player) != null)
-                return 0;
+              if (cooldown(player)) return 0;
 
               if (LuckPermsUtil.hasOp(player)) {
                 cooldowns.put(player.getUuid(), new Date(1).getTime());
@@ -95,26 +68,83 @@ public class Hatch implements Command<ServerCommandSource> {
               }
 
               try {
-                Cobblemon.INSTANCE.getStorage().getParty(player.getUuid()).forEach(egg -> {
-                  if (egg.getSpecies().showdownId().equalsIgnoreCase("egg")) {
-                    egg.getPersistentData().putInt("steps", 0);
-                    egg.getPersistentData().putInt("cycles", 0);
-                  }
-                });
-                Cobblemon.INSTANCE.getStorage().getPC(player.getUuid()).forEach(egg -> {
-                  if (egg.getSpecies().showdownId().equalsIgnoreCase("egg")) {
-                    egg.getPersistentData().putInt("steps", 0);
-                    egg.getPersistentData().putInt("cycles", 0);
-                  }
-                });
+                Cobblemon.INSTANCE.getStorage().getParty(player.getUuid()).forEach(Hatch::openEgg);
+                Cobblemon.INSTANCE.getStorage().getPC(player.getUuid()).forEach(Hatch::openEgg);
               } catch (NoPokemonStoreException e) {
                 throw new RuntimeException(e);
               }
               return 1;
-            })
+            }).then(
+              CommandManager.argument("player", EntityArgumentType.player())
+                .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.hatch.all.other", "cobbleutils.admin")))
+                .executes(context -> {
+                  ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
+                  if (cooldown(player)) return 0;
+
+                  if (LuckPermsUtil.hasOp(player)) {
+                    cooldowns.put(player.getUuid(), new Date(1).getTime());
+                  } else {
+                    cooldowns.put(player.getUuid(),
+                      new Date().getTime()
+                        + TimeUnit.SECONDS.toMillis(CobbleUtils.breedconfig.getCooldowninstaHatchInSeconds()));
+                  }
+
+                  try {
+                    Cobblemon.INSTANCE.getStorage().getParty(player.getUuid()).forEach(Hatch::openEgg);
+                    Cobblemon.INSTANCE.getStorage().getPC(player.getUuid()).forEach(Hatch::openEgg);
+                  } catch (NoPokemonStoreException e) {
+                    throw new RuntimeException(e);
+                  }
+                  return 1;
+                })
+            )
         )
     );
 
+  }
+
+  private static boolean cooldown(ServerPlayerEntity player) {
+    Long cooldown = cooldowns.get(player.getUuid());
+
+    if (cooldown != null && PlayerUtils.isCooldown(cooldown)) {
+      player.sendMessage(AdventureBreeding.adventure(
+        CobbleUtils.language.getMessageCooldown()
+          .replace("%cooldown%", PlayerUtils.getCooldown(new Date(cooldown)))));
+      return true;
+    }
+
+    if (Cobblemon.INSTANCE.getBattleRegistry().getBattleByParticipatingPlayer(player) != null)
+      return true;
+    return false;
+  }
+
+  private static int hatch(CommandContext<ServerCommandSource> context, ServerPlayerEntity player) {
+    if (cooldown(player)) return 0;
+    Pokemon egg = PartySlotArgumentType.Companion.getPokemonOf(context, "egg", player);
+
+    if (egg.getSpecies().showdownId().equalsIgnoreCase("egg")) {
+      if (LuckPermsUtil.hasOp(player)) {
+        cooldowns.put(player.getUuid(), new Date(1).getTime());
+      } else {
+        cooldowns.put(player.getUuid(),
+          new Date().getTime()
+            + TimeUnit.SECONDS.toMillis(CobbleUtils.breedconfig.getCooldowninstaHatchInSeconds()));
+      }
+      openEgg(egg);
+    }
+    return 1;
+  }
+
+
+  public static void openEgg(Pokemon pokemon) {
+    if (pokemon.getSpecies().showdownId().equalsIgnoreCase("egg")) {
+      pokemon.getPersistentData().putInt("steps", 0);
+      pokemon.getPersistentData().putInt("cycles", -1);
+      pokemon.setCurrentHealth(0);
+      EggData eggData = EggData.from(pokemon);
+      eggData.steps(pokemon, Integer.MAX_VALUE);
+      eggData.EggToPokemon(pokemon);
+    }
   }
 
   @Override

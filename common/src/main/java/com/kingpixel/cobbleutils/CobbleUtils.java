@@ -1,5 +1,8 @@
 package com.kingpixel.cobbleutils;
 
+import com.cobblemon.mod.common.api.Priority;
+import com.cobblemon.mod.common.api.properties.CustomPokemonProperty;
+import com.cobblemon.mod.common.platform.events.PlatformEvents;
 import com.kingpixel.cobbleutils.Model.PlayerInfo;
 import com.kingpixel.cobbleutils.Model.RewardsData;
 import com.kingpixel.cobbleutils.command.CommandTree;
@@ -18,12 +21,14 @@ import com.kingpixel.cobbleutils.party.config.PartyConfig;
 import com.kingpixel.cobbleutils.party.config.PartyLang;
 import com.kingpixel.cobbleutils.party.models.UserParty;
 import com.kingpixel.cobbleutils.party.util.PartyPlaceholder;
+import com.kingpixel.cobbleutils.properties.BreedablePropertyType;
 import com.kingpixel.cobbleutils.util.*;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.CommandRegistrationEvent;
 import dev.architectury.event.events.common.InteractionEvent;
 import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.event.events.common.PlayerEvent;
+import kotlin.Unit;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -192,6 +197,10 @@ public class CobbleUtils {
       return EventResult.pass();
     });
 
+    PlatformEvents.SERVER_STARTED.subscribe(Priority.NORMAL, (evt) -> {
+      CustomPokemonProperty.Companion.register(BreedablePropertyType.getInstance());
+      return Unit.INSTANCE;
+    });
 
     InteractionEvent.RIGHT_CLICK_ITEM.register(ItemRightClickEvents::register);
 
@@ -293,7 +302,7 @@ public class CobbleUtils {
             }
             itemStack.setNbt(null);
           }
-          
+
         }
       });
     });
