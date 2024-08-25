@@ -18,7 +18,7 @@ public abstract class LuckPermsUtil {
   public static LuckPerms getLuckPermsApi() {
     try {
       return LuckPermsProvider.get();
-    } catch (IllegalStateException | NullPointerException e) {
+    } catch (IllegalStateException | NullPointerException | NoClassDefFoundError e) {
       if (CobbleUtils.config.isDebug()) {
         CobbleUtils.LOGGER.error("LuckPerms is not present");
       }
@@ -94,6 +94,15 @@ public abstract class LuckPermsUtil {
       PermissionNode permissionNode = PermissionNode.builder(permission).build();
       getLuckPermsApi().getNodeBuilderRegistry().forPermission().permission(permission).build();
     }
+    try {
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  public static boolean hasOp(ServerPlayerEntity player) {
+    return player.hasPermissionLevel(4);
   }
 
 }

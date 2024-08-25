@@ -40,7 +40,7 @@ dependencies {
 
     // Economy
     implementation("net.impactdev.impactor.api:economy:${property("impactor_version")}")
-    api("com.github.MilkBowl:VaultAPI:1.7")
+    implementation("com.github.MilkBowl:VaultAPI:1.7")
     // Kyori Adventure
 
     /*api("net.kyori:adventure-text-serializer-gson:${property("kyori_version")}")

@@ -3,11 +3,11 @@ package com.kingpixel.cobbleutils.command.base;
 import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.storage.NoPokemonStoreException;
 import com.cobblemon.mod.common.command.argument.PartySlotArgumentType;
-import com.cobblemon.mod.common.pokemon.Gender;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.features.breeding.models.EggData;
 import com.kingpixel.cobbleutils.features.breeding.ui.PlotBreedingUI;
+import com.kingpixel.cobbleutils.features.breeding.ui.PlotSelectPokemonUI;
 import com.kingpixel.cobbleutils.features.breeding.util.AdventureBreeding;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.LuckPermsUtil;
@@ -94,88 +94,48 @@ public class BreedCommand implements Command<ServerCommandSource> {
                     if (male == null || female == null) {
                       player.sendMessage(AdventureBreeding.adventure(
                         CobbleUtils.breedconfig.getNotCompatible()));
-
                       return 0;
                     }
-                    if (male != female && EggData.isCompatible(male, female)) {
-                      try {
-                        // Verifica si el breeding está configurado para Ditto
-                        boolean isDittoMale = male.getSpecies().showdownId().equalsIgnoreCase("ditto");
-                        boolean isDittoFemale = female.getSpecies().showdownId().equalsIgnoreCase("ditto");
 
-                        // Caso especial: Ditto con otro Pokémon
-                        if (isDittoMale || isDittoFemale) {
-                          if (!CobbleUtils.breedconfig.isDitto()) {
-                            player.sendMessage(AdventureBreeding.adventure(PokemonUtils.replace(
-                              CobbleUtils.breedconfig.getNotCompatible(), List.of(male, female))));
-                            return 0;
-                          }
-                        }
+                    try {
+                      if (!PlotSelectPokemonUI.arePokemonsCompatible(
+                        male, female, player, true
+                      )) return 0;
+                      Pokemon egg;
 
-                        // Caso especial: Dos Ditto no deberían poder criar
-                        if (isDittoMale && isDittoFemale) {
-                          if (!CobbleUtils.breedconfig.isDoubleditto()) {
-                            player.sendMessage(AdventureBreeding.adventure(PokemonUtils.replace(
-                              CobbleUtils.breedconfig.getNotCompatible(), List.of(male, female))));
-                            return 0;
-                          }
-                        }
-
-                        // Comprobaciones de género cruzado incorrecto (ej. macho con macho, hembra con hembra)
-                        if (male.getGender() == Gender.FEMALE || female.getGender() == Gender.MALE) {
-                          player.sendMessage(AdventureBreeding.adventure(PokemonUtils.replace(
-                            CobbleUtils.breedconfig.getNotCompatible(), List.of(male, female))));
-                          return 0;
-                        }
-
-                        // Comprobaciones de lista negra por especies
-                        if (CobbleUtils.breedconfig.getBlacklist().contains(male.getSpecies().showdownId()) ||
-                          CobbleUtils.breedconfig.getBlacklist().contains(female.getSpecies().showdownId())) {
-                          player.sendMessage(AdventureBreeding.adventure(PokemonUtils.replace(
-                            CobbleUtils.breedconfig.getNotCompatible(), List.of(male, female))));
-                          return 0;
-                        }
-
-                        // Creación del huevo y manejo del cooldown
-                        Pokemon egg = EggData.createEgg(male, female, player);
-                        if (egg != null) {
-                          Cobblemon.INSTANCE.getStorage().getParty(player).add(egg);
-                          cooldowns.put(player.getUuid(),
-                            new Date().getTime() + TimeUnit.SECONDS.toMillis(
-                              CobbleUtils.breedconfig.getCooldowninstaBreedInSeconds()));
-                        } else {
-                          player.sendMessage(AdventureBreeding.adventure(PokemonUtils.replace(
-                            CobbleUtils.breedconfig.getNotCompatible(), List.of(male, female))));
-                          return 0;
-                        }
-                      } catch (NoPokemonStoreException e) {
-                        throw new RuntimeException(e);
+                      if (male.getSpecies().showdownId().equalsIgnoreCase("ditto")) {
+                        egg = EggData.createEgg(male, female, player);
+                      } else if (female.getSpecies().showdownId().equalsIgnoreCase("ditto")) {
+                        egg = EggData.createEgg(female, male, player);
+                      } else {
+                        egg = EggData.createEgg(male, female, player);
                       }
-                    } else {
-                      player.sendMessage(AdventureBreeding.adventure(PokemonUtils.replace(
-                        CobbleUtils.breedconfig.getNotCompatible(), List.of(male, female))));
-                      return 0;
+
+                      // Creación del huevo y manejo del cooldown
+
+                      if (egg != null) {
+                        Cobblemon.INSTANCE.getStorage().getParty(player).add(egg);
+                        if (LuckPermsUtil.hasOp(player)) {
+                          cooldowns.put(player.getUuid(), new Date(1).getTime());
+                        } else {
+                          cooldowns.put(player.getUuid(),
+                            new Date().getTime()
+                              + TimeUnit.SECONDS.toMillis(CobbleUtils.breedconfig.getCooldowninstaBreedInSeconds()));
+                        }
+                      } else {
+                        player.sendMessage(AdventureBreeding.adventure(PokemonUtils.replace(
+                          CobbleUtils.breedconfig.getNotCompatible(), List.of(male, female))));
+                        return 0;
+                      }
+                    } catch (NoPokemonStoreException e) {
+                      throw new RuntimeException(e);
                     }
+
                     return 1;
                   }))));
 
   }
 
-  private static Integer dittos(Pokemon male, ServerPlayerEntity player, Pokemon female) {
-    if (male.getSpecies().showdownId().equalsIgnoreCase("ditto")) {
-      player.sendMessage(
-        AdventureBreeding.adventure(
-          CobbleUtils.breedconfig.getNotdoubleditto()));
-      return 0;
-    }
-    if (female.getSpecies().showdownId().equalsIgnoreCase("ditto")) {
-      player.sendMessage(
-        AdventureBreeding.adventure(
-          CobbleUtils.breedconfig.getNotdoubleditto()));
-      return 0;
-    }
-    return 1;
-  }
 
   @Override
   public int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {

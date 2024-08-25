@@ -134,11 +134,9 @@ tasks {
         exclude("generations/gg/generations/core/generationscore/forge/datagen/**")
 
         relocate("org.bson", "com.kingpixel.cobbleutils.bson")
-        relocate("net.kyori", "com.kingpixel.cobbleutils.kyori") {
-            exclude("net/kyori/adventure/key/**") // Excluir la relocalización de "net.kyori.adventure.key"
-        }
+        relocate("net.kyori", "com.kingpixel.cobbleutils.kyori")
         relocate("org.slf4j", "com.kingpixel.cobbleutils.slf4j")
-
+        
         transformers.add(ServiceFileTransformer())
 
         configurations = listOf(project.configurations.getByName("shadowCommon"))

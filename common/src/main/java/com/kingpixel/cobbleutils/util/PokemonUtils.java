@@ -294,11 +294,12 @@ public class PokemonUtils {
     return message;
   }
 
-  public static Species getFirstEvolution(Pokemon pokemon) {
+  public static Pokemon getFirstEvolution(Pokemon pokemon) {
     return getFirstEvolution(pokemon.getSpecies());
   }
 
-  public static Species getFirstEvolution(Species currentSpecies) {
+  public static Pokemon getFirstEvolution(Species currentSpecies) {
+
     while (currentSpecies.getPreEvolution() != null) {
       Species nextPreevolution = currentSpecies.getPreEvolution().getSpecies();
 
@@ -307,7 +308,7 @@ public class PokemonUtils {
       }
       currentSpecies = nextPreevolution;
     }
-    return currentSpecies;
+    return currentSpecies.create(1);
   }
 
   /**
@@ -649,9 +650,9 @@ public class PokemonUtils {
   }
 
   public static Ability getRandomAbility(Pokemon pokemon) {
+
     AbilityPool abilities = pokemon.getForm().getAbilities();
     List<Ability> abilityList = new ArrayList<>();
-
     for (PotentialAbility potentialAbility : abilities) {
       if (!(potentialAbility.getType() instanceof HiddenAbilityType)) {
         abilityList.add(potentialAbility.getTemplate().create(false));

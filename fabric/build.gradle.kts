@@ -135,7 +135,7 @@ tasks {
         //relocate("com.mongodb", "com.kingpixel.cobbleutils.mongodb")
         relocate("org.bson", "com.kingpixel.cobbleutils.bson")
         relocate("net.kyori", "com.kingpixel.cobbleutils.kyori") {
-            exclude("net/kyori/adventure/key/**") // Excluir la relocalización de "net.kyori.adventure.key"
+            exclude("net/kyori/adventure/key/**")
         }
         relocate("org.slf4j", "com.kingpixel.cobbleutils.slf4j")
 

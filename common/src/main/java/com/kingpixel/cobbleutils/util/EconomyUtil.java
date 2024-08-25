@@ -6,11 +6,15 @@ import net.impactdev.impactor.api.economy.accounts.Account;
 import net.impactdev.impactor.api.economy.currency.Currency;
 import net.impactdev.impactor.api.economy.transactions.EconomyTransaction;
 import net.kyori.adventure.key.Key;
+import net.milkbowl.vault.economy.Economy;
 import net.minecraft.server.network.ServerPlayerEntity;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.intellij.lang.annotations.Subst;
 
 import java.math.BigDecimal;
 import java.util.UUID;
+
+import static org.bukkit.Bukkit.getServer;
 
 /**
  * @author Carlos Varas Alonso - 06/08/2024 11:50
@@ -18,7 +22,10 @@ import java.util.UUID;
 public abstract class EconomyUtil {
 
   // The impactor service
-  private static EconomyService service = EconomyService.instance();
+  private static EconomyService service;
+  // The vault economy
+  private static Economy vaultEconomy;
+
 
   private static EconomyType economyType;
 
@@ -31,8 +38,11 @@ public abstract class EconomyUtil {
     if (economyType != null) return;
     if (isImpactorPresent()) {
       economyType = EconomyType.IMPACTOR;
+      service = EconomyService.instance();
+      CobbleUtils.LOGGER.info("Impactor economy found");
     } else if (isVaultApi()) {
       economyType = EconomyType.VAULT;
+      CobbleUtils.LOGGER.info("Vault economy found");
     } else {
       CobbleUtils.LOGGER.error("No economy api found");
       economyType = null;
@@ -48,10 +58,8 @@ public abstract class EconomyUtil {
     try {
       EconomyService service = EconomyService.instance();
       return service != null;
-    } catch (IllegalStateException | NullPointerException e) {
-      if (CobbleUtils.config.isDebug()) {
-        CobbleUtils.LOGGER.error("Impactor not found");
-      }
+    } catch (IllegalStateException | NullPointerException | NoClassDefFoundError e) {
+      CobbleUtils.LOGGER.error("Impactor not found");
       return false;
     }
 
@@ -64,13 +72,28 @@ public abstract class EconomyUtil {
    */
   public static boolean isVaultApi() {
     try {
-      Class.forName("net.milkbowl.vault.economy.Economy");
-      return true;
-    } catch (ClassNotFoundException e) {
-      CobbleUtils.LOGGER.error("Vault not found");
+      // Verifica si el servidor está utilizando Arclight y si el plugin Vault está cargado
+      if (getServer().getPluginManager().getPlugin("Vault") == null) {
+        CobbleUtils.LOGGER.error("Vault plugin not found.");
+        return false;
+      }
+
+      // Intenta obtener el servicio de economía registrado
+      RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+      if (rsp == null) {
+        CobbleUtils.LOGGER.error("No Economy provider registered.");
+        return false;
+      }
+
+      // Asigna el proveedor de economía
+      vaultEconomy = rsp.getProvider();
+      return vaultEconomy != null;
+    } catch (IllegalStateException | NullPointerException | NoClassDefFoundError e) {
+      CobbleUtils.LOGGER.error("Error accessing Vault API." + e);
       return false;
     }
   }
+
 
   /**
    * Method to get an account from the impactor api.
@@ -123,8 +146,9 @@ public abstract class EconomyUtil {
         EconomyTransaction transaction = account.deposit(amount);
         return transaction.successful();
       }
-      case VAULT:
-        return false;
+      case VAULT: {
+        return vaultEconomy.depositPlayer(player.getGameProfile().getName(), amount.doubleValue()).transactionSuccess();
+      }
       default:
         return false;
     }
@@ -140,19 +164,21 @@ public abstract class EconomyUtil {
    * @return true if the transaction was successful.
    */
   public static boolean removeMoney(ServerPlayerEntity player, @Subst("") String currency, BigDecimal amount) {
-    if (isImpactorPresent()) {
-      Account account;
-      if (currency.isEmpty()) {
-        account = getAccount(player.getUuid());
-      } else {
-        account = getAccount(player.getUuid(), currency.trim());
-      }
-      EconomyTransaction transaction = account.withdraw(amount);
-      return transaction.successful();
-    } else if (isVaultApi()) {
-      return false;
-    } else {
-      return false;
+    setEconomyType();
+    switch (economyType) {
+      case IMPACTOR:
+        Account account;
+        if (currency.isEmpty()) {
+          account = getAccount(player.getUuid());
+        } else {
+          account = getAccount(player.getUuid(), currency.trim());
+        }
+        EconomyTransaction transaction = account.withdraw(amount);
+        return transaction.successful();
+      case VAULT:
+        return vaultEconomy.withdrawPlayer(player.getGameProfile().getName(), amount.doubleValue()).transactionSuccess();
+      default:
+        return false;
     }
   }
 
@@ -236,6 +262,18 @@ public abstract class EconomyUtil {
       case IMPACTOR:
         return hasEnoughImpactor(getAccount(player.getUuid(), currency.trim()), amount);
       case VAULT:
+        if (getBalance(player, currency).compareTo(amount) >= 0) {
+          player.sendMessage(AdventureTranslator.toNative(
+            CobbleUtils.language.getMessageBought()
+              .replace("%price%", String.valueOf(amount))
+              .replace("%bal%", getBalance(player, currency).toString())
+              .replace("%symbol%", getSymbol(currency))
+              .replace("%currency%", currency)
+              .replace("%prefix%", CobbleUtils.language.getPrefixShop())
+          ));
+          vaultEconomy.withdrawPlayer(player.getGameProfile().getName(), amount.doubleValue());
+          return true;
+        }
         return false;
       default:
         return false;
@@ -251,8 +289,8 @@ public abstract class EconomyUtil {
    * @return The currency.
    */
   private static Currency getCurrency(String currency) {
+    setEconomyType();
     try {
-      service = EconomyService.instance();
       if (currency.isEmpty()) {
         if (CobbleUtils.config.isDebug()) {
           CobbleUtils.LOGGER.error("Currency is empty");
@@ -303,7 +341,7 @@ public abstract class EconomyUtil {
   public static String getSymbol(Currency currency) {
     try {
       return currency.symbol().insertion() == null ? "$" : currency.symbol().insertion();
-    } catch (NoSuchMethodError | Exception ignored) {
+    } catch (NoSuchMethodError | Exception | NoClassDefFoundError ignored) {
       return "$";
     }
   }
@@ -316,7 +354,7 @@ public abstract class EconomyUtil {
         case VAULT -> "$";
         default -> "$";
       };
-    } catch (NoSuchMethodError | Exception ignored) {
+    } catch (NoSuchMethodError | Exception | NoClassDefFoundError ignored) {
       return "$";
     }
   }
@@ -333,7 +371,10 @@ public abstract class EconomyUtil {
     setEconomyType();
     return switch (economyType) {
       case IMPACTOR -> getAccount(player.getUuid(), currency).balance();
-      case VAULT -> BigDecimal.ZERO;
+      case VAULT -> {
+        double money = vaultEconomy.getBalance(player.getGameProfile().getName());
+        yield BigDecimal.valueOf(money);
+      }
       default -> BigDecimal.ZERO;
     };
   }

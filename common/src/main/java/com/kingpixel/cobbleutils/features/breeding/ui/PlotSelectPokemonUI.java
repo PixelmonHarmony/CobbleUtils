@@ -99,95 +99,230 @@ public class PlotSelectPokemonUI {
     UIManager.openUIForcefully(player, page);
   }
 
-  private static void processPokemon(Collection<Pokemon> pokemons, Pokemon pokemon, ServerPlayerEntity player,
-                                     Gender gender,
-                                     PlotBreeding plotBreeding) {
+  public static boolean isAcceptablePokemon(Pokemon pokemon, Gender gender, PlotBreeding plotBreeding,
+                                            ServerPlayerEntity player,
+                                            boolean notify) {
     if (pokemon.isUncatchable()) {
       CobbleUtils.LOGGER.info("Pokemon is uncatchable");
-      return;
-    }
-    // Verifica si el Pokémon pertenece al grupo de huevo "UNDISCOVERED" o si es un
-    // huevo, y retorna si es así
-    if (pokemon.getSpecies().getEggGroups().contains(EggGroup.UNDISCOVERED) ||
-      pokemon.getSpecies().showdownId().equalsIgnoreCase("egg")) {
-      return;
+      return false;
     }
 
-    // Verifica si se permite la cría con Ditto y retorna si no está permitido
+    if (pokemon.getSpecies().getEggGroups().contains(EggGroup.UNDISCOVERED) ||
+      pokemon.getSpecies().showdownId().equalsIgnoreCase("egg")) {
+      if (notify) {
+        player.sendMessage(AdventureTranslator.toNative(CobbleUtils.breedconfig.getNotCompatible()));
+      }
+      return false;
+    }
+
     if (pokemon.getSpecies().showdownId().equalsIgnoreCase("ditto") && !CobbleUtils.breedconfig.isDitto()) {
-      return;
+      if (notify) {
+        player.sendMessage(AdventureTranslator.toNative(CobbleUtils.breedconfig.getNotCompatible()));
+      }
+      return false;
+    }
+
+    if (!PokemonUtils.isBreedable(pokemon) ||
+      CobbleUtils.breedconfig.getBlacklist().contains(pokemon.getSpecies().showdownId())) {
+      if (notify) {
+        player.sendMessage(
+          AdventureTranslator.toNative(
+            PokemonUtils.replace(CobbleUtils.breedconfig.getNotbreedable(), pokemon)
+          )
+        );
+      }
+      return false;
+    }
+
+    boolean isInWhitelist = CobbleUtils.breedconfig.getWhitelist().contains(pokemon.getSpecies().showdownId());
+    boolean isLegendaryOrUltraBeast = pokemon.isLegendary() || pokemon.isUltraBeast();
+
+    if (isLegendaryOrUltraBeast && !isInWhitelist) {
+      if (notify) {
+        player.sendMessage(
+          AdventureTranslator.toNative(
+            PokemonUtils.replace(CobbleUtils.breedconfig.getBlacklisted(), pokemon)
+          )
+        );
+      }
+      return false;
     }
 
     Pokemon otherGender = plotBreeding.obtainOtherGender(gender);
 
-    // Verifica si el Pokémon no es breedable o si está en la lista negra
-    if (!PokemonUtils.isBreedable(pokemon) ||
-      CobbleUtils.breedconfig.getBlacklist().contains(pokemon.getSpecies().showdownId())) {
-      return;
-    }
-
-    // Verifica si el Pokémon está en la whitelist y si es legendario o una Ultra
-    // Bestia
-    boolean isInWhitelist = CobbleUtils.breedconfig.getWhitelist().contains(pokemon.getSpecies().showdownId());
-    boolean isLegendaryOrUltraBeast = pokemon.isLegendary() || pokemon.isUltraBeast();
-
-    // Si el Pokémon es legendario o una Ultra Bestia y no está en la whitelist,
-    // retorna
-    if (isLegendaryOrUltraBeast && !isInWhitelist) {
-      return;
-    }
-
-    // Si no hay otro género disponible
     if (otherGender == null) {
-      if (isInWhitelist || pokemon.getGender() == gender || pokemon.getGender() == Gender.GENDERLESS) {
-        pokemons.add(pokemon);
-      } else if (CobbleUtils.breedconfig.isDitto() && pokemon.getSpecies().showdownId().equalsIgnoreCase("ditto")) {
-        pokemons.add(pokemon);
+      boolean result =
+        isInWhitelist || pokemon.getGender() == gender || pokemon.getGender() == Gender.GENDERLESS || (CobbleUtils.breedconfig.isDitto() && pokemon.getSpecies().showdownId().equalsIgnoreCase("ditto"));
+      if (!result && notify) {
+        player.sendMessage(
+          AdventureTranslator.toNative(
+            PokemonUtils.replace(CobbleUtils.breedconfig.getNotCompatible(), pokemon)
+          )
+        );
       }
-      return;
+      return result;
     }
 
-    // Verifica si el otro Pokémon es Ditto
     boolean isOtherDitto = otherGender.getSpecies().showdownId().equalsIgnoreCase("ditto");
     boolean isGenderless = pokemon.getGender() == Gender.GENDERLESS;
     boolean areCompatible = EggData.isCompatible(otherGender, pokemon);
 
-    // Maneja la cría de Ditto
     if (pokemon.getSpecies().showdownId().equalsIgnoreCase("ditto")) {
-      // Si se permite la cría de Ditto x Ditto
       if (isOtherDitto) {
-        if (CobbleUtils.breedconfig.isDoubleditto()) {
-          pokemons.add(pokemon);
+        if (notify) {
+          player.sendMessage(
+            AdventureTranslator.toNative(
+              PokemonUtils.replace(CobbleUtils.breedconfig.getNotdoubleditto(), pokemon)
+            )
+          );
         }
+        return CobbleUtils.breedconfig.isDoubleditto();
       } else {
-        // Si no es Ditto x Ditto, pero es compatible o Ditto está permitido
-        if (areCompatible) {
-          pokemons.add(pokemon);
-        } else if (pokemon.getSpecies().showdownId().equalsIgnoreCase("ditto") && CobbleUtils.breedconfig.isDitto()) {
-          pokemons.add(pokemon);
+        boolean result = areCompatible || (pokemon.getSpecies().showdownId().equalsIgnoreCase("ditto") && CobbleUtils.breedconfig.isDitto());
+        if (!result && notify) {
+          player.sendMessage(
+            AdventureTranslator.toNative(
+              PokemonUtils.replace(CobbleUtils.breedconfig.getNotCompatible(), pokemon)
+            )
+          );
         }
+        return result;
       }
-      return;
     }
 
-    // Si el otro Pokémon es Ditto y no es Ditto x Ditto, pero son compatibles
     if (isOtherDitto) {
-      if (areCompatible) {
-        pokemons.add(pokemon);
-      } else if (isInWhitelist) {
-        pokemons.add(pokemon);
-      } else if (pokemon.getSpecies().showdownId().equalsIgnoreCase("ditto") && CobbleUtils.breedconfig.isDitto()) {
-        pokemons.add(pokemon);
-      } else if (!pokemon.getSpecies().showdownId().equalsIgnoreCase("ditto")) {
-        pokemons.add(pokemon);
+      boolean result = areCompatible || isInWhitelist || !pokemon.getSpecies().showdownId().equalsIgnoreCase("ditto");
+      if (!result && notify) {
+        player.sendMessage(
+          AdventureTranslator.toNative(
+            PokemonUtils.replace(CobbleUtils.breedconfig.getNotCompatible(), pokemon)
+          )
+        );
       }
+      return result;
     } else {
-      // Caso general: agregar el Pokémon si es compatible o cumple otras condiciones
-      if (areCompatible && (pokemon.getGender() == gender || isGenderless)) {
-        pokemons.add(pokemon);
-      } else if (isInWhitelist && (pokemon.getGender() == gender || isGenderless)) {
-        pokemons.add(pokemon);
+      boolean result = areCompatible && (pokemon.getGender() == gender || isGenderless) ||
+        (isInWhitelist && (pokemon.getGender() == gender || isGenderless));
+      if (!result && notify) {
+        player.sendMessage(
+          AdventureTranslator.toNative(
+            PokemonUtils.replace(CobbleUtils.breedconfig.getNotCompatible(), pokemon)
+          )
+        );
       }
+      return result;
+    }
+  }
+
+
+  public static boolean arePokemonsCompatible(Pokemon malePokemon, Pokemon femalePokemon, ServerPlayerEntity player, boolean notify) {
+    // Verifica si cualquiera de los Pokémon es inatrapable
+    if (malePokemon.isUncatchable() || femalePokemon.isUncatchable()) {
+      CobbleUtils.LOGGER.info("One or both Pokemons are uncatchable");
+      return false;
+    }
+
+    // Verifica si alguno de los Pokémon pertenece al grupo de huevo "UNDISCOVERED" o es un huevo
+    if (malePokemon.getSpecies().getEggGroups().contains(EggGroup.UNDISCOVERED) ||
+      femalePokemon.getSpecies().getEggGroups().contains(EggGroup.UNDISCOVERED) ||
+      malePokemon.getSpecies().showdownId().equalsIgnoreCase("egg") ||
+      femalePokemon.getSpecies().showdownId().equalsIgnoreCase("egg")) {
+      if (notify) {
+        player.sendMessage(AdventureTranslator.toNative(CobbleUtils.breedconfig.getNotCompatible()));
+      }
+      return false;
+    }
+
+    // Verifica si la cría con Ditto está permitida
+    if ((malePokemon.getSpecies().showdownId().equalsIgnoreCase("ditto") && !CobbleUtils.breedconfig.isDitto()) ||
+      (femalePokemon.getSpecies().showdownId().equalsIgnoreCase("ditto") && !CobbleUtils.breedconfig.isDitto())) {
+      if (notify) {
+        player.sendMessage(AdventureTranslator.toNative(CobbleUtils.breedconfig.getNotCompatible()));
+      }
+      return false;
+    }
+
+    // Verifica si alguno de los Pokémon no es breedable o está en la lista negra
+    if (!PokemonUtils.isBreedable(malePokemon) || !PokemonUtils.isBreedable(femalePokemon) ||
+      CobbleUtils.breedconfig.getBlacklist().contains(malePokemon.getSpecies().showdownId()) ||
+      CobbleUtils.breedconfig.getBlacklist().contains(femalePokemon.getSpecies().showdownId())) {
+      if (notify) {
+        player.sendMessage(
+          AdventureTranslator.toNative(
+            PokemonUtils.replace(CobbleUtils.breedconfig.getNotbreedable(), malePokemon)
+          )
+        );
+      }
+      return false;
+    }
+
+    boolean isMaleInWhitelist = CobbleUtils.breedconfig.getWhitelist().contains(malePokemon.getSpecies().showdownId());
+    boolean isFemaleInWhitelist = CobbleUtils.breedconfig.getWhitelist().contains(femalePokemon.getSpecies().showdownId());
+    boolean isMaleLegendaryOrUltraBeast = malePokemon.isLegendary() || malePokemon.isUltraBeast();
+    boolean isFemaleLegendaryOrUltraBeast = femalePokemon.isLegendary() || femalePokemon.isUltraBeast();
+
+    // Si cualquiera de los Pokémon es legendario o una Ultra Bestia y no está en la whitelist, no son compatibles
+    if ((isMaleLegendaryOrUltraBeast && !isMaleInWhitelist) || (isFemaleLegendaryOrUltraBeast && !isFemaleInWhitelist)) {
+      if (notify) {
+        player.sendMessage(
+          AdventureTranslator.toNative(
+            PokemonUtils.replace(CobbleUtils.breedconfig.getBlacklisted(), malePokemon)
+          )
+        );
+      }
+      return false;
+    }
+
+    boolean isMaleDitto = malePokemon.getSpecies().showdownId().equalsIgnoreCase("ditto");
+    boolean isFemaleDitto = femalePokemon.getSpecies().showdownId().equalsIgnoreCase("ditto");
+    boolean areCompatible = EggData.isCompatible(malePokemon, femalePokemon);
+
+    // Maneja los casos de cría con Ditto
+    if (isMaleDitto || isFemaleDitto) {
+      if (isMaleDitto && isFemaleDitto) {
+        boolean result = CobbleUtils.breedconfig.isDoubleditto();
+        if (notify && !result) {
+          player.sendMessage(
+            AdventureTranslator.toNative(
+              PokemonUtils.replace(CobbleUtils.breedconfig.getNotdoubleditto(), malePokemon)
+            )
+          );
+        }
+        return result;
+      } else {
+        boolean result = areCompatible || CobbleUtils.breedconfig.isDitto();
+        if (!result && notify) {
+          player.sendMessage(
+            AdventureTranslator.toNative(
+              PokemonUtils.replace(CobbleUtils.breedconfig.getNotditto(), malePokemon)
+            )
+          );
+        }
+        return result;
+      }
+    }
+
+    // Caso general: Verificar si son compatibles según sus géneros y egg groups
+    boolean result = areCompatible ||
+      (isMaleInWhitelist && malePokemon.getGender() == Gender.MALE) ||
+      (isFemaleInWhitelist && femalePokemon.getGender() == Gender.FEMALE);
+
+    if (!result && notify) {
+      player.sendMessage(
+        AdventureTranslator.toNative(
+          PokemonUtils.replace(CobbleUtils.breedconfig.getNotCompatible(), malePokemon)
+        )
+      );
+    }
+
+    return result;
+  }
+
+
+  private static void processPokemon(Collection<Pokemon> pokemons, Pokemon pokemon, ServerPlayerEntity player,
+                                     Gender gender, PlotBreeding plotBreeding) {
+    if (isAcceptablePokemon(pokemon, gender, plotBreeding, player, false)) {
+      pokemons.add(pokemon);
     }
   }
 

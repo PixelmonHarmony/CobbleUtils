@@ -56,6 +56,7 @@ public class BreedConfig {
   private int cooldowninstaHatchInSeconds;
   private String createEgg;
   private String notcancreateEgg;
+  private String notbreedable;
   private String notdoubleditto;
   private String notditto;
   private String notCompatible;
@@ -135,6 +136,7 @@ public class BreedConfig {
     this.notdoubleditto = "%prefix% <#d65549>you can't use two dittos!";
     this.notditto = "%prefix% <#d65549>you can't use one ditto!";
     this.blacklisted = "%prefix% <#ecca18>%pokemon% <#d65549>is blacklisted!";
+    this.notbreedable = "%prefix% <#ecca18>%pokemon% <#d65549>is not breedable!";
     this.blacklist = List.of("pokestop", "egg");
     this.whitelist = List.of("manaphy");
     this.nameEgg = "Egg";
@@ -204,6 +206,8 @@ public class BreedConfig {
         incenses = config.getIncenses();
         emptySlots = config.getEmptySlots();
         plotThereAreEggs = config.getPlotThereAreEggs();
+        notbreedable = config.getNotbreedable();
+        
 
         //nationalities = config.getNationalities();
 

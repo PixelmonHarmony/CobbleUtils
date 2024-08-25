@@ -18,7 +18,6 @@ import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.item.CobblemonItem;
 import com.cobblemon.mod.common.pokemon.FormData;
 import com.cobblemon.mod.common.pokemon.Pokemon;
-import com.cobblemon.mod.common.pokemon.Species;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -113,8 +112,16 @@ public class EggData {
     }
     PokemonProperties pokemonProperties = PokemonProperties.Companion.parse(species + " " + form);
     pokemonProperties.setForm(form);
+    pokemon.createPokemonProperties(PokemonPropertyExtractor.GENDER).apply(pokemon);
     pokemonProperties.apply(pokemon);
+    if (CobbleUtils.config.isDebug()) {
+      CobbleUtils.LOGGER.info("Species: " + species);
+      CobbleUtils.LOGGER.info("Ability: " + this.ability);
+    }
     AbilityTemplate abilityTemplate = Abilities.INSTANCE.get(this.ability);
+    if (CobbleUtils.config.isDebug()) {
+      CobbleUtils.LOGGER.info("AbilityTemplate: " + abilityTemplate.getName());
+    }
     if (abilityTemplate != null) {
       pokemon.updateAbility(abilityTemplate.create(false));
     }
@@ -299,13 +306,15 @@ public class EggData {
         usePokemonToEgg = ArraysPokemons.getRandomPokemon();
       } while (usePokemonToEgg.isUltraBeast() || usePokemonToEgg.isLegendary());
       egg = EggData.pokemonToEgg(usePokemonToEgg, true);
+      egg.getPersistentData().putBoolean("random", true);
     } else if (male.getSpecies().showdownId().equalsIgnoreCase("ditto")) {
       if (!CobbleUtils.breedconfig.isDitto())
         return null;
       usePokemonToEgg = female;
       egg = EggData.pokemonToEgg(usePokemonToEgg, false);
     } else if (female.getSpecies().showdownId().equalsIgnoreCase("ditto")) {
-      if (!CobbleUtils.breedconfig.isDitto()) return null;
+      if (!CobbleUtils.breedconfig.isDitto())
+        return null;
       usePokemonToEgg = male;
       egg = EggData.pokemonToEgg(usePokemonToEgg, false);
     } else if (male.getSpecies().showdownId().equalsIgnoreCase(female.getSpecies().showdownId())) {
@@ -321,6 +330,7 @@ public class EggData {
     }
 
     mecanicsLogic(male, female, usePokemonToEgg, egg);
+
     ScalePokemonData.getScalePokemonData(usePokemonToEgg).getRandomPokemonSize().apply(egg);
 
     player.sendMessage(
@@ -340,10 +350,17 @@ public class EggData {
   }
 
   private static void mecanicsLogic(Pokemon male, Pokemon female, Pokemon usePokemonToEgg, Pokemon egg) {
-    Species firstspecie = PokemonUtils.getFirstEvolution(usePokemonToEgg.getSpecies());
+    Pokemon firstspecie = PokemonUtils.getFirstEvolution(usePokemonToEgg.getSpecies());
+
+    String form;
+    if (female.getForm().getAspects().isEmpty()) {
+      form = "";
+    } else {
+      form = female.getForm().getAspects().get(0);
+    }
+
     Pokemon firstEvolution =
-      PokemonProperties.Companion.parse(firstspecie.showdownId() + " form=" + female.getForm().showdownId() + " " + female.getForm().showdownId() + " " + female.getForm().getName()).create();
-    firstEvolution.setForm(female.getForm());
+      PokemonProperties.Companion.parse(firstspecie.getSpecies().showdownId() + " " + form).create();
 
     // IVS
     egg.createPokemonProperties(List.of(PokemonPropertyExtractor.IVS, PokemonPropertyExtractor.GENDER)).apply(egg);
@@ -620,15 +637,30 @@ public class EggData {
   private static void applyAbility(Pokemon male, Pokemon female, Pokemon firstEvolution, Pokemon egg) {
     boolean maleHiddenAbility = PokemonUtils.haveAH(male);
     boolean femaleHiddenAbility = PokemonUtils.haveAH(female);
+    if (CobbleUtils.config.isDebug()) {
+      CobbleUtils.LOGGER.info("Male, Female: " + male.getSpecies().getName() + ", " + female.getSpecies().getName());
+      CobbleUtils.LOGGER.info("Egg: " + firstEvolution.getSpecies().getName());
+    }
+    egg.getPersistentData().remove("ability");
     if (maleHiddenAbility || femaleHiddenAbility) {
       if (Utils.RANDOM.nextInt(100) < 70) {
-        egg.getPersistentData().putString("ability", PokemonUtils.getAH(female).getName());
+        Ability ability1 = PokemonUtils.getAH(firstEvolution);
+        if (CobbleUtils.config.isDebug()) {
+          CobbleUtils.LOGGER.info("Apply ability egg: " + ability1.getName());
+        }
+        egg.getPersistentData().putString("ability", ability1.getName());
       } else {
-        Ability randomAbility = PokemonUtils.getRandomAbility(female);
+        Ability randomAbility = PokemonUtils.getRandomAbility(firstEvolution);
+        if (CobbleUtils.config.isDebug()) {
+          CobbleUtils.LOGGER.info("Apply ability egg: " + randomAbility.getName());
+        }
         egg.getPersistentData().putString("ability", randomAbility.getName());
       }
     } else {
-      Ability randomAbility = PokemonUtils.getRandomAbility(female);
+      Ability randomAbility = PokemonUtils.getRandomAbility(firstEvolution);
+      if (CobbleUtils.config.isDebug()) {
+        CobbleUtils.LOGGER.info("Apply ability egg: " + randomAbility.getName());
+      }
       egg.getPersistentData().putString("ability", randomAbility.getName());
     }
   }
@@ -640,9 +672,13 @@ public class EggData {
     pokemonProperties.add(PokemonPropertyExtractor.ABILITY);
     pokemonProperties.add(PokemonPropertyExtractor.GENDER);
     pokemonProperties.add(PokemonPropertyExtractor.NATURE);
+
     egg.getPokemon().createPokemonProperties(pokemonProperties).apply(egg);
+
     ScalePokemonData.getScalePokemonData(pokemon).getRandomPokemonSize().apply(egg.getPokemon());
+
     EggData.applyPersistent(egg.getPokemon(), pokemon, null, false);
+
     return egg;
   }
 
@@ -665,11 +701,11 @@ public class EggData {
   }
 
   private static void applyPersistent(Pokemon egg, Pokemon pokemon, String species, boolean dittos) {
-    Species firstEvolution;
+    Pokemon firstEvolution;
     if (species == null) {
       firstEvolution = PokemonUtils.getFirstEvolution(pokemon.getSpecies());
     } else {
-      firstEvolution = PokemonProperties.Companion.parse(species).create().getSpecies();
+      firstEvolution = PokemonProperties.Companion.parse(species).create();
     }
 
     egg.getPersistentData().putString("species", firstEvolution.showdownId());

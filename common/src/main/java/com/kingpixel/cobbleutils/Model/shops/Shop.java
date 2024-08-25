@@ -313,8 +313,6 @@ public class Shop {
   private TypeError getTypeError(Product product) {
     if (product.getBuy().compareTo(BigDecimal.ZERO) <= 0 && product.getSell().compareTo(BigDecimal.ZERO) <= 0) {
       return TypeError.ZERO;
-    } else if (product.getSell().compareTo(product.getBuy()) > 0) {
-      return TypeError.BOTH;
     } else {
       return TypeError.NONE;
     }
