@@ -213,9 +213,7 @@ public abstract class EconomyUtil {
               .replace("%price%", String.valueOf(amount))
               .replace("%bal%", account.balance().toString())
               .replace("%symbol%", getSymbol(account.currency()))
-              .replace("%currency%", account.currency().plural().insertion() == null
-                ? "$"
-                : account.currency().plural().insertion())
+              .replace("%currency%", getCurrencyName(account.currency()))
               .replace("%prefix%", CobbleUtils.language.getPrefixShop())
           )
         );

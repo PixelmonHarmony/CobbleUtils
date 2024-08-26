@@ -62,7 +62,7 @@ public class ShopLang {
     this.messageSellErrorInvalidQuantity = "&7You can't sell %amount% %product% because it's not a multiple of %packageSize%";
     this.loreProduct = List.of(
       "",
-      "&7Amount: 1x%amount%",
+      "&7Amount: %amount%x%amountproduct%",
       "&7Buy: &a%buy% %symbol%",
       "&7Sell: &c%sell% %symbol%",
       "",

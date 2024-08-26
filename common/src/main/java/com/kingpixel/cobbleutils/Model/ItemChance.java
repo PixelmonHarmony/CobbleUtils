@@ -30,30 +30,8 @@ public class ItemChance {
   private final String item;
   private final int chance;
 
-  public ItemChanceType getType() {
-    if (item.startsWith("pokemon:")) {
-      return ItemChanceType.POKEMON;
-    } else if (item.startsWith("command:")) {
-      return ItemChanceType.COMMAND;
-    } else if (item.startsWith("money:")) {
-      return ItemChanceType.MONEY;
-    } else if (item.startsWith("item:")) {
-      return ItemChanceType.ITEM;
-    } else {
-      return ItemChanceType.ITEM;
-    }
-  }
-
-  public enum ItemChanceType {
-    POKEMON,
-    COMMAND,
-    MONEY,
-    ITEM
-  }
-
   public ItemChance() {
-    this.item = "minecraft:dirt";
-    this.chance = 100;
+    this("minecraft:dirt", 100);
   }
 
   public ItemChance(String item, int chance) {
@@ -62,9 +40,23 @@ public class ItemChance {
   }
 
   /**
-   * Get the default item chances.
-   * <p>
-   * Give a default List<ItemChance> for example configurations.
+   * Determines the type of item chance.
+   *
+   * @return The type of item chance.
+   */
+  public ItemChanceType getType() {
+    if (item.startsWith("pokemon:")) return ItemChanceType.POKEMON;
+    if (item.startsWith("command:")) return ItemChanceType.COMMAND;
+    if (item.startsWith("money:")) return ItemChanceType.MONEY;
+    return ItemChanceType.ITEM;
+  }
+
+  public enum ItemChanceType {
+    POKEMON, COMMAND, MONEY, ITEM
+  }
+
+  /**
+   * Gets default item chances.
    *
    * @return The default item chances.
    */
@@ -81,16 +73,7 @@ public class ItemChance {
   }
 
   /**
-   * Get the ItemStack of the item.
-   *
-   * @return The ItemStack of the item.
-   */
-  public ItemStack getItemStack() {
-    return getItemStack(1);
-  }
-
-  /**
-   * Get the ItemStack of the item with a specific amount.
+   * Gets the ItemStack of the item with a specific amount.
    *
    * @param amount The amount of the item.
    *
@@ -100,30 +83,27 @@ public class ItemChance {
     return getRewardItemStack(item, amount);
   }
 
-  /**
-   * Handles giving the reward to the player based on the item type.
-   *
-   * @param player     The player to give the reward to.
-   * @param itemChance The ItemChance model specifying the reward.
-   *
-   * @throws NoPokemonStoreException If there's an issue with storing Pokémon.
-   */
+  public ItemStack getItemStack() {
+    return getItemStack(1);
+  }
+
   public static boolean giveReward(ServerPlayerEntity player, ItemChance itemChance) throws NoPokemonStoreException {
     return giveReward(player, itemChance, 1);
   }
 
   /**
-   * Handles giving the reward to the player based on the item type and amount.
+   * Gives a reward to the player based on the item type and amount.
    *
-   * @param player     The player to give the reward to.
-   * @param itemChance The ItemChance model specifying the reward.
-   * @param amount     The amount of the item to give.
+   * @param player The player to give the reward to.
+   * @param amount The amount of the item to give.
    *
-   * @throws NoPokemonStoreException If there's an issue with storing Pokémon.
+   * @return True if the reward was given successfully, false otherwise.
    */
-  public static boolean giveReward(ServerPlayerEntity player, ItemChance itemChance, int amount) throws NoPokemonStoreException {
+  public static boolean giveReward(ServerPlayerEntity player, ItemChance itemChance, int amount) {
     try {
       String item = itemChance.getItem();
+      ItemStack itemStack;
+
       if (item.startsWith("pokemon:")) {
         Pokemon pokemon = getRewardPokemon(item);
         return RewardsUtils.saveRewardPokemon(player, pokemon);
@@ -131,55 +111,69 @@ public class ItemChance {
         String command = item.replace("command:", "");
         return RewardsUtils.saveRewardCommand(player, command);
       } else if (item.startsWith("money:")) {
-        int money;
-        if (item.split(":").length < 3) {
-          money = Integer.parseInt(item.replace("money:", ""));
-          player.sendMessage(AdventureTranslator.toNativeWithOutPrefix(
-            CobbleUtils.language.getMessageReceiveMoney()
-              .replace("%amount%", String.valueOf(money))));
-          return RewardsUtils.saveRewardCommand(player, CobbleUtils.config.getEcocommand()
-            .replace("%player%", player.getGameProfile().getName())
-            .replace("%amount%", String.valueOf(money)));
-        } else {
-          money = Integer.parseInt(item.split(":")[2]);
-          String currency = item.split(":")[1];
-          String command = CobbleUtils.config.getImpactorEconomy().getEcocommand();
-          ImpactorItem impactorItem = CobbleUtils.config.getImpactorEconomy().getItemsCommands().get(currency);
-          player.sendMessage(AdventureTranslator.toNativeWithOutPrefix(
-            impactorItem.getMessage()
-              .replace("%amount%", String.valueOf(money))));
-          command = command
-            .replace("%player%", player.getGameProfile().getName())
-            .replace("%amount%", String.valueOf(money))
-            .replace("%currency%", currency);
-          return RewardsUtils.saveRewardCommand(player, command);
-        }
+        return handleMoneyReward(player, item);
       } else if (item.startsWith("item:")) {
-        ItemStack itemStack;
-        String[] split = item.split("#", 2);
-        String[] itemSplit = split[0].split(":");
-        String iditem = itemSplit[2] + ":" + itemSplit[3];
-        itemStack = Utils.parseItemId(iditem, Integer.parseInt(itemSplit[1]));
-        if (split.length > 1) {
-          try {
-            itemStack.setNbt(NbtHelper.fromNbtProviderString(split[1]));
-          } catch (PatternSyntaxException | CommandSyntaxException | ArrayIndexOutOfBoundsException ignored) {
-          }
-        }
-
+        itemStack = parseItemStack(item, amount);
         return RewardsUtils.saveRewardItemStack(player, itemStack);
       } else {
-        return RewardsUtils.saveRewardItemStack(player, Utils.parseItemId(item, amount));
+        itemStack = Utils.parseItemId(item, amount);
+        return RewardsUtils.saveRewardItemStack(player, itemStack);
       }
     } catch (Exception e) {
-      CobbleUtils.LOGGER.error("Error al dar la recompensa: " + e.getMessage());
-      e.printStackTrace();
+      CobbleUtils.LOGGER.error("Error giving reward: " + e.getMessage());
       return false;
     }
   }
 
+  private static boolean handleMoneyReward(ServerPlayerEntity player, String item) {
+    int money;
+    String command;
+    if (item.split(":").length < 3) {
+      money = Integer.parseInt(item.replace("money:", ""));
+      player.sendMessage(AdventureTranslator.toNativeWithOutPrefix(
+        CobbleUtils.language.getMessageReceiveMoney()
+          .replace("%amount%", String.valueOf(money))));
+      command = CobbleUtils.config.getEcocommand()
+        .replace("%player%", player.getGameProfile().getName())
+        .replace("%amount%", String.valueOf(money));
+    } else {
+      money = Integer.parseInt(item.split(":")[2]);
+      String currency = item.split(":")[1];
+      ImpactorItem impactorItem = CobbleUtils.config.getImpactorEconomy().getItemsCommands().get(currency);
+      player.sendMessage(AdventureTranslator.toNativeWithOutPrefix(
+        impactorItem.getMessage()
+          .replace("%amount%", String.valueOf(money))));
+      command = CobbleUtils.config.getImpactorEconomy().getEcocommand()
+        .replace("%player%", player.getGameProfile().getName())
+        .replace("%amount%", String.valueOf(money))
+        .replace("%currency%", currency);
+    }
+    return RewardsUtils.saveRewardCommand(player, command);
+  }
+
+  private static ItemStack parseItemStack(String item, int amount) {
+    ItemStack itemStack;
+    String[] split = item.split("#", 2);
+    String[] itemSplit = split[0].split(":");
+    String iditem = itemSplit[2] + ":" + itemSplit[3];
+    itemStack = Utils.parseItemId(iditem, Integer.parseInt(itemSplit[1]));
+
+    if (split.length > 1) {
+      try {
+        itemStack.setNbt(NbtHelper.fromNbtProviderString(split[1]));
+      } catch (PatternSyntaxException | CommandSyntaxException | ArrayIndexOutOfBoundsException ignored) {
+      }
+    }
+    return itemStack;
+  }
+
+  private static Pokemon getRewardPokemon(String item) {
+    String p = item.replace("pokemon:", "");
+    return PokemonProperties.Companion.parse(p).create();
+  }
+
   /**
-   * Retrieves the title of the item based on its type.
+   * Gets the title of the item based on its type.
    *
    * @return The title of the item.
    */
@@ -188,7 +182,7 @@ public class ItemChance {
   }
 
   /**
-   * Retrieves the lore of the item based on its type.
+   * Gets the lore of the item based on its type.
    *
    * @return The lore of the item.
    */
@@ -215,7 +209,7 @@ public class ItemChance {
   }
 
   /**
-   * Get the ItemStack of the reward based on its type.
+   * Gets the ItemStack of the reward based on its type.
    *
    * @param item   The item to get the ItemStack of.
    * @param amount The amount of the item.
@@ -226,118 +220,118 @@ public class ItemChance {
     if (item.startsWith("pokemon:")) {
       return PokemonItem.from(PokemonProperties.Companion.parse(item.replace("pokemon:", "")));
     } else if (item.startsWith("command:")) {
-      String command = item.replace("command:", "");
-      for (Map.Entry<String, ItemModel> entry : CobbleUtils.config.getItemsCommands().entrySet()) {
-        if (command.startsWith(entry.getKey())) {
-          return Utils.parseItemId(entry.getValue().getItem(), amount, entry.getValue().getCustomModelData());
-        }
-      }
-      return Utils.parseItemId("minecraft:command_block", amount);
+      return parseCommandItem(item);
     } else if (item.startsWith("money:")) {
-      if (item.split(":").length < 3) {
-        ItemModel itemModel = new ItemModel(CobbleUtils.language.getItemMoney());
-        return itemModel.getItemStack();
-      } else {
-        String currency = item.split(":")[1];
-        ImpactorItem impactorItem = CobbleUtils.config.getImpactorEconomy().getItemsCommands().get(currency);
-        return impactorItem.getItem().getItemStack();
-      }
+      return parseMoneyItem(item);
     } else if (item.startsWith("item:")) {
-      ItemStack itemStack;
-      String[] split = item.split("#", 2);
-      String[] itemSplit = split[0].split(":");
-      String iditem = itemSplit[2] + ":" + itemSplit[3];
-      itemStack = Utils.parseItemId(iditem, Integer.parseInt(itemSplit[1]));
-      if (split.length > 1) {
-        try {
-          itemStack.setNbt(NbtHelper.fromNbtProviderString(split[1]));
-        } catch (PatternSyntaxException | CommandSyntaxException | ArrayIndexOutOfBoundsException ignored) {
-        }
-      }
-      return itemStack;
+      return parseItemStack(item, amount);
     } else {
       return Utils.parseItemId(item, amount);
     }
   }
 
-  /**
-   * Get the Pokémon reward based on the item.
-   *
-   * @param item The item to get the Pokémon reward of.
-   *
-   * @return The Pokémon reward.
-   */
-  private static Pokemon getRewardPokemon(String item) {
-    String p = item.replace("pokemon:", "");
-    return PokemonProperties.Companion.parse(p).create();
+  private static ItemStack parseCommandItem(String item) {
+    String command = item.replace("command:", "");
+    for (Map.Entry<String, ItemModel> entry : CobbleUtils.config.getItemsCommands().entrySet()) {
+      if (command.startsWith(entry.getKey())) {
+        return Utils.parseItemId(entry.getValue().getItem(), 1, entry.getValue().getCustomModelData());
+      }
+    }
+    return Utils.parseItemId("minecraft:command_block", 1);
   }
 
-  /**
-   * Get the title of the item based on its type.
-   *
-   * @param itemChance The ItemChance model specifying the reward.
-   *
-   * @return The title of the item.
-   */
+  private static ItemStack parseMoneyItem(String item) {
+    if (item.split(":").length < 3) {
+      return new ItemModel(CobbleUtils.language.getItemMoney()).getItemStack();
+    } else {
+      String currency = item.split(":")[1];
+      ImpactorItem impactorItem = CobbleUtils.config.getImpactorEconomy().getItemsCommands().get(currency);
+      return impactorItem.getItem().getItemStack();
+    }
+  }
+
   private static String getTitle(ItemChance itemChance) {
     String item = itemChance.getItem();
     if (item.startsWith("pokemon:")) {
-      String p = item.replace("pokemon:", "");
-      Pokemon pokemon = PokemonProperties.Companion.parse(p).create();
-      return PokemonUtils.replace(CobbleUtils.language.getPokemonnameformat(), pokemon);
+      return getPokemonTitle(item);
     } else if (item.startsWith("command:")) {
-      String command = item.replace("command:", "");
-      for (Map.Entry<String, ItemModel> entry : CobbleUtils.config.getItemsCommands().entrySet()) {
-        if (command.startsWith(entry.getKey())) {
-          return entry.getValue().getDisplayname();
-        }
-      }
-      return command;
+      return getCommandTitle(item);
     } else if (item.startsWith("money:")) {
-      int money;
-      String title;
-      if (item.split(":").length < 3) {
-        money = Integer.parseInt(item.replace("money:", ""));
-        ItemModel itemModel = new ItemModel(CobbleUtils.language.getItemMoney());
-        title = itemModel.getDisplayname()
-          .replace("%amount%", String.valueOf(money));
-      } else {
-        money = Integer.parseInt(item.split(":")[2]);
-        String currency = item.split(":")[1];
-        ImpactorItem impactorItem = CobbleUtils.config.getImpactorEconomy().getItemsCommands().get(currency);
-        return impactorItem.getItem().getDisplayname()
-          .replace("%amount%", String.valueOf(money));
-
-      }
-      return title;
+      return getMoneyTitle(item);
     } else if (item.startsWith("item:")) {
-      ItemStack itemStack;
-      String[] split = item.split("#", 2);
-      String[] itemSplit = split[0].split(":");
-      String iditem = itemSplit[2] + ":" + itemSplit[3];
-      itemStack = Utils.parseItemId(iditem, Integer.parseInt(itemSplit[1]));
-      if (split.length > 1) {
-        try {
-          itemStack.setNbt(NbtHelper.fromNbtProviderString(split[1]));
-          return ItemUtils.getTranslatedName(itemStack);
-        } catch (PatternSyntaxException | CommandSyntaxException | ArrayIndexOutOfBoundsException ignored) {
-        }
-      }
-      return ItemUtils.getTranslatedName(itemStack);
+      return getItemTitle(item);
     } else {
       return ItemUtils.getTranslatedName(Utils.parseItemId(item));
     }
   }
 
-  /**
-   * Get the lore of the item based on its type.
-   *
-   * @param itemChance The ItemChance model specifying the reward.
-   *
-   * @return The lore of the item.
-   */
+  private static String getPokemonTitle(String item) {
+    String p = item.replace("pokemon:", "");
+    Pokemon pokemon = PokemonProperties.Companion.parse(p).create();
+    return PokemonUtils.replace(CobbleUtils.language.getPokemonnameformat(), pokemon);
+  }
+
+  private static String getCommandTitle(String item) {
+    String command = item.replace("command:", "");
+    for (Map.Entry<String, ItemModel> entry : CobbleUtils.config.getItemsCommands().entrySet()) {
+      if (command.startsWith(entry.getKey())) {
+        return entry.getValue().getDisplayname();
+      }
+    }
+    return command;
+  }
+
+  private static String getMoneyTitle(String item) {
+    int money;
+    if (item.split(":").length < 3) {
+      money = Integer.parseInt(item.replace("money:", ""));
+      ItemModel itemModel = new ItemModel(CobbleUtils.language.getItemMoney());
+      return itemModel.getDisplayname().replace("%amount%", String.valueOf(money));
+    } else {
+      money = Integer.parseInt(item.split(":")[2]);
+      String currency = item.split(":")[1];
+      ImpactorItem impactorItem = CobbleUtils.config.getImpactorEconomy().getItemsCommands().get(currency);
+      return impactorItem.getItem().getDisplayname().replace("%amount%", String.valueOf(money));
+    }
+  }
+
+  private static String getItemTitle(String item) {
+    ItemStack itemStack = parseItemStack(item, 1);
+    return ItemUtils.getTranslatedName(itemStack);
+  }
+
   private static List<String> getLore(ItemChance itemChance) {
     return CobbleUtils.language.getLorechance();
+  }
+
+  /**
+   * Gets a random reward from a list of item chances and gives it to the player.
+   *
+   * @param itemChances The list of item chances to choose from.
+   * @param player      The player to give the reward to.
+   *
+   * @throws IllegalArgumentException If the list of item chances is empty.
+   */
+  public static void getRandomReward(List<ItemChance> itemChances, ServerPlayerEntity player) {
+    if (itemChances == null || itemChances.isEmpty()) {
+      throw new IllegalArgumentException("The list of item chances cannot be empty");
+    }
+
+    int totalChance = itemChances.stream().mapToInt(ItemChance::getChance).sum();
+    int randomChance = Utils.RANDOM.nextInt(totalChance);
+    int cumulativeChance = 0;
+
+    for (ItemChance itemChance : itemChances) {
+      cumulativeChance += itemChance.getChance();
+      if (randomChance < cumulativeChance) {
+        try {
+          giveReward(player, itemChance);
+        } catch (NoPokemonStoreException e) {
+          e.printStackTrace();
+        }
+        break;
+      }
+    }
   }
 
   /**
@@ -365,42 +359,10 @@ public class ItemChance {
   }
 
   /**
-   * Get a random reward from a list of item chances and give it to the player.
+   * Gives all rewards from a list of item chances to the player.
    *
    * @param itemChances The list of item chances to choose from.
-   * @param player      The player to give the reward to.
-   *
-   * @throws IllegalArgumentException If the list of item chances is empty.
-   */
-  public static void getRandomReward(List<ItemChance> itemChances, ServerPlayerEntity player) {
-    if (itemChances == null || itemChances.isEmpty()) {
-      throw new IllegalArgumentException("The list of item chances cannot be empty");
-    }
-
-    int total = itemChances.stream().mapToInt(ItemChance::getChance).sum();
-    int random = Utils.RANDOM.nextInt(total);
-    int current = 0;
-
-    for (ItemChance itemChance : itemChances) {
-      current += itemChance.getChance();
-      if (random < current) {
-        try {
-          giveReward(player, itemChance);
-        } catch (NoPokemonStoreException e) {
-          e.printStackTrace();
-        }
-        break;
-      }
-    }
-  }
-
-  /**
-   * Get a random reward from a list of item chances and give it to the player.
-   *
-   * @param itemChances The list of item chances to choose from.
-   * @param player      The player to give the reward to.
-   *
-   * @return The ItemChance model specifying the reward.
+   * @param player      The player to give the rewards to.
    */
   public static void getAllRewards(List<ItemChance> itemChances, ServerPlayerEntity player) {
     for (ItemChance itemChance : itemChances) {
