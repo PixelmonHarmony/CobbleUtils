@@ -169,7 +169,11 @@ public class ItemChance {
 
   private static Pokemon getRewardPokemon(String item) {
     String p = item.replace("pokemon:", "");
-    return PokemonProperties.Companion.parse(p).create();
+    if (p.isEmpty()) {
+      return ArraysPokemons.getRandomPokemon();
+    } else {
+      return PokemonProperties.Companion.parse(p).create();
+    }
   }
 
   /**
@@ -218,7 +222,7 @@ public class ItemChance {
    */
   private static ItemStack getRewardItemStack(String item, int amount) {
     if (item.startsWith("pokemon:")) {
-      return PokemonItem.from(PokemonProperties.Companion.parse(item.replace("pokemon:", "")));
+      return PokemonItem.from(getRewardPokemon(item));
     } else if (item.startsWith("command:")) {
       return parseCommandItem(item);
     } else if (item.startsWith("money:")) {
@@ -234,21 +238,47 @@ public class ItemChance {
     String command = item.replace("command:", "");
     for (Map.Entry<String, ItemModel> entry : CobbleUtils.config.getItemsCommands().entrySet()) {
       if (command.startsWith(entry.getKey())) {
-        return Utils.parseItemId(entry.getValue().getItem(), 1, entry.getValue().getCustomModelData());
+        return entry.getValue().getItemStack();
       }
     }
     return Utils.parseItemId("minecraft:command_block", 1);
   }
 
   private static ItemStack parseMoneyItem(String item) {
-    if (item.split(":").length < 3) {
-      return new ItemModel(CobbleUtils.language.getItemMoney()).getItemStack();
+    String[] parts = item.split(":");
+    String currency = "money";
+    int amount = 1;
+
+    if (parts.length == 2) {
+      amount = parseAmount(parts[1]);
+    } else if (parts.length == 3) {
+      currency = parts[1];
+      amount = parseAmount(parts[2]);
     } else {
-      String currency = item.split(":")[1];
+      return ItemStack.EMPTY;
+    }
+
+    // Obtener el ItemStack correspondiente al currency
+    ItemStack itemStack;
+    if (currency.equalsIgnoreCase("money")) {
+      ItemModel itemModel = CobbleUtils.language.getItemMoney();
+      itemStack = new ItemModel(itemModel.getItem(), itemModel.getDisplayname().replace("%amount%", String.valueOf(amount))).getItemStack();
+    } else {
       ImpactorItem impactorItem = CobbleUtils.config.getImpactorEconomy().getItemsCommands().get(currency);
-      return impactorItem.getItem().getItemStack();
+      impactorItem.getItem().setDisplayname(impactorItem.getItem().getDisplayname().replace("%amount%", String.valueOf(amount)));
+      itemStack = impactorItem.getItem().getItemStack();
+    }
+    return itemStack;
+  }
+
+  private static int parseAmount(String amountStr) {
+    try {
+      return Integer.parseInt(amountStr);
+    } catch (NumberFormatException e) {
+      return 1;  // Valor por defecto en caso de error
     }
   }
+
 
   private static String getTitle(ItemChance itemChance) {
     String item = itemChance.getItem();
@@ -266,8 +296,7 @@ public class ItemChance {
   }
 
   private static String getPokemonTitle(String item) {
-    String p = item.replace("pokemon:", "");
-    Pokemon pokemon = PokemonProperties.Companion.parse(p).create();
+    Pokemon pokemon = getRewardPokemon(item);
     return PokemonUtils.replace(CobbleUtils.language.getPokemonnameformat(), pokemon);
   }
 

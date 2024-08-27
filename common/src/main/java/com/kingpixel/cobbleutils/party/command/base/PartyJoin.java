@@ -8,11 +8,9 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.command.CommandManager;
-import net.minecraft.command.argument.EntityArgumentType;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.item.ItemStack;
 
 /**
  * @author Carlos Varas Alonso - 28/06/2024 4:16
@@ -20,10 +18,10 @@ import net.minecraft.item.ItemStack;
 public class PartyJoin implements Command<ServerCommandSource> {
 
   public static void register(CommandDispatcher<ServerCommandSource> dispatcher,
-      LiteralArgumentBuilder<ServerCommandSource> base) {
+                              LiteralArgumentBuilder<ServerCommandSource> base) {
     dispatcher.register(
-        base.then(CommandManager.literal("join")
-            .executes(new PartyJoin())));
+      base.then(CommandManager.literal("join")
+        .executes(new PartyJoin())));
   }
 
   @Override

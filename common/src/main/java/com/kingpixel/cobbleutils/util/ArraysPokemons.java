@@ -2,12 +2,15 @@ package com.kingpixel.cobbleutils.util;
 
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
+import com.cobblemon.mod.common.api.types.ElementalType;
 import com.cobblemon.mod.common.pokemon.FormData;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.cobblemon.mod.common.pokemon.Species;
 import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.Model.PokemonData;
 import com.kingpixel.cobbleutils.util.events.ArraysPokemonEvent;
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -17,7 +20,30 @@ public class ArraysPokemons {
   public static List<Species> pokemons = new ArrayList<>();
   public static List<Species> legendarys = new ArrayList<>();
   public static List<Species> ultraBeasts = new ArrayList<>();
+  public static Map<ElementalType, List<Pokemon>> pokemonsByType = new HashMap<>();
   public static List<Species> all = new ArrayList<>();
+
+  public enum TypePokemon {
+    NORMAL,
+    LEGENDARY,
+    ULTRABEAST,
+    PARADOX,
+    MYTHICAL,
+  }
+
+  private static TypePokemon getTypePokemon(Pokemon p) {
+    if (p.isLegendary()) {
+      return TypePokemon.LEGENDARY;
+    } else if (p.isUltraBeast()) {
+      return TypePokemon.ULTRABEAST;
+    } else if (p.getSpecies().getLabels().contains("paradox")) {
+      return TypePokemon.PARADOX;
+    } else if (p.getSpecies().getLabels().contains("mythical")) {
+      return TypePokemon.MYTHICAL;
+    } else {
+      return TypePokemon.NORMAL;
+    }
+  }
 
   /**
    * Initialize the Pokémon arrays
@@ -36,9 +62,9 @@ public class ArraysPokemons {
 
     Map<String, List<Species>> sortedSpecies = filteredSpecies.stream()
       .collect(Collectors.groupingBy(species1 -> {
-        Pokemon p = new Pokemon();
-        p.setSpecies(species1);
-        if (p.isLegendary() || CobbleUtils.config.getLegends().contains(species1.showdownId())) {
+        Pokemon p = species1.create(1);
+        TypePokemon typePokemon = getTypePokemon(p);
+        if ((typePokemon != TypePokemon.NORMAL && typePokemon != TypePokemon.ULTRABEAST) || CobbleUtils.config.getLegends().contains(PokemonData.from(p))) {
           return "legendary";
         } else if (p.isUltraBeast()) {
           return "ultrabeast";
@@ -57,10 +83,25 @@ public class ArraysPokemons {
     ultraBeasts = new ArrayList<>(sortedSpecies.getOrDefault("ultrabeast", new ArrayList<>()).stream()
       .sorted(Comparator.comparingInt(Species::getNationalPokedexNumber))
       .toList());
-    
+
     all = all.stream()
       .sorted(Comparator.comparingInt(Species::getNationalPokedexNumber))
       .toList();
+
+    pokemonsByType = new HashMap<>();
+
+    pokemons.forEach(species1 -> species1.getForms().forEach(formData -> {
+      for (ElementalType type : formData.getTypes()) {
+        if (!pokemonsByType.containsKey(type)) {
+          pokemonsByType.put(type, new ArrayList<>());
+        }
+        if (formData.getAspects().isEmpty()) {
+          pokemonsByType.get(type).add(PokemonProperties.Companion.parse(species1.showdownId()).create());
+        } else {
+          pokemonsByType.get(type).add(PokemonProperties.Companion.parse(species1.showdownId() + " " + formData.getAspects().get(0)).create());
+        }
+      }
+    }));
 
     ArraysPokemonEvent.FINISH_GENERATE_POKEMONS.emit(all);
 
@@ -292,6 +333,84 @@ public class ArraysPokemons {
         return pokemon;
       }
     } while (true);
+  }
+
+  public static Pokemon getRandomPokemon(ElementalType type) {
+    List<Pokemon> pokemonList = pokemonsByType.get(type);
+    if (pokemonList.isEmpty()) {
+      throw new IllegalStateException("No Pokémon available for the given type.");
+    }
+
+    int level = Utils.RANDOM.nextInt(1, 50);
+    Pokemon p = pokemonList.get(Utils.RANDOM.nextInt(pokemonList.size()));
+    p.setLevel(level);
+    return p;
+  }
+
+  public static Pokemon getRandomPokemon(ElementalType type, Set<TypePokemon> blacklist) {
+    List<Pokemon> pokemonList = pokemonsByType.get(type);
+    if (pokemonList.isEmpty()) {
+      throw new IllegalStateException("No Pokémon available for the given type.");
+    }
+
+    int level = Utils.RANDOM.nextInt(1, 50);
+    return getPokemon((Set<TypePokemon>) blacklist, pokemonList, level);
+  }
+
+  public static Pokemon getRandomPokemon(Set<ElementalType> types) {
+    List<Pokemon> pokemons = types.stream()
+      .flatMap(type -> pokemonsByType.get(type).stream())
+      .toList();
+
+    if (pokemons.isEmpty()) {
+      return getRandomPokemon(); // Assuming this method exists and returns a default Pokémon.
+    }
+
+    int level = Utils.RANDOM.nextInt(1, 50);
+    Pokemon p = pokemons.get(Utils.RANDOM.nextInt(pokemons.size()));
+    p.setLevel(level);
+    return p;
+  }
+
+  public static Pokemon getRandomPokemon(Set<ElementalType> types, Set<TypePokemon> blacklist) {
+    List<Pokemon> pokemons = types.stream()
+      .flatMap(type -> pokemonsByType.get(type).stream())
+      .collect(Collectors.toList());
+
+    if (pokemons.isEmpty()) {
+      return getRandomPokemon(); // Assuming this method exists and returns a default Pokémon.
+    }
+
+    int level = Utils.RANDOM.nextInt(1, 50);
+    return getPokemon(blacklist, pokemons, level);
+  }
+
+  @NotNull private static Pokemon getPokemon(Set<TypePokemon> blacklist, List<Pokemon> pokemons, int level) {
+    Pokemon p;
+    TypePokemon typePokemon;
+
+    do {
+      p = pokemons.get(Utils.RANDOM.nextInt(pokemons.size()));
+      p.setLevel(level);
+      typePokemon = getTypePokemon(p);
+    } while (blacklist.contains(typePokemon));
+
+    return p;
+  }
+
+  public static Iterable<Pokemon> getRandomPokemons(Set<ElementalType> types) {
+    return types.stream()
+      .flatMap(type -> pokemonsByType.get(type).stream())
+      .peek(pokemon -> pokemon.setLevel(Utils.RANDOM.nextInt(1, 50)))
+      .collect(Collectors.toList());
+  }
+
+  public static Iterable<Pokemon> getRandomPokemons(Set<ElementalType> types, Set<TypePokemon> blacklist) {
+    return types.stream()
+      .flatMap(type -> pokemonsByType.get(type).stream())
+      .peek(pokemon -> pokemon.setLevel(Utils.RANDOM.nextInt(1, 50)))
+      .filter(pokemon -> !blacklist.contains(getTypePokemon(pokemon)))
+      .toList();
   }
 
 }

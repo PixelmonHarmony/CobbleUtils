@@ -5,7 +5,6 @@ import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.model.user.UserManager;
-import net.luckperms.api.node.types.PermissionNode;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 
@@ -34,11 +33,13 @@ public abstract class LuckPermsUtil {
       if (hasPermission) return true;
       LuckPerms luckPermsApi = getLuckPermsApi();
       if (luckPermsApi != null) {
+
         for (String permission : permissions) {
+          if (permission == null || permission.isEmpty()) return true;
+          addPermission(permission);
           User user = luckPermsApi.getUserManager().getUser(player.getUuid());
           if (user != null) {
-            boolean restult = user.getCachedData().getPermissionData().checkPermission(permission).asBoolean();
-            hasPermission = restult;
+            hasPermission = user.getCachedData().getPermissionData().checkPermission(permission).asBoolean();
             if (hasPermission) return true;
           }
         }
@@ -56,7 +57,8 @@ public abstract class LuckPermsUtil {
       if (hasPermission) return true;
       LuckPerms luckPermsApi = getLuckPermsApi();
       if (luckPermsApi != null) {
-        if (permission.isEmpty()) return true;
+        if (permission == null || permission.isEmpty()) return true;
+        addPermission(permission);
         UserManager userManager = luckPermsApi.getUserManager();
         User user = userManager.getUser(player.getUuid());
         if (user != null) {
@@ -71,10 +73,13 @@ public abstract class LuckPermsUtil {
   }
 
   public static boolean checkPermission(ServerPlayerEntity player, String permission) {
-    if (permission.isEmpty()) return true;
-    if (player.hasPermissionLevel(4)) return true;
+    if (permission == null || permission.isEmpty()) return true;
+    if (player != null) {
+      if (player.hasPermissionLevel(4)) return true;
+    }
     LuckPerms luckPermsApi = getLuckPermsApi();
     if (luckPermsApi != null) {
+      addPermission(permission);
       UserManager userManager = luckPermsApi.getUserManager();
       User user = userManager.getUser(player.getUuid());
       if (user != null) {
@@ -85,15 +90,10 @@ public abstract class LuckPermsUtil {
   }
 
   public static void addPermission(String permission) {
+    if (true) return;
     LuckPerms luckPermsApi = getLuckPermsApi();
     if (luckPermsApi != null) {
-      PermissionNode permissionNode = PermissionNode.builder(permission).build();
       getLuckPermsApi().getNodeBuilderRegistry().forPermission().permission(permission).build();
-    }
-    try {
-
-    } catch (Exception e) {
-      e.printStackTrace();
     }
   }
 

@@ -68,13 +68,17 @@ public class ShopCommand implements Command<ServerCommandSource> {
                   ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
                   String shop = StringArgumentType.getString(context, "shop");
                   CobbleUtils.shopConfig.getShop().open(player, shop);
-                  CobbleUtils.shopConfig.getShop().open(player);
                   return 0;
-                }).then(
-                  CommandManager.argument("player", EntityArgumentType.players())
+                })
+                .then(
+                  CommandManager.argument("player", EntityArgumentType.player())
+                    .requires(source -> LuckPermsUtil.checkPermission(
+                      source, 2, List.of("cobbleutils.admin", "cobbleutils.shop.other")
+                    ))
                     .executes(context -> {
                       ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
-                      CobbleUtils.shopConfig.getShop().open(player);
+                      String shop = StringArgumentType.getString(context, "shop");
+                      CobbleUtils.shopConfig.getShop().open(player, shop);
                       return 0;
                     })
                 )

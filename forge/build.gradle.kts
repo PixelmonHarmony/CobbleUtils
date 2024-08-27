@@ -95,6 +95,7 @@ dependencies {
     shadowCommon("net.kyori:adventure-text-logger-slf4j:${property("kyori_version")}")
     shadowCommon("net.kyori:adventure-platform-api:4.3.0")
     shadowCommon("net.kyori:event-api:5.0.0-SNAPSHOT")
+    shadowCommon("org.mongodb:mongodb-driver-sync:${property("mongodb_version")}")
 }
 
 tasks.processResources {
@@ -133,10 +134,11 @@ tasks {
         exclude("org/jetbrains/**/*")
         exclude("generations/gg/generations/core/generationscore/forge/datagen/**")
 
+        relocate("com.mongodb", "com.kingpixel.cobbleutils.mongodb")
         relocate("org.bson", "com.kingpixel.cobbleutils.bson")
         relocate("net.kyori", "com.kingpixel.cobbleutils.kyori")
         relocate("org.slf4j", "com.kingpixel.cobbleutils.slf4j")
-        
+
         transformers.add(ServiceFileTransformer())
 
         configurations = listOf(project.configurations.getByName("shadowCommon"))

@@ -35,7 +35,7 @@ public class ShopSellCommand implements Command<ServerCommandSource> {
                 return 0;
               }
               ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
-              ShopSell.sellProductHand(player.getInventory().getMainHandStack());
+              ShopSell.sellProductHand(player);
               return 1;
             })
         ).then(

@@ -92,6 +92,7 @@ dependencies {
     shadowCommon("net.kyori:adventure-text-logger-slf4j:${property("kyori_version")}")
     shadowCommon("net.kyori:adventure-platform-api:4.3.0")
     shadowCommon("net.kyori:event-api:5.0.0-SNAPSHOT")
+    shadowCommon("org.mongodb:mongodb-driver-sync:${property("mongodb_version")}")
 }
 
 tasks.processResources {
@@ -132,7 +133,7 @@ tasks {
         // No excluimos el "net/kyori/adventure/key/**" para que siga incluido en el JAR, pero sin relocalizar.
 
         //relocate("org.reactivestreams", "com.kingpixel.cobbleutils.reactivestreams")
-        //relocate("com.mongodb", "com.kingpixel.cobbleutils.mongodb")
+        relocate("com.mongodb", "com.kingpixel.cobbleutils.mongodb")
         relocate("org.bson", "com.kingpixel.cobbleutils.bson")
         relocate("net.kyori", "com.kingpixel.cobbleutils.kyori") {
             exclude("net/kyori/adventure/key/**")

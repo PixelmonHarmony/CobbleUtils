@@ -51,6 +51,15 @@ public class ItemModel {
     this.nbt = "";
   }
 
+  public ItemModel(String item, String displayname) {
+    this.slot = 0;
+    this.item = item;
+    this.displayname = displayname;
+    this.lore = new ArrayList<>();
+    this.CustomModelData = 0;
+    this.nbt = "";
+  }
+
   public ItemModel(String item, String displayname, List<String> lore) {
     this.item = item;
     this.displayname = displayname;

@@ -73,6 +73,7 @@ public class BreedConfig {
   private List<Integer> eggSlots;
   private List<String> blacklist;
   private List<String> whitelist;
+  private List<String> blacklistForm;
   private List<Incense> incenses;
   //private List<String> nationalities;
 
@@ -146,6 +147,8 @@ public class BreedConfig {
     this.maleSelectItem = new ItemModel(0, "minecraft:light_blue_wool", "Male", List.of(""), 0);
     this.femaleSelectItem = new ItemModel(0, "minecraft:pink_wool", "Female", List.of(""), 0);
     this.incenses = Incense.defaultIncenses();
+    this.blacklistForm = List.of("halloween");
+
     //this.nationalities = List.of("es", "en", "fr", "de", "it", "pt", "jp", "ko", "zh", "ru");
   }
 
@@ -207,7 +210,8 @@ public class BreedConfig {
         emptySlots = config.getEmptySlots();
         plotThereAreEggs = config.getPlotThereAreEggs();
         notbreedable = config.getNotbreedable();
-        
+        blacklistForm = config.getBlacklistForm();
+
 
         //nationalities = config.getNationalities();
 

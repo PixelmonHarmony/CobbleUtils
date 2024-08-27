@@ -666,15 +666,18 @@ public class PokemonUtils {
     }
   }
 
-  public static boolean isLegalAbility(ServerPlayerEntity player, Pokemon pokemon) {
+  public static void isLegalAbility(ServerPlayerEntity player, Pokemon pokemon) {
     boolean legal = isLegalAbility(pokemon);
-    if (pokemon.getAbility().getForced()) {
-      pokemon.getAbility().setForced$common(false);
+    try {
+      if (pokemon.getAbility().getForced()) {
+        pokemon.getAbility().setForced$common(false);
+      }
+    } catch (Exception e) {
+      CobbleUtils.LOGGER.error("Error setting forced ability: " + e.getMessage());
     }
     if (!legal && CobbleUtils.config.isDebug()) {
       CobbleUtils.LOGGER.info("Fix illegal ability: Player: " + player.getGameProfile().getName());
     }
-    return legal;
   }
 
   public static boolean isLegalAbility(Pokemon pokemon) {
@@ -699,6 +702,6 @@ public class PokemonUtils {
   }
 
   public static void setBreedable(Pokemon pokemon, Boolean value) {
-    pokemon.getPersistentData().putBoolean("breedable", value);
+    pokemon.getPersistentData().putBoolean(CobbleUtilsTags.BREEDABLE_TAG, value);
   }
 }

@@ -12,6 +12,7 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.intellij.lang.annotations.Subst;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.UUID;
 
 import static org.bukkit.Bukkit.getServer;
@@ -28,6 +29,30 @@ public abstract class EconomyUtil {
 
 
   private static EconomyType economyType;
+
+  public static String getBalance(ServerPlayerEntity player, String currency, int digits) {
+    // Supongamos que obtienes el balance como un BigDecimal desde algún método
+    BigDecimal balance = getBalance(player, currency);
+
+    if (balance != null) {
+      // Redondear el balance al número de dígitos decimales especificados
+      balance = balance.setScale(digits, RoundingMode.HALF_UP);
+      // Devolver como cadena de texto
+      return balance.toPlainString();
+    }
+
+    // En caso de que el balance sea null, retornas una cadena vacía o algún valor por defecto.
+    return "0.00";
+  }
+
+  public static int getDecimals(String currency) {
+    setEconomyType();
+    return switch (economyType) {
+      case IMPACTOR -> getCurrency(currency).decimals();
+      case VAULT -> 2;
+      default -> 2;
+    };
+  }
 
   private enum EconomyType {
     IMPACTOR,
@@ -286,7 +311,7 @@ public abstract class EconomyUtil {
    *
    * @return The currency.
    */
-  private static Currency getCurrency(String currency) {
+  public static Currency getCurrency(String currency) {
     setEconomyType();
     try {
       if (currency.isEmpty()) {
@@ -368,7 +393,8 @@ public abstract class EconomyUtil {
   public static BigDecimal getBalance(ServerPlayerEntity player, @Subst("") String currency) {
     setEconomyType();
     return switch (economyType) {
-      case IMPACTOR -> getAccount(player.getUuid(), currency).balance();
+      case IMPACTOR ->
+        getAccount(player.getUuid(), currency).balance().setScale(getCurrency(currency).decimals(), RoundingMode.HALF_UP);
       case VAULT -> {
         double money = vaultEconomy.getBalance(player.getGameProfile().getName());
         yield BigDecimal.valueOf(money);

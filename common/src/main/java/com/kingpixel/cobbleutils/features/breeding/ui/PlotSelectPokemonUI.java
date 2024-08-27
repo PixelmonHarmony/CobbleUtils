@@ -49,10 +49,8 @@ public class PlotSelectPokemonUI {
     }
 
     List<Button> buttons = new ArrayList<>();
-    int size = pokemons.size();
 
-    for (int i = 0; i < size; i++) {
-      Pokemon pokemon = pokemons.get(i);
+    for (Pokemon pokemon : pokemons) {
       GooeyButton button = GooeyButton.builder()
         .display(PokemonItem.from(pokemon))
         .title(AdventureTranslator.toNative(PokemonUtils.replace(pokemon)))
@@ -79,9 +77,7 @@ public class PlotSelectPokemonUI {
 
     });
 
-    GooeyButton close = UIUtils.getCloseButton(action -> {
-      PlotBreedingManagerUI.open(player, plotBreeding);
-    });
+    GooeyButton close = UIUtils.getCloseButton(action -> PlotBreedingManagerUI.open(player, plotBreeding));
 
     template.set(row - 1, 0, back);
     template.set(row - 1, 4, close);
@@ -102,11 +98,6 @@ public class PlotSelectPokemonUI {
   public static boolean isAcceptablePokemon(Pokemon pokemon, Gender gender, PlotBreeding plotBreeding,
                                             ServerPlayerEntity player,
                                             boolean notify) {
-    if (pokemon.isUncatchable()) {
-      CobbleUtils.LOGGER.info("Pokemon is uncatchable");
-      return false;
-    }
-
     if (pokemon.getSpecies().getEggGroups().contains(EggGroup.UNDISCOVERED) ||
       pokemon.getSpecies().showdownId().equalsIgnoreCase("egg")) {
       if (notify) {
@@ -216,12 +207,6 @@ public class PlotSelectPokemonUI {
 
 
   public static boolean arePokemonsCompatible(Pokemon malePokemon, Pokemon femalePokemon, ServerPlayerEntity player, boolean notify) {
-    // Verifica si cualquiera de los Pokémon es inatrapable
-    if (malePokemon.isUncatchable() || femalePokemon.isUncatchable()) {
-      CobbleUtils.LOGGER.info("One or both Pokemons are uncatchable");
-      return false;
-    }
-
     // Verifica si alguno de los Pokémon pertenece al grupo de huevo "UNDISCOVERED" o es un huevo
     if (malePokemon.getSpecies().getEggGroups().contains(EggGroup.UNDISCOVERED) ||
       femalePokemon.getSpecies().getEggGroups().contains(EggGroup.UNDISCOVERED) ||

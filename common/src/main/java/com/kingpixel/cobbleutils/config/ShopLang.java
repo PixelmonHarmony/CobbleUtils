@@ -13,6 +13,7 @@ import java.util.concurrent.CompletableFuture;
 public class ShopLang {
   public static String PATH_SHOP_LANG = ShopConfig.PATH_SHOP + "/lang/";
   private String prefix;
+  private boolean changeItemError;
   private String soundBuy;
   private String soundSell;
   private String soundError;
@@ -24,8 +25,10 @@ public class ShopLang {
   private String titleSell;
   private String messageSellSuccess;
   private String messageSellErrorInvalidQuantity;
+  private String messageSell;
   private String messageBuySuccess;
   private String messageSellError;
+  private String notPermission;
   private List<String> loreProduct;
   private ItemModel balance;
   private ItemModel add1;
@@ -47,6 +50,7 @@ public class ShopLang {
    */
   public ShopLang() {
     this.prefix = "&7[&6Shop&7] &8»";
+    this.changeItemError = true;
     this.soundBuy = "minecraft:entity.experience_orb.pickup";
     this.soundSell = "minecraft:entity.experience_orb.pickup";
     this.soundError = "minecraft:block.note_block.bass";
@@ -56,10 +60,12 @@ public class ShopLang {
     this.soundRemove = "minecraft:entity.experience_orb.pickup";
     this.titleBuy = "&6Buy %product%";
     this.titleSell = "&cSell %product%";
+    this.messageSell = "&aYou have sold all your items for: %currencys%";
     this.messageSellSuccess = "&7You sold %amount% %product% for %sell% %symbol%";
     this.messageBuySuccess = "&7You bought %amount% %product% for %buy% %symbol%";
     this.messageSellError = "&7You don't have enough %currency% to sell %amount% %product%";
     this.messageSellErrorInvalidQuantity = "&7You can't sell %amount% %product% because it's not a multiple of %packageSize%";
+    this.notPermission = "&7You don't have permission to buy/sell %product%";
     this.loreProduct = List.of(
       "",
       "&7Amount: %amount%x%amountproduct%",
@@ -101,6 +107,7 @@ public class ShopLang {
         ShopLang lang = gson.fromJson(el, ShopLang.class);
         this.prefix = lang.getPrefix();
         this.soundBuy = lang.getSoundBuy();
+        this.changeItemError = lang.isChangeItemError();
         this.soundSell = lang.getSoundSell();
         this.soundError = lang.getSoundError();
         this.soundOpen = lang.getSoundOpen();
@@ -117,9 +124,19 @@ public class ShopLang {
         this.remove1 = lang.getRemove1();
         this.remove10 = lang.getRemove10();
         this.remove64 = lang.getRemove64();
+        this.remove8 = lang.getRemove8();
+        this.remove16 = lang.getRemove16();
+        this.add8 = lang.getAdd8();
+        this.add16 = lang.getAdd16();
+        this.messageSellSuccess = lang.getMessageSellSuccess();
+        this.messageSellError = lang.getMessageSellError();
+        this.messageSellErrorInvalidQuantity = lang.getMessageSellErrorInvalidQuantity();
+        this.messageBuySuccess = lang.getMessageBuySuccess();
+        this.notPermission = lang.getNotPermission();
         this.confirm = lang.getConfirm();
         this.cancel = lang.getCancel();
         this.buyStacks = lang.getBuyStacks();
+        this.messageSell = lang.getMessageSell();
 
 
         String data = gson.toJson(this);

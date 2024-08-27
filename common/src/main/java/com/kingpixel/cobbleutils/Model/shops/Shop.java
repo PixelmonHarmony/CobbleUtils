@@ -125,17 +125,27 @@ public class Shop {
   @ToString
   @Data
   public static class Product {
+    private String permission;
     private String product;
     private BigDecimal buy;
     private BigDecimal sell;
 
     public Product() {
+      this.permission = null;
       this.product = "minecraft:stone";
       this.buy = BigDecimal.ZERO;
       this.sell = BigDecimal.ZERO;
     }
 
     public Product(String product, BigDecimal buy, BigDecimal sell) {
+      this.permission = null;
+      this.product = product;
+      this.buy = buy;
+      this.sell = sell;
+    }
+
+    public Product(String product, BigDecimal buy, BigDecimal sell, String permission) {
+      this.permission = permission;
       this.product = product;
       this.buy = buy;
       this.sell = sell;
@@ -177,8 +187,8 @@ public class Shop {
       String symbol = EconomyUtil.getSymbol(getCurrency());
 
       products.forEach(product -> {
-        BigDecimal buy = product.getBuy();
-        BigDecimal sell = product.getSell();
+        BigDecimal buy = product.getBuy().setScale(EconomyUtil.getDecimals(getCurrency()), RoundingMode.HALF_UP);
+        BigDecimal sell = product.getSell().setScale(EconomyUtil.getDecimals(getCurrency()), RoundingMode.HALF_UP);
 
 
         List<String> lore = new ArrayList<>(CobbleUtils.shopLang.getLoreProduct());
@@ -195,12 +205,15 @@ public class Shop {
           .replace("%amount%", "1")
           .replace("%amountproduct%", String.valueOf(product.getItemchance().getItemStack().getCount()))
           .replace("%total%", String.valueOf(product.getItemchance().getItemStack().getCount()))
-          .replace("%balance%", EconomyUtil.getBalance(player, getCurrency()).toString())
+          .replace("%balance%", EconomyUtil.getBalance(player, getCurrency(), EconomyUtil.getDecimals(getCurrency())))
         );
+        TypeError typeError = getTypeError(product, player);
 
-        TypeError typeError = getTypeError(product);
-
-        if (typeError != TypeError.NONE) {
+        if (typeError == TypeError.PERMISSION) {
+          lore = new ArrayList<>(lore);
+          lore.add(CobbleUtils.shopLang.getNotPermission()
+            .replace("%product%", ItemUtils.getTranslatedName(product.getItemchance().getItemStack())));
+        } else if (typeError != TypeError.NONE) {
           lore = new ArrayList<>();
           lore.add("&cError in this product");
           lore.add("&cContact the server administrator");
@@ -212,7 +225,11 @@ public class Shop {
         if (typeError == TypeError.NONE) {
           itemStack = product.getItemchance().getItemStack();
         } else {
-          itemStack = Utils.parseItemId("minecraft:barrier");
+          if (CobbleUtils.shopLang.isChangeItemError()) {
+            itemStack = product.getItemchance().getItemStack();
+          } else {
+            itemStack = Utils.parseItemId("minecraft:barrier");
+          }
         }
 
         GooeyButton button = GooeyButton.builder()
@@ -250,7 +267,6 @@ public class Shop {
       });
 
       GooeyButton close = UIUtils.getCloseButton(action -> {
-        UIManager.closeUI(action.getPlayer());
         shopMenu.open(action.getPlayer());
       });
 
@@ -277,7 +293,7 @@ public class Shop {
       List<String> lorebalance = new ArrayList<>(balance.getLore());
 
       lorebalance.replaceAll(s -> s
-        .replace("%balance%", EconomyUtil.getBalance(player, getCurrency()).toPlainString())
+        .replace("%balance%", EconomyUtil.getBalance(player, getCurrency(), EconomyUtil.getDecimals(getCurrency())))
         .replace("%currency%", getCurrency())
         .replace("%symbol%", symbol));
 
@@ -312,12 +328,14 @@ public class Shop {
   }
 
   private enum TypeError {
-    BOTH, ZERO, NONE
+    BOTH, ZERO, PERMISSION, NONE
   }
 
-  private TypeError getTypeError(Product product) {
+  private TypeError getTypeError(Product product, ServerPlayerEntity player) {
     if (product.getBuy().compareTo(BigDecimal.ZERO) <= 0 && product.getSell().compareTo(BigDecimal.ZERO) <= 0) {
       return TypeError.ZERO;
+    } else if (!LuckPermsUtil.checkPermission(player, product.getPermission())) {
+      return TypeError.PERMISSION;
     } else {
       return TypeError.NONE;
     }
@@ -328,6 +346,8 @@ public class Shop {
       player.sendMessage(Text.literal("Buy price is higher than sell price contact the server administrator"));
     } else if (Objects.requireNonNull(typeError) == TypeError.ZERO) {
       player.sendMessage(Text.literal("Buy and sell price is zero contact the server administrator"));
+    } else if (Objects.requireNonNull(typeError) == TypeError.PERMISSION) {
+      player.sendMessage(Text.literal("You don't have permission to buy or sell this product"));
     }
   }
 
@@ -337,7 +357,7 @@ public class Shop {
       .build();
 
     int maxStack = product.getItemchance().getItemStack(amount).getMaxCount();
-    BigDecimal price = calculatePrice(product, typeMenu, amount);
+    BigDecimal price = calculatePrice(product, typeMenu, amount).setScale(EconomyUtil.getDecimals(getCurrency()), RoundingMode.HALF_UP);
     String title = generateTitle(product, typeMenu);
     String symbol = EconomyUtil.getSymbol(getCurrency());
 
@@ -439,8 +459,10 @@ public class Shop {
 
   private boolean sellProduct(ServerPlayerEntity player, Product product, int amount) {
     int packageSize = product.getItemchance().getItemStack().getCount();
-    BigDecimal unitPrice = product.getSell().divide(BigDecimal.valueOf(packageSize), 2, RoundingMode.HALF_UP);
-    BigDecimal totalPrice = unitPrice.multiply(BigDecimal.valueOf(amount));
+    int digits = EconomyUtil.getDecimals(getCurrency());
+    BigDecimal unitPrice = product.getSell().setScale(digits, RoundingMode.HALF_UP).divide(BigDecimal.valueOf(packageSize), digits, RoundingMode.HALF_UP);
+    BigDecimal totalPrice =
+      unitPrice.setScale(digits, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(amount));
 
     // Verifica si el jugador tiene la cantidad requerida del producto en su inventario
     int amountItemInv = player.getInventory().main.stream()
@@ -483,7 +505,7 @@ public class Shop {
             .replace("%currency%", getCurrency())
             .replace("%symbol%", EconomyUtil.getSymbol(getCurrency()))
             .replace("%prefix%", CobbleUtils.shopLang.getPrefix())
-            .replace("%balance%", EconomyUtil.getBalance(player, getCurrency()).toString())
+            .replace("%balance%", EconomyUtil.getBalance(player, getCurrency(), EconomyUtil.getDecimals(getCurrency())))
         )
       );
       return true;
@@ -503,7 +525,7 @@ public class Shop {
             .replace("%currency%", getCurrency())
             .replace("%symbol%", EconomyUtil.getSymbol(getCurrency()))
             .replace("%prefix%", CobbleUtils.shopLang.getPrefix())
-            .replace("%balance%", EconomyUtil.getBalance(player, getCurrency()).toString())
+            .replace("%balance%", EconomyUtil.getBalance(player, getCurrency(), EconomyUtil.getDecimals(getCurrency())))
         )
       );
     }
@@ -527,6 +549,8 @@ public class Shop {
                                   Product product, TypeMenu typeMenu,
                                   ItemModel addModel, ItemModel removeModel,
                                   int increment, int amount) {
+    if (product.getItemchance().getType() == ItemChance.ItemChanceType.MONEY
+      || product.getItemchance().getType() == ItemChance.ItemChanceType.COMMAND) return;
     template.set(addModel.getSlot(), GooeyButton.builder()
       .display(addModel.getItemStack(increment))
       .title(AdventureTranslator.toNative(addModel.getDisplayname()))
@@ -569,7 +593,7 @@ public class Shop {
       .replace("%amount%", String.valueOf(amount))
       .replace("%amountproduct%", String.valueOf(product.getItemchance().getItemStack().getCount()))
       .replace("%total%", String.valueOf(amount * product.getItemchance().getItemStack().getCount()))
-      .replace("%balance%", EconomyUtil.getBalance(player, getCurrency()).toString())
+      .replace("%balance%", EconomyUtil.getBalance(player, getCurrency(), EconomyUtil.getDecimals(getCurrency())))
     );
 
 
@@ -580,7 +604,7 @@ public class Shop {
       .title(AdventureTranslator.toNative(ItemUtils.getTranslatedName(viewProduct)))
       .lore(Text.class, AdventureTranslator.toNativeL(loreProduct))
       .onClick(action -> {
-        TypeError typeError = getTypeError(product);
+        TypeError typeError = getTypeError(product, player);
         if (typeError == TypeError.NONE) {
           SoundUtil.playSound(CobbleUtils.shopLang.getSoundOpen(), player);
           if (action.getClickType() == ButtonClick.LEFT_CLICK || action.getClickType() == ButtonClick.SHIFT_LEFT_CLICK) {
@@ -601,43 +625,13 @@ public class Shop {
       .build());
   }
 
-  private void createMaxStackButton(ChestTemplate template, ServerPlayerEntity player, Product product, TypeMenu typeMenu, int maxStack) {
-    ItemModel buyStacks = CobbleUtils.shopLang.getBuyStacks();
-    template.set(buyStacks.getSlot(), GooeyButton.builder()
-      .display(product.getItemchance().getItemStack(maxStack))
-      .title(AdventureTranslator.toNative(buyStacks.getDisplayname()))
-      .lore(Text.class, AdventureTranslator.toNativeL(buyStacks.getLore()))
-      .onClick(action -> openStackMenu(player, product, TypeMenu.STACK, maxStack))
-      .build());
-  }
-
   private void createCancelButton(ChestTemplate template, ServerPlayerEntity player) {
     ItemModel cancel = CobbleUtils.shopLang.getCancel();
     template.set(cancel.getSlot(), cancel.getButton(action -> open(player, CobbleUtils.shopConfig.getShop())));
   }
 
   private void createCloseButton(ChestTemplate template, ServerPlayerEntity player) {
-    template.set((getRows() * 9) - 5, UIUtils.getCloseButton(action -> open(player, CobbleUtils.shopConfig.getShop())));
+    template.set((CobbleUtils.shopConfig.getRowsBuySellMenu() * 9) - 5, UIUtils.getCloseButton(action -> open(player, CobbleUtils.shopConfig.getShop())));
   }
 
-  private void openStackMenu(ServerPlayerEntity player, Product product, TypeMenu typeMenu, int maxStack) {
-    ChestTemplate template = ChestTemplate
-      .builder(2)
-      .build();
-
-    int amount = maxStack;
-
-    BigDecimal price = calculatePrice(product, typeMenu, amount);
-    String title = generateTitle(product, typeMenu);
-    String symbol = EconomyUtil.getSymbol(getCurrency());
-
-
-    GooeyPage page = GooeyPage.builder()
-      .title(AdventureTranslator.toNative(title))
-      .template(template)
-      .build();
-
-    UIManager.openUIPassively(player, page, 10, TimeUnit.MILLISECONDS);
-
-  }
 }

@@ -1,6 +1,7 @@
 package com.kingpixel.cobbleutils.properties;
 
 import com.cobblemon.mod.common.api.properties.CustomPokemonPropertyType;
+import com.kingpixel.cobbleutils.Model.CobbleUtilsTags;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -11,7 +12,7 @@ import java.util.Set;
 /**
  * @author Carlos Varas Alonso - 04/08/2024 19:40
  */
-public class BreedablePropertyType implements CustomPokemonPropertyType<PokerusProperty> {
+public class BreedablePropertyType implements CustomPokemonPropertyType<BreedableProperty> {
   public static final BreedablePropertyType INSTANCE = new BreedablePropertyType();
 
   public BreedablePropertyType() {
@@ -22,15 +23,15 @@ public class BreedablePropertyType implements CustomPokemonPropertyType<PokerusP
   }
 
   @NotNull @Override public Iterable<String> getKeys() {
-    return Collections.singleton("breedable");
+    return Collections.singleton(CobbleUtilsTags.BREEDABLE_TAG);
   }
 
   @Override public boolean getNeedsKey() {
     return true;
   }
 
-  @Nullable @Override public PokerusProperty fromString(@Nullable String s) {
-    return new PokerusProperty(Boolean.parseBoolean(s));
+  @Nullable @Override public BreedableProperty fromString(String s) {
+    return new BreedableProperty(Boolean.parseBoolean(s));
   }
 
   @NotNull @Override public Collection<String> examples() {

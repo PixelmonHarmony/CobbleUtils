@@ -36,6 +36,7 @@ public class ShopMenu {
   private String soundclose;
   private int rows;
   private ItemModel fill;
+  private List<Shop.FillItems> fillItems;
   private List<Shop> shops;
 
   public ShopMenu() {
@@ -44,6 +45,8 @@ public class ShopMenu {
     this.soundopen = "cobblemon:pc.on";
     this.soundclose = "cobblemon:pc.off";
     this.fill = new ItemModel("minecraft:gray_stained_glass_pane");
+    this.fillItems = new ArrayList<>();
+    this.fillItems.add(new Shop.FillItems());
     this.shops = defaultShops();
   }
 
@@ -53,6 +56,7 @@ public class ShopMenu {
     this.soundopen = "cobblemon:pc.on";
     this.soundclose = "cobblemon:pc.off";
     this.fill = new ItemModel("minecraft:gray_stained_glass_pane");
+    this.fillItems = new ArrayList<>();
     this.shops = List.of(new Shop());
   }
 
@@ -62,6 +66,7 @@ public class ShopMenu {
     this.soundopen = "cobblemon:pc.on";
     this.soundclose = "cobblemon:pc.off";
     this.fill = new ItemModel("minecraft:gray_stained_glass_pane");
+    this.fillItems = new ArrayList<>();
     this.shops = shops;
   }
 
@@ -91,9 +96,7 @@ public class ShopMenu {
 
   public static void createDefaultShop(String path) {
     ShopMenu shopMenu = new ShopMenu();
-    shopMenu.getShops().forEach(shop -> {
-      Utils.writeFileAsync(path, shop.getId() + ".json", Utils.newGson().toJson(shop)).join();
-    });
+    shopMenu.getShops().forEach(shop -> Utils.writeFileAsync(path, shop.getId() + ".json", Utils.newGson().toJson(shop)).join());
   }
 
 
@@ -126,6 +129,21 @@ public class ShopMenu {
 
       template.fill(GooeyButton.of(fill.getItemStack()));
 
+      if (fillItems != null && !fillItems.isEmpty()) {
+        fillItems.forEach(fill -> {
+          GooeyButton button = GooeyButton.builder()
+            .display(fill.getItemStack())
+            .title(AdventureTranslator.toNative(fill.getDisplayname()))
+            .lore(Text.class, AdventureTranslator.toNativeL(fill.getLore()))
+            .onClick(action -> {
+              SoundUtil.playSound(CobbleUtils.shopLang.getSoundError(), player);
+            })
+            .build();
+
+          fill.getSlots().forEach(slot -> template.set(slot, button));
+        });
+      }
+
       GooeyPage page = GooeyPage
         .builder()
         .template(template)
@@ -152,10 +170,19 @@ public class ShopMenu {
 
   private List<Shop> defaultShops() {
     shops = new ArrayList<>();
-    // PokeBalls
+    shops.add(shopdefault());
     shops.add(pokeBalls());
     return shops;
   }
+
+  private Shop shopdefault() {
+    Shop shop = new Shop("Default", "<#de504b>Default", (short) 6, "impactor:dollars", new ItemModel("cobblemon:poke_ball"));
+    List<Shop.Product> products = new ArrayList<>();
+    products.add(new Shop.Product("minecraft:stone", BigDecimal.valueOf(100), BigDecimal.ZERO, "cobblemon.command.pc"));
+    shop.setProducts(products);
+    return shop;
+  }
+
 
   // PokeBalls
   private Shop pokeBalls() {
