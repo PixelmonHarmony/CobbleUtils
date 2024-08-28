@@ -13,6 +13,7 @@ import com.kingpixel.cobbleutils.command.admin.rewards.*;
 import com.kingpixel.cobbleutils.command.base.*;
 import com.kingpixel.cobbleutils.command.base.shops.ShopCommand;
 import com.kingpixel.cobbleutils.command.base.shops.ShopSellCommand;
+import com.kingpixel.cobbleutils.command.base.shops.ShopTransactionCommand;
 import com.kingpixel.cobbleutils.command.test.TestCommands;
 import com.kingpixel.cobbleutils.util.LuckPermsUtil;
 import com.mojang.brigadier.CommandDispatcher;
@@ -113,6 +114,7 @@ public class CommandTree {
     if (CobbleUtils.config.isShops()) {
       ShopCommand.register(dispatcher, CommandManager.literal("shop"));
       ShopSellCommand.register(dispatcher, CommandManager.literal("sell"));
+      ShopTransactionCommand.register(dispatcher, CommandManager.literal("shop"));
     }
     if (CobbleUtils.config.isDebug()) {
       LiteralArgumentBuilder<ServerCommandSource> base = CommandManager.literal("cobbleutilstest")

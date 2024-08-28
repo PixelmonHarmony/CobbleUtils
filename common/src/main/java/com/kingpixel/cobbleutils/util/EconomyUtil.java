@@ -1,6 +1,7 @@
 package com.kingpixel.cobbleutils.util;
 
 import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.features.breeding.Breeding;
 import net.impactdev.impactor.api.economy.EconomyService;
 import net.impactdev.impactor.api.economy.accounts.Account;
 import net.impactdev.impactor.api.economy.currency.Currency;
@@ -13,6 +14,10 @@ import org.intellij.lang.annotations.Subst;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.text.NumberFormat;
+import java.util.Locale;
 import java.util.UUID;
 
 import static org.bukkit.Bukkit.getServer;
@@ -38,7 +43,7 @@ public abstract class EconomyUtil {
       // Redondear el balance al número de dígitos decimales especificados
       balance = balance.setScale(digits, RoundingMode.HALF_UP);
       // Devolver como cadena de texto
-      return balance.toPlainString();
+      return formatCurrency(balance, currency, player.getUuid());
     }
 
     // En caso de que el balance sea null, retornas una cadena vacía o algún valor por defecto.
@@ -169,7 +174,20 @@ public abstract class EconomyUtil {
           account = getAccount(player.getUuid(), currency.trim());
         }
         EconomyTransaction transaction = account.deposit(amount);
-        return transaction.successful();
+        if (transaction.successful()) {
+          CobbleUtils.server.getPlayerManager().getPlayer(account.owner()).sendMessage(
+            AdventureTranslator.toNative(
+              CobbleUtils.shopLang.getMessageAddMoney()
+                .replace("%prefix%", CobbleUtils.shopLang.getPrefix())
+                .replace("%price%", String.valueOf(amount))
+                .replace("%balance%", formatCurrency(account.balance(), account.currency(), account.owner()))
+                .replace("%symbol%", getSymbol(account.currency()))
+                .replace("%currency%", getCurrencyName(account.currency()))
+            )
+          );
+          return true;
+        }
+        return false;
       }
       case VAULT: {
         return vaultEconomy.depositPlayer(player.getGameProfile().getName(), amount.doubleValue()).transactionSuccess();
@@ -218,6 +236,7 @@ public abstract class EconomyUtil {
   public static boolean removeMoney(Account account, BigDecimal amount) {
     EconomyTransaction transaction = account.withdraw(amount);
     return transaction.successful();
+
   }
 
   /**
@@ -232,42 +251,33 @@ public abstract class EconomyUtil {
   public static boolean hasEnoughImpactor(Account account, BigDecimal amount) {
     if (account.balance().compareTo(amount) >= 0) {
       removeMoney(account, amount);
-      try {
-        CobbleUtils.server.getPlayerManager().getPlayer(account.owner()).sendMessage(AdventureTranslator.toNative(
-            CobbleUtils.language.getMessageBought()
-              .replace("%price%", String.valueOf(amount))
-              .replace("%bal%", account.balance().toString())
-              .replace("%symbol%", getSymbol(account.currency()))
-              .replace("%currency%", getCurrencyName(account.currency()))
-              .replace("%prefix%", CobbleUtils.language.getPrefixShop())
-          )
-        );
-      } catch (NoSuchMethodError | Exception e) {
-        if (CobbleUtils.config.isDebug()) {
-          CobbleUtils.LOGGER.error("Error sending message");
-        }
-      }
+      sendMessage(account, amount, CobbleUtils.shopLang.getMessageBought());
       return true;
     } else {
-      try {
-        CobbleUtils.server.getPlayerManager().getPlayer(account.owner()).sendMessage(
-          AdventureTranslator.toNative(
-            CobbleUtils.language.getMessageNotHaveMoney()
-              .replace("%price%", String.valueOf(amount))
-              .replace("%bal%", account.balance().toString())
-              .replace("%symbol%", getSymbol(account.currency()))
-              .replace("%currency%", getCurrencyName(account.currency()))
-              .replace("%prefix%", CobbleUtils.language.getPrefixShop())
-          )
-        );
-      } catch (NoSuchMethodError | Exception e) {
-        if (CobbleUtils.config.isDebug()) {
-          CobbleUtils.LOGGER.error("Error sending message");
-        }
-      }
+      sendMessage(account, amount, CobbleUtils.shopLang.getMessageNotHaveMoney());
       return false;
     }
   }
+
+  private static void sendMessage(Account account, BigDecimal amount, String messageNotHaveMoney) {
+    try {
+      CobbleUtils.server.getPlayerManager().getPlayer(account.owner()).sendMessage(
+        AdventureTranslator.toNative(
+          messageNotHaveMoney
+            .replace("%prefix%", CobbleUtils.shopLang.getPrefix())
+            .replace("%price%", formatCurrency(amount, account.currency(), account.owner()))
+            .replace("%balance%", formatCurrency(account.balance(), account.currency(), account.owner()))
+            .replace("%symbol%", getSymbol(account.currency()))
+            .replace("%currency%", getCurrencyName(account.currency()))
+        )
+      );
+    } catch (NoSuchMethodError | Exception e) {
+      if (CobbleUtils.config.isDebug()) {
+        CobbleUtils.LOGGER.error("Error sending message");
+      }
+    }
+  }
+
 
   /**
    * Method to check if an account has enough balance and optionally remove the
@@ -289,7 +299,7 @@ public abstract class EconomyUtil {
           player.sendMessage(AdventureTranslator.toNative(
             CobbleUtils.language.getMessageBought()
               .replace("%price%", String.valueOf(amount))
-              .replace("%bal%", getBalance(player, currency).toString())
+              .replace("%bal%", formatCurrency(getBalance(player, currency), currency, player.getUuid()))
               .replace("%symbol%", getSymbol(currency))
               .replace("%currency%", currency)
               .replace("%prefix%", CobbleUtils.language.getPrefixShop())
@@ -303,6 +313,91 @@ public abstract class EconomyUtil {
     }
   }
 
+  /**
+   * Method to format a BigDecimal to a currency string.
+   *
+   * @param amount   The balance to format.
+   * @param currency The currency to format the balance to.
+   *
+   * @return The formatted balance with the format of Country host.
+   */
+  public static String formatCurrency(BigDecimal amount, Currency currency) {
+    try {
+      return formatCurrency(amount, currency, UUID.randomUUID());
+    } catch (NoSuchMethodError | Exception e) {
+      return formatCurrency(amount, "");
+    }
+  }
+
+  /**
+   * Method to format a BigDecimal to a currency string.
+   *
+   * @param amount   The balance to format.
+   * @param currency The currency to format the balance to.
+   *
+   * @return The formatted balance with the format of Country host.
+   */
+  public static String formatCurrency(BigDecimal amount, String currency) {
+    return formatCurrency(amount, currency, UUID.randomUUID());
+  }
+
+  /**
+   * Method to format a BigDecimal to a currency string.
+   *
+   * @param amount   The balance to format.
+   * @param currency The currency to format the balance to.
+   * @param player   The player to get the country from.
+   *
+   * @return The formatted balance with the format of Country player.
+   */
+  public static String formatCurrency(BigDecimal amount, Currency currency, UUID player) {
+    return formatCurrency(amount, getCurrencyName(currency), player);
+  }
+
+  /**
+   * Method to format a BigDecimal to a currency string.
+   *
+   * @param amount   The balance to format.
+   * @param currency The currency to format the balance to.
+   * @param player   The player to get the country from.
+   *
+   * @return The formatted balance with the format of Country player.
+   */
+  public static String formatCurrency(BigDecimal amount, String currency, UUID player) {
+
+    // Crear un NumberFormat para moneda basado en la configuración regional
+    Breeding.UserInfo userinfo = null;
+    if (player != null) {
+      userinfo = Breeding.playerCountry.get(player);
+    }
+
+    Locale locale;
+    if (userinfo == null) {
+      locale = Locale.getDefault();
+    } else {
+      locale = new Locale(userinfo.language(), userinfo.countryCode());
+
+    }
+
+    NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(locale);
+
+    // Comprobar si el NumberFormat es una instancia de DecimalFormat
+    if (currencyFormatter instanceof DecimalFormat) {
+      // Obtener los símbolos de formato actuales
+      DecimalFormatSymbols symbols = ((DecimalFormat) currencyFormatter).getDecimalFormatSymbols();
+
+      // Cambiar el símbolo de la moneda al que desees
+      symbols.setCurrencySymbol(getSymbol(currency));
+      ((DecimalFormat) currencyFormatter).setDecimalFormatSymbols(symbols);
+
+      // Configurar el patrón de formato para determinar la posición del símbolo
+      String pattern = CobbleUtils.shopLang.isSymbolBeforeAmount() ? "¤#,##0.00" : "#,##0.00 ¤";
+      ((DecimalFormat) currencyFormatter).applyPattern(pattern);
+    }
+
+    // Formatear y devolver el BigDecimal como una cadena
+    return currencyFormatter.format(amount);
+  }
 
   /**
    * Method to get the currency from the impactor api.
@@ -393,8 +488,8 @@ public abstract class EconomyUtil {
   public static BigDecimal getBalance(ServerPlayerEntity player, @Subst("") String currency) {
     setEconomyType();
     return switch (economyType) {
-      case IMPACTOR ->
-        getAccount(player.getUuid(), currency).balance().setScale(getCurrency(currency).decimals(), RoundingMode.HALF_UP);
+      case IMPACTOR -> getAccount(player.getUuid(), currency).balance()
+        .setScale(getCurrency(currency).decimals(), RoundingMode.HALF_UP);
       case VAULT -> {
         double money = vaultEconomy.getBalance(player.getGameProfile().getName());
         yield BigDecimal.valueOf(money);

@@ -27,7 +27,7 @@ public class PokemonBoss {
 
   public static void register() {
     // ? Pokemon Boss
-    CobblemonEvents.POKEMON_ENTITY_SPAWN.subscribe(Priority.HIGHEST, (evt) -> {
+    CobblemonEvents.POKEMON_ENTITY_SPAWN.subscribe(Priority.NORMAL, (evt) -> {
       try {
         if (!CobbleUtils.config.getBosses().isActive())
           return Unit.INSTANCE;
@@ -73,7 +73,7 @@ public class PokemonBoss {
       return Unit.INSTANCE;
     });
 
-    CobblemonEvents.THROWN_POKEBALL_HIT.subscribe(Priority.HIGHEST, (evt) -> {
+    CobblemonEvents.THROWN_POKEBALL_HIT.subscribe(Priority.NORMAL, (evt) -> {
       if (!CobbleUtils.config.getBosses().isActive())
         return Unit.INSTANCE;
       Pokemon pokemon = evt.getPokemon().getPokemon();
@@ -82,7 +82,7 @@ public class PokemonBoss {
       return Unit.INSTANCE;
     });
 
-    CobblemonEvents.BATTLE_VICTORY.subscribe(Priority.HIGHEST, (evt) -> {
+    CobblemonEvents.BATTLE_VICTORY.subscribe(Priority.NORMAL, (evt) -> {
       if (!CobbleUtils.config.getBosses().isActive())
         return Unit.INSTANCE;
       evt.getLosers().forEach(battleActor -> {

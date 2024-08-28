@@ -21,7 +21,6 @@ public abstract class LuckPermsUtil {
       if (CobbleUtils.config.isDebug()) {
         CobbleUtils.LOGGER.error("LuckPerms is not present");
       }
-      e.printStackTrace();
       return null;
     }
   }

@@ -49,6 +49,7 @@ public class Config {
   private int alertreward;
   private String pokeshout;
   private String pokeshoutall;
+  private int cooldownpokeshout;
   private Pokerus pokerus;
   private Boss bosses;
   private ImpactorEconomy impactorEconomy;
@@ -87,6 +88,7 @@ public class Config {
     alertreward = 15;
     pokeshout = "pokeshoutplus";
     pokeshoutall = "pokeshoutplusall";
+    cooldownpokeshout = 60;
     pokerus = new Pokerus();
     bosses = new Boss();
     impactorEconomy = new ImpactorEconomy();
@@ -152,6 +154,7 @@ public class Config {
         itemsCommands = config.getItemsCommands();
         bosses = config.getBosses();
         impactorEconomy = config.getImpactorEconomy();
+        cooldownpokeshout = config.getCooldownpokeshout();
 
         if (bosses == null)
           bosses = new Boss();

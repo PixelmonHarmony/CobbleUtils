@@ -14,9 +14,9 @@ public class NationalityPokemon {
   public static void register() {
     CobblemonEvents.POKEMON_CAPTURED.subscribe(Priority.NORMAL, (evt) -> {
       if (!CobbleUtils.breedconfig.isActive()) return Unit.INSTANCE;
-      String country = Breeding.playerCountry.get(evt.getPlayer().getUuid());
-      if (country == null) return Unit.INSTANCE;
-      evt.getPokemon().getPersistentData().putString(CobbleUtilsTags.COUNTRY_TAG, country);
+      Breeding.UserInfo userinfo = Breeding.playerCountry.get(evt.getPlayer().getUuid());
+      if (userinfo == null) return Unit.INSTANCE;
+      evt.getPokemon().getPersistentData().putString(CobbleUtilsTags.COUNTRY_TAG, userinfo.country());
       return Unit.INSTANCE;
     });
   }

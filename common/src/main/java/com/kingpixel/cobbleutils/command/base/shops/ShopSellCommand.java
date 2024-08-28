@@ -1,5 +1,7 @@
 package com.kingpixel.cobbleutils.command.base.shops;
 
+import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.Model.shops.ShopMenu;
 import com.kingpixel.cobbleutils.Model.shops.ShopSell;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
@@ -25,7 +27,8 @@ public class ShopSellCommand implements Command<ServerCommandSource> {
                 return 0;
               }
               ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
-              ShopSell.sellProducts(player);
+              ShopMenu shopMenu = CobbleUtils.shopConfig.getShop();
+              ShopSell.sellProducts(player, shopMenu);
               return 1;
             })
         ).then(
@@ -35,7 +38,8 @@ public class ShopSellCommand implements Command<ServerCommandSource> {
                 return 0;
               }
               ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
-              ShopSell.sellProductHand(player);
+              ShopMenu shopMenu = CobbleUtils.shopConfig.getShop();
+              ShopSell.sellProductHand(player, shopMenu);
               return 1;
             })
         ).then(

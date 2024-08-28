@@ -17,12 +17,17 @@ import net.minecraft.text.HoverEvent;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Carlos Varas Alonso - 26/07/2024 14:14
  */
 public class PokeShout implements Command<CommandSource> {
+  private static Map<UUID, Date> cooldowns;
 
   public static void register(CommandDispatcher<ServerCommandSource> dispatcher,
                               LiteralArgumentBuilder<ServerCommandSource> base) {
@@ -39,6 +44,13 @@ public class PokeShout implements Command<CommandSource> {
               }
               Pokemon pokemon = PartySlotArgumentType.Companion.getPokemon(context, "slot");
               ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
+              Date cooldown = cooldowns.get(player.getUuid());
+              if (PlayerUtils.isCooldown(cooldown)) {
+                PlayerUtils.sendMessage(player, CobbleUtils.language.getMessageCooldown());
+                return 0;
+              }
+              cooldowns.put(player.getUuid(),
+                new Date(System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(CobbleUtils.config.getCooldownpokeshout())));
               if (pokemon != null) {
                 Utils.broadcastMessage(getMessage(player, pokemon));
                 return 1;

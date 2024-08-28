@@ -7,7 +7,12 @@ import ca.landonjw.gooeylibs2.api.template.types.ChestTemplate;
 import com.google.gson.Gson;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.ItemModel;
+import com.kingpixel.cobbleutils.Model.shops.types.ShopType;
+import com.kingpixel.cobbleutils.Model.shops.types.ShopTypeDynamic;
+import com.kingpixel.cobbleutils.Model.shops.types.ShopTypePermanent;
+import com.kingpixel.cobbleutils.Model.shops.types.ShopTypeWeekly;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
+import com.kingpixel.cobbleutils.util.PlayerUtils;
 import com.kingpixel.cobbleutils.util.SoundUtil;
 import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Data;
@@ -20,6 +25,7 @@ import net.minecraft.text.Text;
 import java.io.File;
 import java.io.FileReader;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,6 +37,7 @@ import java.util.List;
 @ToString
 @Data
 public class ShopMenu {
+  private String logg;
   private String title;
   private String soundopen;
   private String soundclose;
@@ -40,6 +47,7 @@ public class ShopMenu {
   private List<Shop> shops;
 
   public ShopMenu() {
+    this.logg = "config/cobbleutils/shop/transactions";
     this.title = "Test";
     this.rows = 6;
     this.soundopen = "cobblemon:pc.on";
@@ -51,6 +59,7 @@ public class ShopMenu {
   }
 
   public ShopMenu(String title) {
+    this.logg = "config/cobbleutils/shop/transactions";
     this.title = title;
     this.rows = 6;
     this.soundopen = "cobblemon:pc.on";
@@ -61,6 +70,7 @@ public class ShopMenu {
   }
 
   public ShopMenu(String title, List<Shop> shops) {
+    this.logg = "config/cobbleutils/shop/transactions";
     this.title = title;
     this.rows = 6;
     this.soundopen = "cobblemon:pc.on";
@@ -83,6 +93,9 @@ public class ShopMenu {
         for (File file : files) {
           try (FileReader reader = new FileReader(file)) {
             Shop shop = gson.fromJson(reader, Shop.class);
+            if (shop.getShopType() == null) {
+              shop.setShopType(new ShopTypePermanent());
+            }
             shops.add(shop);
           } catch (Exception e) {
             e.printStackTrace();
@@ -102,21 +115,60 @@ public class ShopMenu {
 
   public void open(ServerPlayerEntity player) {
     try {
-
-
       ChestTemplate template = ChestTemplate
         .builder(this.rows)
         .build();
 
       shops.forEach(shop -> {
         ItemModel itemModelShop = shop.getDisplay();
+        List<String> lore = new ArrayList<>(itemModelShop.getLore());
+        switch (shop.getShopType().getTypeShop()) {
+          case DYNAMIC:
+            ShopTypeDynamic shopTypeDynamic = ((ShopTypeDynamic) shop.getShopType()).updateShop(shop);
+            lore.replaceAll(
+              s -> s
+                .replace("%cooldown%", PlayerUtils.getCooldown(shopTypeDynamic.getCooldown(shop)))
+                .replace("%amountProducts%", String.valueOf(shopTypeDynamic.getAmountProducts()))
+            );
+            break;
+          case WEEKLY:
+            ShopTypeWeekly shopTypeWeekly = (ShopTypeWeekly) shop.getShopType();
+            lore.replaceAll(
+              s -> s
+                .replace("%days%", shopTypeWeekly.getDayOfWeek().toString())
+            );
+            break;
+          default:
+            break;
+        }
         GooeyButton button = GooeyButton.builder()
           .display(itemModelShop.getItemStack())
           .title(AdventureTranslator.toNative(itemModelShop.getDisplayname()))
-          .lore(Text.class, AdventureTranslator.toNativeL(itemModelShop.getLore()))
+          .lore(Text.class, AdventureTranslator.toNativeL(lore))
           .onClick(action -> {
             if (shop.isActive()) {
-              shop.open(player, this);
+              if (shop.getShopType() == null) shop.setShopType(new ShopTypePermanent());
+              if (shop.getShopType().getTypeShop() == ShopType.TypeShop.WEEKLY) {
+                ShopTypeWeekly shopTypeWeekly = (ShopTypeWeekly) shop.getShopType();
+                if (shopTypeWeekly.getDayOfWeek().contains(LocalDate.now().getDayOfWeek())) {
+                  shop.open(player, this);
+                } else {
+                  player.sendMessage(
+                    AdventureTranslator.toNative(
+                      CobbleUtils.shopLang.getMessageShopWeekly()
+                        .replace("%prefix%", CobbleUtils.shopLang.getPrefix())
+                        .replace("%shop%", shop.getId())
+                        .replace("%days%", shopTypeWeekly.getDayOfWeek().toString())
+                    )
+                  );
+                  SoundUtil.playSound(CobbleUtils.shopLang.getSoundError(), player);
+                }
+              } else if (shop.getShopType().getTypeShop() == ShopType.TypeShop.DYNAMIC) {
+                ((ShopTypeDynamic) shop.getShopType()).updateShop(shop);
+                shop.open(player, this);
+              } else {
+                shop.open(player, this);
+              }
             } else {
               player.sendMessage(Text.literal("Shop is not active"));
               SoundUtil.playSound(CobbleUtils.shopLang.getSoundError(), player);
@@ -170,13 +222,55 @@ public class ShopMenu {
 
   private List<Shop> defaultShops() {
     shops = new ArrayList<>();
+    shops.add(dynamic());
+    shops.add(weekly());
+    shops.add(permanent());
     shops.add(shopdefault());
     shops.add(pokeBalls());
     return shops;
   }
 
+  private Shop dynamic() {
+    Shop shop = new Shop("dynamic", "<#de504b>Dynamic", (short) 6, "impactor:dollars",
+      new ItemModel("minecraft:sculk_sensor"), new ShopTypeDynamic(1));
+    List<Shop.Product> products = new ArrayList<>();
+    shop.getDisplay().setSlot(0);
+    shop.getDisplay().setDisplayname("<#de504b>Dynamic");
+    shop.getDisplay().setLore(List.of("&b%cooldown%", "&b%amountProducts%"));
+    products.add(new Shop.Product("minecraft:stone", BigDecimal.valueOf(100), BigDecimal.ZERO));
+    products.add(new Shop.Product("minecraft:dirt", BigDecimal.valueOf(100), BigDecimal.ZERO));
+    products.add(new Shop.Product("minecraft:gravel", BigDecimal.valueOf(100), BigDecimal.ZERO));
+    shop.setProducts(products);
+    return shop;
+  }
+
+  private Shop weekly() {
+    Shop shop = new Shop("weekly", "<#de504b>Weekly", (short) 6, "impactor:dollars",
+      new ItemModel("minecraft:clock"), new ShopTypeWeekly());
+    shop.getDisplay().setSlot(1);
+    shop.getDisplay().setDisplayname("<#de504b>Weekly");
+    shop.getDisplay().setLore(List.of("&b%days%"));
+    List<Shop.Product> products = new ArrayList<>();
+    products.add(new Shop.Product("minecraft:stone", BigDecimal.valueOf(100), BigDecimal.ZERO));
+    shop.setProducts(products);
+    return shop;
+  }
+
+  private Shop permanent() {
+    Shop shop = new Shop("permanent", "<#de504b>Permanent", (short) 6, "impactor:dollars",
+      new ItemModel("minecraft:beacon"), new ShopTypePermanent());
+    shop.getDisplay().setSlot(2);
+    shop.getDisplay().setDisplayname("<#de504b>Permanent");
+    List<Shop.Product> products = new ArrayList<>();
+    products.add(new Shop.Product("minecraft:stone", BigDecimal.valueOf(100), BigDecimal.ZERO));
+    shop.setProducts(products);
+    return shop;
+  }
+
   private Shop shopdefault() {
     Shop shop = new Shop("Default", "<#de504b>Default", (short) 6, "impactor:dollars", new ItemModel("cobblemon:poke_ball"));
+    shop.getDisplay().setSlot(3);
+    shop.getDisplay().setDisplayname("<#de504b>Default");
     List<Shop.Product> products = new ArrayList<>();
     products.add(new Shop.Product("minecraft:stone", BigDecimal.valueOf(100), BigDecimal.ZERO, "cobblemon.command.pc"));
     shop.setProducts(products);
@@ -188,9 +282,26 @@ public class ShopMenu {
   private Shop pokeBalls() {
     Shop shop = new Shop("pokeballs", "<#de504b>Pokeballs", (short) 6, "impactor:dollars", new ItemModel("cobblemon" +
       ":poke_ball"));
+    shop.getDisplay().setSlot(4);
+    shop.getDisplay().setDisplayname("<#de504b>Pokeballs");
     List<Shop.Product> products = new ArrayList<>();
     products.add(new Shop.Product("minecraft:stone", BigDecimal.valueOf(100), BigDecimal.ZERO));
     shop.setProducts(products);
     return shop;
+  }
+
+  public List<Shop.Product> getAllProducts() {
+    List<Shop.Product> products = new ArrayList<>();
+    shops.forEach(shop -> products.addAll(shop.getProducts()));
+    return products;
+  }
+
+  public Shop.Product getProductById(String productId) {
+    return shops.stream()
+      .map(Shop::getProducts)
+      .flatMap(List::stream)
+      .filter(product -> product.getProduct().equals(productId))
+      .findFirst()
+      .orElse(null);
   }
 }

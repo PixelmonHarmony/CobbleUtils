@@ -25,14 +25,16 @@ import java.util.Set;
 @Setter
 @ToString
 public class ShopSell {
+
+  // Mapa de productos por moneda
   public static Map<String, Set<Shop.Product>> products = new HashMap<>();
 
   public ShopSell() {
-    products = new HashMap<>();
   }
 
   public ShopSell(Map<String, Set<Shop.Product>> products) {
-    this.products = products;
+    ShopSell.products.clear();
+    ShopSell.products.putAll(products);
   }
 
   /**
@@ -45,110 +47,128 @@ public class ShopSell {
     Set<Shop.Product> productSet = products.computeIfAbsent(currency, k -> new HashSet<>());
 
     for (Shop.Product product : shop.getProducts()) {
-      if (product.getItemchance().getItem().startsWith("pokemon:")) continue;
-      if (product.getSell().compareTo(BigDecimal.ZERO) > 0) {
-        // Remove old product if it exists
-        productSet.removeIf(p -> ItemStack.canCombine(p.getItemchance().getItemStack(),
-          product.getItemchance().getItemStack()));
-
-        // Add or update the new product
-        productSet.add(product);
+      if (product.getItemchance().getItem().startsWith("pokemon:") || product.getSell().compareTo(BigDecimal.ZERO) <= 0) {
+        continue;
       }
+
+      ItemStack productStack = product.getItemchance().getItemStack();
+      productSet.removeIf(p -> ItemStack.canCombine(p.getItemchance().getItemStack(), productStack));
+      productSet.add(product);
     }
   }
 
   /**
    * Sells all products from the player's inventory and updates the player's balance.
    *
-   * @param player The player who is selling the products.
+   * @param player   The player who is selling the products.
+   * @param shopMenu
    */
-  public static void sellProducts(ServerPlayerEntity player) {
+  public static void sellProducts(ServerPlayerEntity player, ShopMenu shopMenu) {
     PlayerInventory inventory = player.getInventory();
-
-    // Map to store the total money earned by each currency
     Map<String, BigDecimal> currencyTotals = new HashMap<>();
 
-    // Iterate over each currency and its products
     products.forEach((currency, productSet) -> {
       BigDecimal currencyTotal = BigDecimal.ZERO;
+      int decimals = EconomyUtil.getDecimals(currency);
 
       for (Shop.Product product : productSet) {
         if (!LuckPermsUtil.checkPermission(player, product.getPermission())) continue;
-        if (product.getSell().setScale(EconomyUtil.getDecimals(currency), RoundingMode.HALF_UP).compareTo(BigDecimal.ZERO) == 0)
-          continue;
+
+        BigDecimal sellPrice = product.getSell().setScale(decimals, RoundingMode.HALF_UP);
+        if (sellPrice.compareTo(BigDecimal.ZERO) <= 0) continue;
+
         ItemStack productStack = product.getItemchance().getItemStack();
 
         for (ItemStack itemStack : inventory.main) {
-          if (itemStack.isEmpty()) continue;
-          if (ItemStack.canCombine(itemStack, productStack)) {
-            int amount = itemStack.getCount();
-            BigDecimal price =
-              product.getSell().setScale(EconomyUtil.getDecimals(currency), RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(amount));
-            currencyTotal = currencyTotal.setScale(EconomyUtil.getDecimals(currency), RoundingMode.HALF_UP).add(price);
-            itemStack.decrement(amount);
-          }
+          if (itemStack.isEmpty() || !ItemStack.canCombine(itemStack, productStack)) continue;
+
+          int amount = itemStack.getCount();
+          BigDecimal price = sellPrice.multiply(BigDecimal.valueOf(amount));
+          currencyTotal = currencyTotal.add(price);
+
+          // Add transaction
+          ShopTransactions.addTransaction(
+            player.getUuid(), // Assuming you have a method to get the player's UUID
+            currency,
+            ShopTransactions.ShopAction.SELL, // Assuming there's an action type for selling
+            product,
+            BigDecimal.valueOf(amount),
+            price
+          );
+
+          // Remove items from the inventory
+          itemStack.decrement(amount);
         }
       }
 
-      // Update total for the currency if any products were sold
-      if (currencyTotal.setScale(EconomyUtil.getDecimals(currency), RoundingMode.HALF_UP).compareTo(BigDecimal.ZERO) > 0) {
-        currencyTotals.put(currency, currencyTotal);
+      if (currencyTotal.compareTo(BigDecimal.ZERO) > 0) {
+        currencyTotals.put(currency, currencyTotal.setScale(decimals, RoundingMode.HALF_UP));
       }
     });
 
-    // Send detailed message to the player if any money was earned
     if (!currencyTotals.isEmpty()) {
       StringBuilder message = new StringBuilder(CobbleUtils.shopLang.getMessageSell());
       StringBuilder currencyMessage = new StringBuilder();
+
       currencyTotals.forEach((currency, total) -> {
-        currencyMessage.append(String.format("\n &6%s &a%s,", total, currency));
+        currencyMessage.append(String.format("\n &6%s &a%s,", EconomyUtil.formatCurrency(total, currency, player.getUuid()), currency));
         EconomyUtil.addMoney(player, currency, total);
       });
-      message = new StringBuilder(message.toString().replace("%currencys%", currencyMessage.toString()));
 
-      // Remove the last comma and send the message
-      String finalMessage = message.substring(0, message.length() - 1);
-      player.sendMessage(AdventureTranslator.toNative(finalMessage));
+      message = new StringBuilder(message.toString()
+        .replace("%currencys%", currencyMessage.toString().replaceAll(",\n$", ""))
+        .replace("%prefix%", CobbleUtils.shopLang.getPrefix()));
+      player.sendMessage(AdventureTranslator.toNative(message.toString()));
+      ShopTransactions.updateTransaction(player.getUuid(), shopMenu);
     }
   }
+
 
   /**
    * Sells the product currently held in the player's main hand.
    *
-   * @param player The player who is selling the product.
+   * @param player   The player who is selling the product.
+   * @param shopMenu
    */
-  public static void sellProductHand(ServerPlayerEntity player) {
+  public static void sellProductHand(ServerPlayerEntity player, ShopMenu shopMenu) {
     PlayerInventory inventory = player.getInventory();
     ItemStack mainHandStack = inventory.getMainHandStack();
 
     if (mainHandStack.isEmpty()) {
-      player.sendMessage(AdventureTranslator.toNative("&cYou are not holding any item to sell."));
+      player.sendMessage(
+        AdventureTranslator.toNative(
+          CobbleUtils.shopLang.getMessageSellHandNoItem()
+            .replace("%prefix%", CobbleUtils.shopLang.getPrefix())
+        )
+      );
       return;
     }
 
     boolean sold = false;
     String currencyUsed = null;
     BigDecimal totalEarned = BigDecimal.ZERO;
-
-    // Find the currency for the item in the hand
+    Shop.Product productSold = null;
     for (Map.Entry<String, Set<Shop.Product>> entry : products.entrySet()) {
       String currency = entry.getKey();
       Set<Shop.Product> productSet = entry.getValue();
+      int decimals = EconomyUtil.getDecimals(currency);
 
       for (Shop.Product product : productSet) {
         if (!LuckPermsUtil.checkPermission(player, product.getPermission())) continue;
-        if (product.getSell().setScale(EconomyUtil.getDecimals(currency), RoundingMode.HALF_UP).compareTo(BigDecimal.ZERO) == 0)
-          continue;
-        ItemStack productStack = product.getItemchance().getItemStack();
 
+        BigDecimal sellPrice = product.getSell().setScale(decimals, RoundingMode.HALF_UP);
+        if (sellPrice.compareTo(BigDecimal.ZERO) <= 0) continue;
+
+        ItemStack productStack = product.getItemchance().getItemStack();
         if (ItemStack.canCombine(mainHandStack, productStack)) {
           int amount = mainHandStack.getCount();
-          BigDecimal price = product.getSell().multiply(BigDecimal.valueOf(amount));
+          BigDecimal price = sellPrice.multiply(BigDecimal.valueOf(amount));
           EconomyUtil.addMoney(player, currency, price);
           mainHandStack.decrement(amount);
           totalEarned = totalEarned.add(price);
           currencyUsed = currency;
           sold = true;
+          productSold = product;
           break;
         }
       }
@@ -156,10 +176,27 @@ public class ShopSell {
     }
 
     if (sold) {
+      ShopTransactions.addTransaction(
+        player.getUuid(),
+        currencyUsed,
+        ShopTransactions.ShopAction.SELL,
+        productSold,
+        BigDecimal.valueOf(mainHandStack.getCount()),
+        totalEarned
+      );
       player.sendMessage(AdventureTranslator.toNative(
-        String.format("&aYou have sold your item for %s %s.", totalEarned, currencyUsed)));
+        CobbleUtils.shopLang.getMessageSellHand()
+          .replace("%prefix%", CobbleUtils.shopLang.getPrefix())
+          .replace("%balance%", EconomyUtil.formatCurrency(totalEarned, currencyUsed, player.getUuid()))
+          .replace("%currency%", currencyUsed)));
+      ShopTransactions.updateTransaction(player.getUuid(), shopMenu);
     } else {
-      player.sendMessage(AdventureTranslator.toNative("&cThe item you are holding cannot be sold."));
+      player.sendMessage(
+        AdventureTranslator.toNative(
+          CobbleUtils.shopLang.getMessageSellHandNoItemPrice()
+            .replace("%prefix%", CobbleUtils.shopLang.getPrefix())
+        )
+      );
     }
   }
 }

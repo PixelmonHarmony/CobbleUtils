@@ -118,16 +118,7 @@ public class CobbleUtils {
   }
 
   private static void sign() {
-    LOGGER.info("§e+-------------------------------+");
-    LOGGER.info("§e| §6CobbleUtils");
-    LOGGER.info("§e+-------------------------------+");
-    LOGGER.info("§e| §6Version: §e" + "1.1.1");
-    LOGGER.info("§e| §6Author: §eZonary123");
-    LOGGER.info("§e| §6Website: §9https://github.com/Zonary123/CobbleUtils");
-    LOGGER.info("§e| §6Discord: §9https://discord.com/invite/fKNc7FnXpa");
-    LOGGER.info("§e| §6Support: §9https://github.com/Zonary123/CobbleUtils/issues");
-    LOGGER.info("§e| &dDonate: §9https://ko-fi.com/zonary123");
-    LOGGER.info("§e+-------------------------------+");
+    info(MOD_NAME, "1.1.1", "CobbleUtils");
     LOGGER.info("§e| §6Pokemons size: " + isActive(CobbleUtils.config.isRandomsize()));
     LOGGER.info("§e| §6Shulkers: §cUnimplemented");
     LOGGER.info("§e| §6Fossil: " + isActive(CobbleUtils.config.isFossil()));
@@ -136,11 +127,26 @@ public class CobbleUtils {
     LOGGER.info("§e| §6Random money: §aImplemented");
     LOGGER.info("§e| §6Random pokemon: §aImplemented");
     LOGGER.info("§e| §6Pick Up: §cUnimplemented");
+    LOGGER.info("§e| §6Fishing: &cUnimplemented");
+    LOGGER.info("§e| §6Shop: " + isActive(CobbleUtils.config.isShops()));
     LOGGER.info("§e| §6Party: " + isActive(CobbleUtils.config.isParty()));
     LOGGER.info("§e| §6Rewards: " + isActive(CobbleUtils.config.isRewards()));
     LOGGER.info("§e| §6Pokerus: " + isActive(CobbleUtils.config.getPokerus().isActive()));
     LOGGER.info("§e| §6Breeding: " + isActive(CobbleUtils.breedconfig.isActive()));
     LOGGER.info("§e| §6Bosses: " + isActive(CobbleUtils.config.getBosses().isActive()));
+    LOGGER.info("§e+-------------------------------+");
+  }
+
+  public static void info(String mod, String version, String github) {
+    LOGGER.info("§e+-------------------------------+");
+    LOGGER.info("§e| §6" + mod);
+    LOGGER.info("§e+-------------------------------+");
+    LOGGER.info("§e| §6Version: §e" + version);
+    LOGGER.info("§e| §6Author: §eZonary123");
+    LOGGER.info("§e| §6Website: §9https://github.com/Zonary123/" + github);
+    LOGGER.info("§e| §6Discord: §9https://discord.com/invite/fKNc7FnXpa");
+    LOGGER.info("§e| §6Support: §9https://github.com/Zonary123/" + github + "/issues");
+    LOGGER.info("§e| &dDonate: §9https://ko-fi.com/zonary123");
     LOGGER.info("§e+-------------------------------+");
   }
 
@@ -158,11 +164,13 @@ public class CobbleUtils {
       load();
     });
 
+
     LifecycleEvent.SERVER_STOPPING.register(server -> {
       scheduledTasks.forEach(task -> task.cancel(true));
       scheduledTasks.clear();
       LOGGER.info("CobbleUtils has been stopped.");
     });
+
 
     LifecycleEvent.SERVER_LEVEL_LOAD.register(level -> server = level.getServer());
 
@@ -191,8 +199,8 @@ public class CobbleUtils {
     InteractionEvent.RIGHT_CLICK_BLOCK.register((player, hand, blockpos, direction) -> {
       try {
         BlockRightClickEvents.register((ServerPlayerEntity) player, hand, blockpos, direction);
-      } catch (ClassCastException ignored) {
-        BlockRightClickEvents.register(player, hand, blockpos, direction);
+      } catch (ClassCastException e) {
+        BlockRightClickEvents.register(PlayerUtils.castPlayer(player), hand, blockpos, direction);
       }
       return EventResult.pass();
     });

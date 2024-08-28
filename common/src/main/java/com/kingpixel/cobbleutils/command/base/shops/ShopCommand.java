@@ -45,7 +45,7 @@ public class ShopCommand implements Command<ServerCommandSource> {
               )
             )
             .then(
-              CommandManager.argument("shop", StringArgumentType.greedyString())
+              CommandManager.argument("shop", StringArgumentType.string())
                 .suggests((context, builder) -> {
                   CobbleUtils.shopConfig.getShop().getShops().forEach(shop -> {
                     if (context.getSource().isExecutedByPlayer()) {

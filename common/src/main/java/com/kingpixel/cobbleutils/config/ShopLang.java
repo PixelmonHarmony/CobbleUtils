@@ -14,6 +14,7 @@ public class ShopLang {
   public static String PATH_SHOP_LANG = ShopConfig.PATH_SHOP + "/lang/";
   private String prefix;
   private boolean changeItemError;
+  private boolean symbolBeforeAmount;
   private String soundBuy;
   private String soundSell;
   private String soundError;
@@ -26,8 +27,16 @@ public class ShopLang {
   private String messageSellSuccess;
   private String messageSellErrorInvalidQuantity;
   private String messageSell;
+  private String messageSellHand;
+  private String messageSellHandNoItem;
+  private String messageSellHandNoItemPrice;
+  private String messageBought;
   private String messageBuySuccess;
+  private String messageNotHaveMoney;
   private String messageSellError;
+  private String messageAddMoney;
+  private String messageRemoveMoney;
+  private String messageShopWeekly;
   private String notPermission;
   private List<String> loreProduct;
   private ItemModel balance;
@@ -51,6 +60,7 @@ public class ShopLang {
   public ShopLang() {
     this.prefix = "&7[&6Shop&7] &8»";
     this.changeItemError = true;
+    this.symbolBeforeAmount = true;
     this.soundBuy = "minecraft:entity.experience_orb.pickup";
     this.soundSell = "minecraft:entity.experience_orb.pickup";
     this.soundError = "minecraft:block.note_block.bass";
@@ -60,12 +70,21 @@ public class ShopLang {
     this.soundRemove = "minecraft:entity.experience_orb.pickup";
     this.titleBuy = "&6Buy %product%";
     this.titleSell = "&cSell %product%";
-    this.messageSell = "&aYou have sold all your items for: %currencys%";
-    this.messageSellSuccess = "&7You sold %amount% %product% for %sell% %symbol%";
-    this.messageBuySuccess = "&7You bought %amount% %product% for %buy% %symbol%";
-    this.messageSellError = "&7You don't have enough %currency% to sell %amount% %product%";
-    this.messageSellErrorInvalidQuantity = "&7You can't sell %amount% %product% because it's not a multiple of %packageSize%";
-    this.notPermission = "&7You don't have permission to buy/sell %product%";
+    this.messageBought = "%prefix% <gradient:#1E90FF:#87CEFA>You spent &e%price%</gradient>";
+    this.messageNotHaveMoney = "%prefix% <gradient:#FF6347:#FFA07A>You don't have enough money. The price is %price% " +
+      "and you have %balance% %currency%.</gradient>";
+    this.messageSell = "%prefix% &aYou have sold all your items for: %currencys%";
+    this.messageSellHand = "%prefix% &aYou have sold the item in your hand for: %balance% %currency%";
+    this.messageSellHandNoItem = "%prefix% &cYou don't have any item in your hand to sell";
+    this.messageSellHandNoItemPrice = "%prefix% &cThe item in your hand can't be sold";
+    this.messageSellSuccess = "%prefix% &7You sold %amount% %product% for %sell% %symbol%";
+    this.messageBuySuccess = "%prefix% &7You bought %amount% %product% for %buy% %symbol%";
+    this.messageSellError = "%prefix% &7You don't have enough %currency% to sell %amount% %product%";
+    this.messageSellErrorInvalidQuantity = "%prefix% &7You can't sell %amount% %product% because it's not a multiple of %packageSize%";
+    this.messageShopWeekly = "%prefix% &7You can enter the shop again in: %days%";
+    this.notPermission = "%prefix% &7You don't have permission to buy/sell %product%";
+    this.messageAddMoney = "%prefix% &7You added %amount% %currency% to your balance";
+    this.messageRemoveMoney = "%prefix% &7You removed %amount% %currency% from your balance";
     this.loreProduct = List.of(
       "",
       "&7Amount: %amount%x%amountproduct%",
@@ -106,6 +125,7 @@ public class ShopLang {
         Gson gson = Utils.newGson();
         ShopLang lang = gson.fromJson(el, ShopLang.class);
         this.prefix = lang.getPrefix();
+        this.symbolBeforeAmount = lang.isSymbolBeforeAmount();
         this.soundBuy = lang.getSoundBuy();
         this.changeItemError = lang.isChangeItemError();
         this.soundSell = lang.getSoundSell();
@@ -130,8 +150,16 @@ public class ShopLang {
         this.add16 = lang.getAdd16();
         this.messageSellSuccess = lang.getMessageSellSuccess();
         this.messageSellError = lang.getMessageSellError();
+        this.messageSellHand = lang.getMessageSellHand();
+        this.messageSellHandNoItem = lang.getMessageSellHandNoItem();
+        this.messageSellHandNoItemPrice = lang.getMessageSellHandNoItemPrice();
         this.messageSellErrorInvalidQuantity = lang.getMessageSellErrorInvalidQuantity();
         this.messageBuySuccess = lang.getMessageBuySuccess();
+        this.messageBought = lang.getMessageBought();
+        this.messageNotHaveMoney = lang.getMessageNotHaveMoney();
+        this.messageAddMoney = lang.getMessageAddMoney();
+        this.messageRemoveMoney = lang.getMessageRemoveMoney();
+        this.messageShopWeekly = lang.getMessageShopWeekly();
         this.notPermission = lang.getNotPermission();
         this.confirm = lang.getConfirm();
         this.cancel = lang.getCancel();

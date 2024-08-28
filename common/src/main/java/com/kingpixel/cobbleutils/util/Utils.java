@@ -6,6 +6,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.ItemModel;
+import com.kingpixel.cobbleutils.Model.shops.ShopTransactions;
+import com.kingpixel.cobbleutils.Model.shops.types.ShopActionAdapter;
+import com.kingpixel.cobbleutils.Model.shops.types.ShopType;
+import com.kingpixel.cobbleutils.Model.shops.types.ShopTypeAdapter;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -145,11 +149,20 @@ public abstract class Utils {
   }
 
   public static Gson newGson() {
-    return new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+    return new GsonBuilder()
+      .setPrettyPrinting()
+      .disableHtmlEscaping()
+      .registerTypeAdapter(ShopType.class, new ShopTypeAdapter())
+      .registerTypeAdapter(ShopTransactions.ShopAction.class, new ShopActionAdapter())
+      .create();
   }
 
   public static Gson newWithoutSpacingGson() {
-    return new GsonBuilder().disableHtmlEscaping().create();
+    return new GsonBuilder()
+      .disableHtmlEscaping()
+      .registerTypeAdapter(ShopType.class, new ShopTypeAdapter())
+      .registerTypeAdapter(ShopTransactions.ShopAction.class, new ShopActionAdapter())
+      .create();
   }
 
   public static void broadcastMessage(String message) {
@@ -271,4 +284,6 @@ public abstract class Utils {
     if (customModelData != 0) itemStack.getOrCreateNbt().putLong("CustomModelData", customModelData);
     return itemStack;
   }
+  
+
 }

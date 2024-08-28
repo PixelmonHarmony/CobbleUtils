@@ -217,10 +217,6 @@ public class Lang {
     itemConfirm = new ItemModel("minecraft:lime_stained_glass_pane", "<gradient:#4B9F4B:#7DC97D>Confirm", List.of(),
       0);
     itemCancel = new ItemModel("minecraft:red_stained_glass_pane", "<gradient:#E05858:#F09E9E>Cancel", List.of(), 0);
-    this.messageNotHaveMoney = "%prefix% <gradient:#e33636:#f08181>You don't have enough money. The price is %price% " +
-      "and " +
-      "you have %bal% Tokens.</gradient>";
-    this.messageBought = "%prefix% <gradient:#3693ba:#9cdcf7>You spend &e%price%</gradient>";
     this.messageCooldown = "%prefix% <gradient:#e33636:#f08181>You need to wait %cooldown% <gradient:#e33636:#f08181>to use this command" +
       ".</gradient>";
   }

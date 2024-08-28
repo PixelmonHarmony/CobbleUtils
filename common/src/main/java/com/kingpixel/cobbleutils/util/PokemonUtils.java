@@ -380,6 +380,7 @@ public class PokemonUtils {
    * @return The average of the IVs
    */
   public static Integer getIvsAverage(IVs iVs) {
+    if (iVs == null) return 0;
     AtomicInteger sum = new AtomicInteger();
     iVs.forEach((ivs) -> sum.addAndGet(ivs.getValue()));
     return sum.get() / 6;
@@ -393,6 +394,7 @@ public class PokemonUtils {
    * @return The total of the EVs
    */
   public static Integer getEvsTotal(EVs eVs) {
+    if (eVs == null) return 0;
     AtomicInteger sum = new AtomicInteger();
     eVs.forEach((evs) -> sum.addAndGet(evs.getValue()));
     return sum.get();

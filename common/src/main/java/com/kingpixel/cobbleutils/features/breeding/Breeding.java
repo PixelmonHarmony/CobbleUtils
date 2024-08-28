@@ -39,7 +39,7 @@ import java.util.concurrent.*;
  */
 public class Breeding {
   public static ManagerPlotEggs managerPlotEggs = new ManagerPlotEggs();
-  public static Map<UUID, String> playerCountry = new HashMap<>();
+  public static Map<UUID, UserInfo> playerCountry = new HashMap<>();
   private static final String API_URL_IP = "http://ip-api.com/json/";
   private static boolean active = false;
   private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
@@ -68,19 +68,19 @@ public class Breeding {
         e.printStackTrace();
       }
       CobbleUtils.server.getPlayerManager().getPlayerList().forEach(player -> {
-        String country = playerCountry.get(player.getUuid());
-        if (country == null) return;
+        UserInfo userinfo = playerCountry.get(player.getUuid());
+        if (userinfo == null) return;
         try {
           Cobblemon.INSTANCE.getStorage().getParty(player.getUuid()).forEach(pokemon -> {
             PokemonUtils.isLegalAbility(player, pokemon);
             if (pokemon.getPersistentData().getString(CobbleUtilsTags.COUNTRY_TAG).isEmpty()) {
-              pokemon.getPersistentData().putString(CobbleUtilsTags.COUNTRY_TAG, country);
+              pokemon.getPersistentData().putString(CobbleUtilsTags.COUNTRY_TAG, userinfo.country());
             }
           });
           Cobblemon.INSTANCE.getStorage().getPC(player.getUuid()).forEach(pokemon -> {
             PokemonUtils.isLegalAbility(player, pokemon);
             if (pokemon.getPersistentData().getString(CobbleUtilsTags.COUNTRY_TAG).isEmpty()) {
-              pokemon.getPersistentData().putString(CobbleUtilsTags.COUNTRY_TAG, country);
+              pokemon.getPersistentData().putString(CobbleUtilsTags.COUNTRY_TAG, userinfo.country());
             }
           });
 
@@ -166,6 +166,10 @@ public class Breeding {
     }
   }
 
+  public record UserInfo(String country, String countryCode, String language) {
+
+  }
+
   private static void countryPlayer(ServerPlayerEntity player) {
     if (playerCountry.get(player.getUuid()) != null) return;
     CompletableFuture.runAsync(() -> {
@@ -180,8 +184,29 @@ public class Breeding {
         JsonObject json = JsonParser.parseReader(in).getAsJsonObject();
 
         if (json.has("country")) {
-          String city = json.get("country").getAsString();
-          playerCountry.put(player.getUuid(), city);
+          String country = json.get("country").getAsString();
+          String countryCode = json.get("countryCode").getAsString();
+
+
+          String language;
+          switch (countryCode) {
+            case "AR":
+              language = "es";
+              break;
+            case "US":
+            case "GB":
+            case "AU":
+              language = "en";
+              break;
+            case "ES":
+              language = "es";
+              break;
+            default:
+              language = "en";
+              break;
+          }
+          UserInfo userInfo = new UserInfo(country, countryCode, language);
+          playerCountry.put(player.getUuid(), userInfo);
         }
 
       } catch (Exception e) {

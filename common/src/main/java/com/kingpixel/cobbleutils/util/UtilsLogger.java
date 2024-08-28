@@ -4,6 +4,7 @@ import com.kingpixel.cobbleutils.CobbleUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.time.DayOfWeek;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -14,6 +15,10 @@ public class UtilsLogger {
 
   public void warn(String s) {
     logger.warn(s);
+  }
+
+  public void info(DayOfWeek dayOfWeek) {
+    logger.info(dayOfWeek);
   }
 
   // Enums used for the log file.

@@ -5,6 +5,7 @@ import com.cobblemon.mod.common.api.storage.party.PlayerPartyStore;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.LuckPermsUtil;
+import com.kingpixel.cobbleutils.util.PlayerUtils;
 import com.kingpixel.cobbleutils.util.Utils;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
@@ -14,12 +15,17 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Carlos Varas Alonso - 26/07/2024 14:14
  */
 public class PokeShoutAll implements Command<ServerCommandSource> {
+  private static Map<UUID, Date> cooldowns;
 
   public static void register(CommandDispatcher<ServerCommandSource> dispatcher,
                               LiteralArgumentBuilder<ServerCommandSource> base) {
@@ -33,6 +39,12 @@ public class PokeShoutAll implements Command<ServerCommandSource> {
             return 0;
           }
           ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
+          Date cooldown = cooldowns.get(player.getUuid());
+          if (PlayerUtils.isCooldown(cooldown)) {
+            PlayerUtils.sendMessage(player, CobbleUtils.language.getMessageCooldown());
+            return 0;
+          }
+          cooldowns.put(player.getUuid(), new Date(System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(CobbleUtils.config.getCooldownpokeshout())));
           PlayerPartyStore playerPartyStore = Cobblemon.INSTANCE.getStorage().getParty(player);
           if (playerPartyStore.size() == 0) {
             player.sendMessage(

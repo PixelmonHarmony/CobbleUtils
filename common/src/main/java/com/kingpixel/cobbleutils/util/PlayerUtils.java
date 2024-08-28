@@ -21,6 +21,10 @@ public class PlayerUtils {
   }
 
   public static String getCooldown(Date date) {
+    if (date == null) {
+      CobbleUtils.LOGGER.info("Date is null");
+      return CobbleUtils.language.getNocooldown();
+    }
     long time = date.getTime() - new Date().getTime();
     long seconds = time / 1000;
     long minutes = seconds / 60;
@@ -65,9 +69,12 @@ public class PlayerUtils {
   }
 
   public static ItemStack getHeadItem(ServerPlayerEntity player) {
-    ItemStack itemStack = Items.PLAYER_HEAD.getDefaultStack();
-    itemStack.getOrCreateNbt().putString("SkullOwner", player.getGameProfile().getName());
-    return itemStack;
+    if (player != null) {
+      ItemStack itemStack = Items.PLAYER_HEAD.getDefaultStack();
+      itemStack.getOrCreateNbt().putString("SkullOwner", player.getGameProfile().getName());
+      return itemStack;
+    }
+    return Utils.parseItemId("minecraft:player_head");
   }
 
 
@@ -79,6 +86,7 @@ public class PlayerUtils {
    * @return true if the cooldown is active.
    */
   public static boolean isCooldown(Date cooldown) {
+    if (cooldown == null) return false;
     return new Date().before(cooldown);
   }
 
@@ -90,7 +98,7 @@ public class PlayerUtils {
    * @return true if the cooldown is active.
    */
   public static boolean isCooldown(Long cooldown) {
-    return new Date().getTime() < cooldown;
+    return isCooldown(new Date(cooldown));
   }
 
   /**
@@ -101,6 +109,6 @@ public class PlayerUtils {
    * @return The ServerPlayerEntity.
    */
   public static ServerPlayerEntity castPlayer(PlayerEntity player) {
-    return new ServerPlayerEntity(CobbleUtils.server, CobbleUtils.server.getOverworld(), player.getGameProfile());
+    return CobbleUtils.server.getPlayerManager().getPlayer(player.getUuid());
   }
 }
