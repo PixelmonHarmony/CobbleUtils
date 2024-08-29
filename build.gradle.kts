@@ -33,6 +33,7 @@ allprojects {
         maven("https://papermc.io/repo/repository/maven-public/")
         maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
         maven("https://maven.impactdev.net/repository/development")
+        maven("https://repo.essentialsx.net/releases/")
         gradlePluginPortal()
         mavenCentral()
         mavenLocal()

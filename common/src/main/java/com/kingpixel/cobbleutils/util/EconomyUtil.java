@@ -1,5 +1,6 @@
 package com.kingpixel.cobbleutils.util;
 
+
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.features.breeding.Breeding;
 import net.impactdev.impactor.api.economy.EconomyService;
@@ -7,9 +8,7 @@ import net.impactdev.impactor.api.economy.accounts.Account;
 import net.impactdev.impactor.api.economy.currency.Currency;
 import net.impactdev.impactor.api.economy.transactions.EconomyTransaction;
 import net.kyori.adventure.key.Key;
-import net.milkbowl.vault.economy.Economy;
 import net.minecraft.server.network.ServerPlayerEntity;
-import org.bukkit.plugin.RegisteredServiceProvider;
 import org.intellij.lang.annotations.Subst;
 
 import java.math.BigDecimal;
@@ -20,7 +19,6 @@ import java.text.NumberFormat;
 import java.util.Locale;
 import java.util.UUID;
 
-import static org.bukkit.Bukkit.getServer;
 
 /**
  * @author Carlos Varas Alonso - 06/08/2024 11:50
@@ -29,11 +27,15 @@ public abstract class EconomyUtil {
 
   // The impactor service
   private static EconomyService service;
-  // The vault economy
-  private static Economy vaultEconomy;
 
-
+  // The economy type
   private static EconomyType economyType;
+
+
+  private enum EconomyType {
+    IMPACTOR,
+    VAULT,
+  }
 
   public static String getBalance(ServerPlayerEntity player, String currency, int digits) {
     // Supongamos que obtienes el balance como un BigDecimal desde algún método
@@ -59,18 +61,13 @@ public abstract class EconomyUtil {
     };
   }
 
-  private enum EconomyType {
-    IMPACTOR,
-    VAULT
-  }
-
-  private static void setEconomyType() {
+  public static void setEconomyType() {
     if (economyType != null) return;
     if (isImpactorPresent()) {
       economyType = EconomyType.IMPACTOR;
       service = EconomyService.instance();
       CobbleUtils.LOGGER.info("Impactor economy found");
-    } else if (isVaultApi()) {
+    } else if (WebSocketClientMain.getInstance() != null) {
       economyType = EconomyType.VAULT;
       CobbleUtils.LOGGER.info("Vault economy found");
     } else {
@@ -78,6 +75,7 @@ public abstract class EconomyUtil {
       economyType = null;
     }
   }
+
 
   /**
    * Method to check if the impactor api is present.
@@ -93,35 +91,6 @@ public abstract class EconomyUtil {
       return false;
     }
 
-  }
-
-  /**
-   * Method to check if the vault api is present.
-   *
-   * @return true if the api is present.
-   */
-  public static boolean isVaultApi() {
-    try {
-      // Verifica si el servidor está utilizando Arclight y si el plugin Vault está cargado
-      if (getServer().getPluginManager().getPlugin("Vault") == null) {
-        CobbleUtils.LOGGER.error("Vault plugin not found.");
-        return false;
-      }
-
-      // Intenta obtener el servicio de economía registrado
-      RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
-      if (rsp == null) {
-        CobbleUtils.LOGGER.error("No Economy provider registered.");
-        return false;
-      }
-
-      // Asigna el proveedor de economía
-      vaultEconomy = rsp.getProvider();
-      return vaultEconomy != null;
-    } catch (IllegalStateException | NullPointerException | NoClassDefFoundError e) {
-      CobbleUtils.LOGGER.error("Error accessing Vault API." + e);
-      return false;
-    }
   }
 
 
@@ -190,11 +159,12 @@ public abstract class EconomyUtil {
         return false;
       }
       case VAULT: {
-        return vaultEconomy.depositPlayer(player.getGameProfile().getName(), amount.doubleValue()).transactionSuccess();
+        return WebSocketClientMain.getInstance().addMoney(player.getUuid(), currency, amount.doubleValue()).join();
       }
       default:
         return false;
     }
+
   }
 
   /**
@@ -219,7 +189,7 @@ public abstract class EconomyUtil {
         EconomyTransaction transaction = account.withdraw(amount);
         return transaction.successful();
       case VAULT:
-        return vaultEconomy.withdrawPlayer(player.getGameProfile().getName(), amount.doubleValue()).transactionSuccess();
+        return WebSocketClientMain.getInstance().removeMoney(player.getUuid(), currency, amount.doubleValue()).join();
       default:
         return false;
     }
@@ -236,7 +206,6 @@ public abstract class EconomyUtil {
   public static boolean removeMoney(Account account, BigDecimal amount) {
     EconomyTransaction transaction = account.withdraw(amount);
     return transaction.successful();
-
   }
 
   /**
@@ -278,6 +247,24 @@ public abstract class EconomyUtil {
     }
   }
 
+  private static void sendMessage(ServerPlayerEntity player, BigDecimal amount, String messageNotHaveMoney) {
+    try {
+      player.sendMessage(
+        AdventureTranslator.toNative(
+          messageNotHaveMoney
+            .replace("%prefix%", CobbleUtils.shopLang.getPrefix())
+            .replace("%price%", formatCurrency(amount, "", player.getUuid()))
+            .replace("%balance%", formatCurrency(getBalance(player, ""), "", player.getUuid()))
+            .replace("%symbol%", getSymbol(""))
+            .replace("%currency%", "")
+        )
+      );
+    } catch (NoSuchMethodError | Exception e) {
+      if (CobbleUtils.config.isDebug()) {
+        CobbleUtils.LOGGER.error("Error sending message");
+      }
+    }
+  }
 
   /**
    * Method to check if an account has enough balance and optionally remove the
@@ -295,18 +282,11 @@ public abstract class EconomyUtil {
       case IMPACTOR:
         return hasEnoughImpactor(getAccount(player.getUuid(), currency.trim()), amount);
       case VAULT:
-        if (getBalance(player, currency).compareTo(amount) >= 0) {
-          player.sendMessage(AdventureTranslator.toNative(
-            CobbleUtils.language.getMessageBought()
-              .replace("%price%", String.valueOf(amount))
-              .replace("%bal%", formatCurrency(getBalance(player, currency), currency, player.getUuid()))
-              .replace("%symbol%", getSymbol(currency))
-              .replace("%currency%", currency)
-              .replace("%prefix%", CobbleUtils.language.getPrefixShop())
-          ));
-          vaultEconomy.withdrawPlayer(player.getGameProfile().getName(), amount.doubleValue());
+        if (WebSocketClientMain.getInstance().hasEnough(player.getUuid(), currency, amount.doubleValue()).join()) {
+          sendMessage(player, amount, CobbleUtils.shopLang.getMessageBought());
           return true;
         }
+        sendMessage(player, amount, CobbleUtils.shopLang.getMessageNotHaveMoney());
         return false;
       default:
         return false;
@@ -364,7 +344,6 @@ public abstract class EconomyUtil {
    * @return The formatted balance with the format of Country player.
    */
   public static String formatCurrency(BigDecimal amount, String currency, UUID player) {
-
     // Crear un NumberFormat para moneda basado en la configuración regional
     Breeding.UserInfo userinfo = null;
     if (player != null) {
@@ -391,7 +370,7 @@ public abstract class EconomyUtil {
       ((DecimalFormat) currencyFormatter).setDecimalFormatSymbols(symbols);
 
       // Configurar el patrón de formato para determinar la posición del símbolo
-      String pattern = CobbleUtils.shopLang.isSymbolBeforeAmount() ? "¤#,##0.00" : "#,##0.00 ¤";
+      String pattern = CobbleUtils.shopLang.isSymbolBeforeAmount() ? "¤ #,##0.00" : "#,##0.00 ¤";
       ((DecimalFormat) currencyFormatter).applyPattern(pattern);
     }
 
@@ -491,8 +470,8 @@ public abstract class EconomyUtil {
       case IMPACTOR -> getAccount(player.getUuid(), currency).balance()
         .setScale(getCurrency(currency).decimals(), RoundingMode.HALF_UP);
       case VAULT -> {
-        double money = vaultEconomy.getBalance(player.getGameProfile().getName());
-        yield BigDecimal.valueOf(money);
+        double balance = WebSocketClientMain.getInstance().getBalance(player.getUuid(), currency).join();
+        yield BigDecimal.valueOf(balance);
       }
       default -> BigDecimal.ZERO;
     };

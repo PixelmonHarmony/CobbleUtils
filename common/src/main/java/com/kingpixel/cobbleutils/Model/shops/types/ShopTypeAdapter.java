@@ -5,11 +5,9 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 
 import java.io.IOException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class ShopTypeAdapter extends TypeAdapter<ShopType> {
@@ -22,16 +20,23 @@ public class ShopTypeAdapter extends TypeAdapter<ShopType> {
     out.beginObject();
     out.name(TYPE_FIELD).value(value.typeShop.name());
 
-    if (value instanceof ShopTypeDynamic) {
-      ShopTypeDynamic dynamic = (ShopTypeDynamic) value;
+    if (value instanceof ShopTypeDynamic dynamic) {
       out.name("minutes").value(dynamic.getMinutes());
       out.name("amountProducts").value(dynamic.getAmountProducts());
       // Escribe productos aquí, si es necesario
-    } else if (value instanceof ShopTypeWeekly) {
-      ShopTypeWeekly weekly = (ShopTypeWeekly) value;
+    } else if (value instanceof ShopTypeWeekly weekly) {
       out.name("dayOfWeek");
       out.beginArray();
       for (DayOfWeek day : weekly.getDayOfWeek()) {
+        out.value(day.name());
+      }
+      out.endArray();
+    } else if (value instanceof ShopTypeDynamicWeekly shopTypeDynamicWeekly) {
+      out.name("minutes").value(shopTypeDynamicWeekly.getMinutes());
+      out.name("amountProducts").value(shopTypeDynamicWeekly.getAmountProducts());
+      out.name("dayOfWeek");
+      out.beginArray();
+      for (DayOfWeek day : shopTypeDynamicWeekly.getDayOfWeek()) {
         out.value(day.name());
       }
       out.endArray();
@@ -46,7 +51,6 @@ public class ShopTypeAdapter extends TypeAdapter<ShopType> {
     ShopType.TypeShop typeShop = ShopType.TypeShop.PERMANENT; // Valor predeterminado
     int minutes = 60;
     int amountProducts = 10;
-    Date cooldown = null;
     List<DayOfWeek> dayOfWeek = new ArrayList<>();
 
     while (in.hasNext()) {
@@ -60,16 +64,6 @@ public class ShopTypeAdapter extends TypeAdapter<ShopType> {
           break;
         case "amountProducts":
           amountProducts = in.nextInt();
-          break;
-        case "cooldown":
-          String cooldownStr = in.nextString();
-          if (cooldownStr != null && !cooldownStr.isEmpty()) {
-            try {
-              cooldown = DATE_FORMAT.parse(cooldownStr);
-            } catch (ParseException e) {
-              throw new IOException("Failed to parse date: " + cooldownStr, e);
-            }
-          }
           break;
         case "dayOfWeek":
           in.beginArray();
@@ -95,6 +89,12 @@ public class ShopTypeAdapter extends TypeAdapter<ShopType> {
         ShopTypeWeekly weekly = new ShopTypeWeekly();
         weekly.setDayOfWeek(dayOfWeek);
         return weekly;
+      case DYNAMIC_WEEKLY:
+        ShopTypeDynamicWeekly dynamicWeekly = new ShopTypeDynamicWeekly();
+        dynamicWeekly.setMinutes(minutes);
+        dynamicWeekly.setAmountProducts(amountProducts);
+        dynamicWeekly.setDayOfWeek(dayOfWeek);
+        return dynamicWeekly;
       case PERMANENT:
       default:
         return new ShopTypePermanent();

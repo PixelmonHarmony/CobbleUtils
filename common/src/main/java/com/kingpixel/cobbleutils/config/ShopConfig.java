@@ -12,6 +12,8 @@ import lombok.ToString;
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 
+import static com.kingpixel.cobbleutils.Model.shops.ShopTransactions.loadTransactions;
+
 /**
  * @author Carlos Varas Alonso - 13/08/2024 17:14
  */
@@ -66,6 +68,7 @@ public class ShopConfig {
 
     shop.getShops().forEach(ShopSell::addProduct);
     CobbleUtils.LOGGER.info(ShopSell.products.toString());
+    loadTransactions(shop);
   }
 
 

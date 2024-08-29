@@ -24,7 +24,8 @@ public abstract class ShopType {
   public enum TypeShop {
     PERMANENT,  // Stores that always display all their items and are always available
     DYNAMIC,    // Stores where items change and a specific number of items are shown randomly
-    WEEKLY      // Stores that are only available on certain days of the week
+    WEEKLY,      // Stores that are only available on certain days of the week
+    DYNAMIC_WEEKLY, // Stores that are only available on certain days of the week and change their items
   }
 
 }

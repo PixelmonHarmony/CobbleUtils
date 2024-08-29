@@ -39,8 +39,10 @@ dependencies {
     api("net.luckperms:api:${property("luckperms_version")}")
 
     // Economy
-    implementation("net.impactdev.impactor.api:economy:${property("impactor_version")}")
-    implementation("com.github.MilkBowl:VaultAPI:1.7")
+    api("net.impactdev.impactor.api:economy:${property("impactor_version")}")
+
+    // Websocket
+    implementation("org.java-websocket:Java-WebSocket:1.5.7")
     // Kyori Adventure
 
     /*api("net.kyori:adventure-text-serializer-gson:${property("kyori_version")}")

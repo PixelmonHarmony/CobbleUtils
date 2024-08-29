@@ -256,6 +256,8 @@ public class Shop {
 
       if (shopType.getTypeShop() == ShopType.TypeShop.DYNAMIC) {
         products = ((ShopTypeDynamic) shopType).updateShop(this).getProducts(this);
+      } else if (shopType.getTypeShop() == ShopType.TypeShop.DYNAMIC_WEEKLY) {
+        products = ((ShopTypeDynamic) shopType).updateShop(this).getProducts(this);
       } else {
         products = this.products;
       }

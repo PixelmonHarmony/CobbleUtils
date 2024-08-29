@@ -93,6 +93,7 @@ dependencies {
     shadowCommon("net.kyori:adventure-platform-api:4.3.0")
     shadowCommon("net.kyori:event-api:5.0.0-SNAPSHOT")
     shadowCommon("org.mongodb:mongodb-driver-sync:${property("mongodb_version")}")
+    shadowCommon("org.java-websocket:Java-WebSocket:1.5.7")
 }
 
 tasks.processResources {

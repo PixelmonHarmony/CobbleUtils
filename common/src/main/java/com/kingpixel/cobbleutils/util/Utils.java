@@ -148,6 +148,14 @@ public abstract class Utils {
     }
   }
 
+  public static String readFileSync(File file) throws IOException {
+    // Verifica si el archivo existe y es un archivo regular
+    if (!file.exists() || !file.isFile()) {
+      throw new IllegalArgumentException("El archivo no existe o no es un archivo regular: " + file.getPath());
+    }
+    return Files.readString(Path.of(file.getPath()));
+  }
+
   public static Gson newGson() {
     return new GsonBuilder()
       .setPrettyPrinting()
@@ -284,6 +292,6 @@ public abstract class Utils {
     if (customModelData != 0) itemStack.getOrCreateNbt().putLong("CustomModelData", customModelData);
     return itemStack;
   }
-  
+
 
 }
