@@ -21,15 +21,15 @@ import java.util.concurrent.TimeUnit;
 @Setter
 @ToString
 public class ShopTypeDynamicWeekly extends ShopType {
-  private List<DayOfWeek> dayOfWeek;
   private int amountProducts;
   private int minutes;
+  private List<DayOfWeek> dayOfWeek;
 
   public ShopTypeDynamicWeekly() {
-    super(TypeShop.WEEKLY);
-    dayOfWeek = List.of(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY, DayOfWeek.SUNDAY);
+    super(TypeShop.DYNAMIC_WEEKLY);
     amountProducts = 10;
     minutes = 60;
+    dayOfWeek = List.of(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY, DayOfWeek.SUNDAY);
   }
 
   public ShopTypeDynamicWeekly(List<DayOfWeek> dayOfWeek, int amountProducts, int minutes) {

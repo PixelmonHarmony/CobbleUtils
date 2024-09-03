@@ -26,188 +26,144 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-/**
- * @author Carlos Varas Alonso - 02/08/2024 12:23
- */
 public class BreedCommand implements Command<ServerCommandSource> {
-  private static Map<UUID, Long> cooldowns = new HashMap<>();
+  private static final Map<UUID, Long> cooldowns = new HashMap<>();
 
   public static void register(CommandDispatcher<ServerCommandSource> dispatcher,
                               LiteralArgumentBuilder<ServerCommandSource> base) {
     dispatcher.register(
-      base.executes(
-          context -> {
-            if (!context.getSource().isExecutedByPlayer()) {
-              return 0;
-            }
-            ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
-            if (Cobblemon.INSTANCE.getBattleRegistry().getBattleByParticipatingPlayer(player) != null) {
-              return 0;
-            }
-            PlotBreedingUI.open(player);
-            return 1;
-          }).then(
-          CommandManager.literal("other")
-            .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.breed.other", "cobbleutils.admin")))
-            .then(
-              CommandManager.argument("player", EntityArgumentType.players())
-                .requires(source -> source.hasPermissionLevel(2))
-                .executes(
-                  context -> {
-                    ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
-                    if (Cobblemon.INSTANCE.getBattleRegistry()
-                      .getBattleByParticipatingPlayer(player) != null) {
-                      return 0;
-                    }
-                    PlotBreedingUI.open(player);
-                    return 1;
-                  })))
-        .then(
-          CommandManager.argument("male", PartySlotArgumentType.Companion.partySlot())
-            .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.breed.pokemons", "cobbleutils.admin")))
-            .then(
-              CommandManager.argument("female", PartySlotArgumentType.Companion.partySlot())
-                .executes(
-                  context -> {
-                    if (!context.getSource().isExecutedByPlayer()) {
-                      return 0;
-                    }
-
-                    ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
-
-                    if (Cobblemon.INSTANCE.getBattleRegistry()
-                      .getBattleByParticipatingPlayer(player) != null) {
-                      return 0;
-                    }
-                    Long cooldown = cooldowns.get(player.getUuid());
-
-                    if (cooldown != null && PlayerUtils.isCooldown(cooldown)) {
-                      player.sendMessage(AdventureTranslator.toNative(
-                        CobbleUtils.language.getMessageCooldown()
-                          .replace("%cooldown%", PlayerUtils.getCooldown(new Date(cooldown)))));
-                      return 0;
-                    }
-
-                    Pokemon male = PartySlotArgumentType.Companion.getPokemon(context, "male");
-                    Pokemon female = PartySlotArgumentType.Companion.getPokemon(context, "female");
-
-                    if (male == null || female == null) {
-                      player.sendMessage(AdventureBreeding.adventure(
-                        CobbleUtils.breedconfig.getNotCompatible()));
-                      return 0;
-                    }
-
-                    try {
-                      if (!PlotSelectPokemonUI.arePokemonsCompatible(
-                        male, female, player, true
-                      )) return 0;
-                      Pokemon egg;
-
-                      if (male.getSpecies().showdownId().equalsIgnoreCase("ditto")) {
-                        egg = EggData.createEgg(male, female, player);
-                      } else if (female.getSpecies().showdownId().equalsIgnoreCase("ditto")) {
-                        egg = EggData.createEgg(female, male, player);
-                      } else {
-                        egg = EggData.createEgg(male, female, player);
-                      }
-
-                      // Creación del huevo y manejo del cooldown
-
-                      if (egg != null) {
-                        Cobblemon.INSTANCE.getStorage().getParty(player).add(egg);
-                        if (LuckPermsUtil.hasOp(player)) {
-                          cooldowns.put(player.getUuid(), new Date(1).getTime());
-                        } else {
-                          cooldowns.put(player.getUuid(),
-                            new Date().getTime()
-                              + TimeUnit.SECONDS.toMillis(CobbleUtils.breedconfig.getCooldowninstaBreedInSeconds()));
-                        }
-                      } else {
-                        player.sendMessage(AdventureBreeding.adventure(PokemonUtils.replace(
-                          CobbleUtils.breedconfig.getNotCompatible(), List.of(male, female))));
-                        return 0;
-                      }
-                    } catch (NoPokemonStoreException e) {
-                      throw new RuntimeException(e);
-                    }
-
-                    return 1;
-                  }).then(
-                  CommandManager.argument("player", EntityArgumentType.players())
-                    .executes(
-                      context -> {
-                        ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
-
-                        if (Cobblemon.INSTANCE.getBattleRegistry()
-                          .getBattleByParticipatingPlayer(player) != null) {
-                          return 0;
-                        }
-                        Long cooldown = cooldowns.get(player.getUuid());
-
-                        if (cooldown != null && PlayerUtils.isCooldown(cooldown)) {
-                          player.sendMessage(AdventureTranslator.toNative(
-                            CobbleUtils.language.getMessageCooldown()
-                              .replace("%cooldown%", PlayerUtils.getCooldown(new Date(cooldown)))));
-                          return 0;
-                        }
-
-                        Pokemon male = PartySlotArgumentType.Companion.getPokemonOf(context, "male", player);
-                        Pokemon female = PartySlotArgumentType.Companion.getPokemonOf(context, "female", player);
-
-                        if (male == null || female == null) {
-                          player.sendMessage(AdventureBreeding.adventure(
-                            CobbleUtils.breedconfig.getNotCompatible()));
-                          return 0;
-                        }
-
-                        try {
-                          if (!PlotSelectPokemonUI.arePokemonsCompatible(
-                            male, female, player, true
-                          )) return 0;
-                          Pokemon egg;
-
-                          if (male.getSpecies().showdownId().equalsIgnoreCase("ditto")) {
-                            egg = EggData.createEgg(male, female, player);
-                          } else if (female.getSpecies().showdownId().equalsIgnoreCase("ditto")) {
-                            egg = EggData.createEgg(female, male, player);
-                          } else {
-                            egg = EggData.createEgg(male, female, player);
-                          }
-
-                          // Creación del huevo y manejo del cooldown
-
-                          if (egg != null) {
-                            Cobblemon.INSTANCE.getStorage().getParty(player).add(egg);
-                            if (LuckPermsUtil.hasOp(player)) {
-                              cooldowns.put(player.getUuid(), new Date(1).getTime());
-                            } else {
-                              cooldowns.put(player.getUuid(),
-                                new Date().getTime()
-                                  + TimeUnit.SECONDS.toMillis(CobbleUtils.breedconfig.getCooldowninstaBreedInSeconds()));
-                            }
-                          } else {
-                            player.sendMessage(AdventureBreeding.adventure(PokemonUtils.replace(
-                              CobbleUtils.breedconfig.getNotCompatible(), List.of(male, female))));
-                            return 0;
-                          }
-                        } catch (NoPokemonStoreException e) {
-                          throw new RuntimeException(e);
-                        }
-
-                        return 1;
-                      }
-                    )
-                )
-            )
-        )
+      base.executes(BreedCommand::executeDefault)
+        .then(CommandManager.literal("other")
+          .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.breedother", "cobbleutils.admin")))
+          .then(CommandManager.argument("player", EntityArgumentType.players())
+            .executes(BreedCommand::executeForOtherPlayer)))
+        .then(CommandManager.argument("male", PartySlotArgumentType.Companion.partySlot())
+          .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.breedpokemons", "cobbleutils.admin")))
+          .then(CommandManager.argument("female", PartySlotArgumentType.Companion.partySlot())
+            .executes(BreedCommand::executeBreeding)
+            .then(CommandManager.argument("player", EntityArgumentType.players())
+              .executes(BreedCommand::executeBreedingForOtherPlayer))))
     );
-
   }
 
+  private static int executeDefault(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
+    if (isPlayerInBattle(player)) {
+      return 0;
+    }
+    PlotBreedingUI.open(player);
+    return 1;
+  }
+
+  private static int executeForOtherPlayer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
+    if (isPlayerInBattle(player)) {
+      return 0;
+    }
+    PlotBreedingUI.open(player);
+    return 1;
+  }
+
+  private static int executeBreeding(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
+    return processBreeding(context, player, player);
+  }
+
+  private static int executeBreedingForOtherPlayer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    ServerPlayerEntity executor = context.getSource().getPlayerOrThrow();
+    ServerPlayerEntity targetPlayer = EntityArgumentType.getPlayer(context, "player");
+    return processBreeding(context, executor, targetPlayer);
+  }
+
+  private static int processBreeding(CommandContext<ServerCommandSource> context, ServerPlayerEntity executor, ServerPlayerEntity targetPlayer) {
+    if (isPlayerInBattle(targetPlayer) || isCooldownActive(targetPlayer)) {
+      return 0;
+    }
+
+    Pokemon male = PartySlotArgumentType.Companion.getPokemon(context, "male");
+    Pokemon female = PartySlotArgumentType.Companion.getPokemon(context, "female");
+
+    if (!arePokemonsValid(male, female, targetPlayer)) {
+      return 0;
+    }
+
+    Pokemon egg = createEgg(male, female, targetPlayer);
+
+    if (egg != null) {
+      addEggToParty(targetPlayer, egg);
+      applyCooldown(targetPlayer);
+      return 1;
+    }
+
+    return 0;
+  }
+
+  private static boolean isPlayerInBattle(ServerPlayerEntity player) {
+    return Cobblemon.INSTANCE.getBattleRegistry().getBattleByParticipatingPlayer(player) != null;
+  }
+
+  private static boolean isCooldownActive(ServerPlayerEntity player) {
+    Long cooldown = cooldowns.get(player.getUuid());
+    if (cooldown != null && PlayerUtils.isCooldown(cooldown)) {
+      player.sendMessage(AdventureTranslator.toNative(CobbleUtils.language.getMessageCooldown()
+        .replace("%prefix%", CobbleUtils.breedconfig.getPrefix())
+        .replace("%cooldown%", PlayerUtils.getCooldown(new Date(cooldown)))));
+      return true;
+    }
+    return false;
+  }
+
+  private static boolean arePokemonsValid(Pokemon male, Pokemon female, ServerPlayerEntity player) {
+    if (male == null || female == null || male.getUuid().equals(female.getUuid())) {
+      player.sendMessage(
+        AdventureBreeding.adventure(
+          PokemonUtils.replace(
+            CobbleUtils.breedconfig.getNotCompatible()
+              .replace("%prefix%", CobbleUtils.breedconfig.getPrefix()),
+            List.of(male, female))
+        )
+      );
+      return false;
+    }
+
+    try {
+      if (!PlotSelectPokemonUI.arePokemonsCompatible(male, female, player, true)) {
+        return false;
+      }
+    } catch (Exception e) {
+      player.sendMessage(AdventureBreeding.adventure("Error verifying Pokémon compatibility."));
+      return false;
+    }
+    return true;
+  }
+
+  private static Pokemon createEgg(Pokemon male, Pokemon female, ServerPlayerEntity player) {
+    try {
+      return EggData.createEgg(
+        male.getSpecies().showdownId().equalsIgnoreCase("ditto") ? male : female,
+        female.getSpecies().showdownId().equalsIgnoreCase("ditto") ? male : female,
+        player
+      );
+    } catch (NoPokemonStoreException e) {
+      player.sendMessage(AdventureBreeding.adventure("Failed to create egg: no available storage."));
+      return null;
+    }
+  }
+
+  private static void addEggToParty(ServerPlayerEntity player, Pokemon egg) {
+    Cobblemon.INSTANCE.getStorage().getParty(player).add(egg);
+  }
+
+  private static void applyCooldown(ServerPlayerEntity player) {
+    long cooldownTime = LuckPermsUtil.hasOp(player) ?
+      1L :
+      TimeUnit.SECONDS.toMillis(CobbleUtils.breedconfig.getCooldowninstaBreedInSeconds());
+
+    cooldowns.put(player.getUuid(), new Date().getTime() + cooldownTime);
+  }
 
   @Override
   public int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
     return 0;
   }
-
 }

@@ -65,6 +65,8 @@ public class BreedableCommand implements Command<ServerCommandSource> {
                     })
                     .then(
                       CommandManager.argument("player", EntityArgumentType.player())
+                        .requires(source ->
+                          LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.breedableother", "cobbleutils.admin")))
                         .executes(context -> {
                           ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
                           Pokemon pokemon = PartySlotArgumentType.Companion.getPokemonOf(context,

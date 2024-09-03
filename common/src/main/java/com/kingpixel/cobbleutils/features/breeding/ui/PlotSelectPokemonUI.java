@@ -4,7 +4,6 @@ import ca.landonjw.gooeylibs2.api.UIManager;
 import ca.landonjw.gooeylibs2.api.button.Button;
 import ca.landonjw.gooeylibs2.api.button.GooeyButton;
 import ca.landonjw.gooeylibs2.api.button.PlaceholderButton;
-import ca.landonjw.gooeylibs2.api.button.linked.LinkedPageButton;
 import ca.landonjw.gooeylibs2.api.helpers.PaginationHelper;
 import ca.landonjw.gooeylibs2.api.page.LinkedPage;
 import ca.landonjw.gooeylibs2.api.template.types.ChestTemplate;
@@ -38,6 +37,18 @@ public class PlotSelectPokemonUI {
     int row = CobbleUtils.breedconfig.getRowmenuselectpokemon();
     ChestTemplate template = ChestTemplate.builder(row).build();
 
+    List<Pokemon> pokemons = getPlayerPokemons(player, gender, plotBreeding);
+    List<Button> buttons = createPokemonButtons(pokemons, player, plotBreeding, gender);
+
+    configureTemplate(template, buttons, row, player, plotBreeding);
+
+    LinkedPage.Builder linkedPageBuilder = LinkedPage.builder()
+      .title(AdventureTranslator.toNative(CobbleUtils.breedconfig.getTitleselectpokemon()));
+    LinkedPage page = PaginationHelper.createPagesFromPlaceholders(template, buttons, linkedPageBuilder);
+    UIManager.openUIForcefully(player, page);
+  }
+
+  private static List<Pokemon> getPlayerPokemons(ServerPlayerEntity player, Gender gender, PlotBreeding plotBreeding) {
     List<Pokemon> pokemons = new ArrayList<>();
     try {
       Cobblemon.INSTANCE.getStorage().getParty(player)
@@ -47,268 +58,137 @@ public class PlotSelectPokemonUI {
     } catch (NoPokemonStoreException e) {
       throw new RuntimeException(e);
     }
+    return pokemons;
+  }
 
+  private static List<Button> createPokemonButtons(List<Pokemon> pokemons, ServerPlayerEntity player, PlotBreeding plotBreeding, Gender gender) {
     List<Button> buttons = new ArrayList<>();
-
     for (Pokemon pokemon : pokemons) {
       GooeyButton button = GooeyButton.builder()
         .display(PokemonItem.from(pokemon))
         .title(AdventureTranslator.toNative(PokemonUtils.replace(pokemon)))
         .lore(Text.class, AdventureTranslator.toNativeL(PokemonUtils.replaceLore(pokemon)))
-        .onClick(action -> {
-          try {
-            Cobblemon.INSTANCE.getStorage().getPC(player.getUuid()).remove(pokemon);
-            Cobblemon.INSTANCE.getStorage().getParty(player).remove(pokemon);
-          } catch (NoPokemonStoreException e) {
-            throw new RuntimeException(e);
-          }
-          plotBreeding.add(pokemon, gender);
-          Breeding.managerPlotEggs.writeInfo(player);
-          PlotBreedingManagerUI.open(player, plotBreeding);
-        })
+        .onClick(action -> handlePokemonSelection(pokemon, player, plotBreeding, gender))
         .build();
       buttons.add(button);
     }
-    LinkedPageButton back = UIUtils.getPreviousButton(action -> {
-
-    });
-
-    LinkedPageButton next = UIUtils.getNextButton(action -> {
-
-    });
-
-    GooeyButton close = UIUtils.getCloseButton(action -> PlotBreedingManagerUI.open(player, plotBreeding));
-
-    template.set(row - 1, 0, back);
-    template.set(row - 1, 4, close);
-    template.set(row - 1, 8, next);
-    template.fill(GooeyButton.builder()
-      .display(Utils.parseItemId(CobbleUtils.config.getFill()))
-      .title("")
-      .build());
-    template.rectangle(0, 0, row - 1, 9, new PlaceholderButton());
-    template.fillFromList(buttons);
-
-    LinkedPage.Builder linkedPageBuilder = LinkedPage.builder()
-      .title(AdventureTranslator.toNative(CobbleUtils.breedconfig.getTitleselectpokemon()));
-    LinkedPage page = PaginationHelper.createPagesFromPlaceholders(template, buttons, linkedPageBuilder);
-    UIManager.openUIForcefully(player, page);
+    return buttons;
   }
 
-  public static boolean isAcceptablePokemon(Pokemon pokemon, Gender gender, PlotBreeding plotBreeding,
-                                            ServerPlayerEntity player,
-                                            boolean notify) {
+  private static void handlePokemonSelection(Pokemon pokemon, ServerPlayerEntity player, PlotBreeding plotBreeding, Gender gender) {
+    try {
+      Cobblemon.INSTANCE.getStorage().getPC(player.getUuid()).remove(pokemon);
+      Cobblemon.INSTANCE.getStorage().getParty(player).remove(pokemon);
+    } catch (NoPokemonStoreException e) {
+      throw new RuntimeException(e);
+    }
+    plotBreeding.add(pokemon, gender);
+    Breeding.managerPlotEggs.writeInfo(player);
+    PlotBreedingManagerUI.open(player, plotBreeding);
+  }
+
+  private static void configureTemplate(ChestTemplate template, List<Button> buttons, int row, ServerPlayerEntity player, PlotBreeding plotBreeding) {
+    template.set(row - 1, 0, UIUtils.getPreviousButton(action -> {
+    }));
+    template.set(row - 1, 4, UIUtils.getCloseButton(action -> PlotBreedingManagerUI.open(player, plotBreeding)));
+    template.set(row - 1, 8, UIUtils.getNextButton(action -> {
+    }));
+    template.fill(GooeyButton.builder().display(Utils.parseItemId(CobbleUtils.config.getFill())).title("").build());
+    template.rectangle(0, 0, row - 1, 9, new PlaceholderButton());
+    template.fillFromList(buttons);
+  }
+
+  public static boolean isAcceptablePokemon(Pokemon pokemon, Gender gender, PlotBreeding plotBreeding, ServerPlayerEntity player, boolean notify) {
+    if (!isPokemonBreedable(pokemon, player, notify)) return false;
+    return checkCompatibility(pokemon, gender, plotBreeding, player, notify);
+  }
+
+  private static boolean isPokemonBreedable(Pokemon pokemon, ServerPlayerEntity player, boolean notify) {
     if (pokemon.getSpecies().getEggGroups().contains(EggGroup.UNDISCOVERED) ||
-      pokemon.getSpecies().showdownId().equalsIgnoreCase("egg")) {
-      if (notify) {
-        player.sendMessage(AdventureTranslator.toNative(CobbleUtils.breedconfig.getNotCompatible()));
-      }
-      return false;
-    }
-
-    if (pokemon.getSpecies().showdownId().equalsIgnoreCase("ditto") && !CobbleUtils.breedconfig.isDitto()) {
-      if (notify) {
-        player.sendMessage(AdventureTranslator.toNative(CobbleUtils.breedconfig.getNotCompatible()));
-      }
-      return false;
-    }
-
-    if (!PokemonUtils.isBreedable(pokemon) ||
+      pokemon.getSpecies().showdownId().equalsIgnoreCase("egg") ||
+      (pokemon.getSpecies().showdownId().equalsIgnoreCase("ditto") && !CobbleUtils.breedconfig.isDitto()) ||
+      !PokemonUtils.isBreedable(pokemon) ||
       CobbleUtils.breedconfig.getBlacklist().contains(pokemon.getSpecies().showdownId())) {
-      if (notify) {
-        player.sendMessage(
-          AdventureTranslator.toNative(
-            PokemonUtils.replace(CobbleUtils.breedconfig.getNotbreedable(), pokemon)
-          )
-        );
+      if (notify && player != null) {
+        player.sendMessage(AdventureTranslator.toNative(PokemonUtils.replace(CobbleUtils.breedconfig.getNotbreedable(), pokemon)));
       }
       return false;
     }
+    return true;
+  }
 
+  private static boolean checkCompatibility(Pokemon pokemon, Gender gender, PlotBreeding plotBreeding, ServerPlayerEntity player, boolean notify) {
+    Pokemon otherGender = plotBreeding.obtainOtherGender(gender);
     boolean isInWhitelist = CobbleUtils.breedconfig.getWhitelist().contains(pokemon.getSpecies().showdownId());
     boolean isLegendaryOrUltraBeast = pokemon.isLegendary() || pokemon.isUltraBeast();
 
     if (isLegendaryOrUltraBeast && !isInWhitelist) {
-      if (notify) {
-        player.sendMessage(
-          AdventureTranslator.toNative(
-            PokemonUtils.replace(CobbleUtils.breedconfig.getBlacklisted(), pokemon)
-          )
-        );
-      }
+      sendMessageIfNeeded(player, notify, CobbleUtils.breedconfig.getBlacklisted(), pokemon);
       return false;
     }
 
-    Pokemon otherGender = plotBreeding.obtainOtherGender(gender);
-
     if (otherGender == null) {
-      boolean result =
-        isInWhitelist || pokemon.getGender() == gender || pokemon.getGender() == Gender.GENDERLESS || (CobbleUtils.breedconfig.isDitto() && pokemon.getSpecies().showdownId().equalsIgnoreCase("ditto"));
-      if (!result && notify) {
-        player.sendMessage(
-          AdventureTranslator.toNative(
-            PokemonUtils.replace(CobbleUtils.breedconfig.getNotCompatible(), pokemon)
-          )
-        );
-      }
-      return result;
+      return isInWhitelist || pokemon.getGender() == gender || pokemon.getGender() == Gender.GENDERLESS || isDittoBreedingAllowed(pokemon);
     }
 
     boolean isOtherDitto = otherGender.getSpecies().showdownId().equalsIgnoreCase("ditto");
     boolean isGenderless = pokemon.getGender() == Gender.GENDERLESS;
     boolean areCompatible = EggData.isCompatible(otherGender, pokemon);
 
+    return isDittoCompatibility(pokemon, isOtherDitto, areCompatible, notify, player) ||
+      areCompatible && (pokemon.getGender() == gender || isGenderless) ||
+      isInWhitelist && (pokemon.getGender() == gender || isGenderless);
+  }
+
+  private static boolean isDittoBreedingAllowed(Pokemon pokemon) {
+    return CobbleUtils.breedconfig.isDitto() && pokemon.getSpecies().showdownId().equalsIgnoreCase("ditto");
+  }
+
+  private static boolean isDittoCompatibility(Pokemon pokemon, boolean isOtherDitto, boolean areCompatible, boolean notify, ServerPlayerEntity player) {
     if (pokemon.getSpecies().showdownId().equalsIgnoreCase("ditto")) {
       if (isOtherDitto) {
-        if (notify) {
-          player.sendMessage(
-            AdventureTranslator.toNative(
-              PokemonUtils.replace(CobbleUtils.breedconfig.getNotdoubleditto(), pokemon)
-            )
-          );
-        }
         return CobbleUtils.breedconfig.isDoubleditto();
       } else {
-        boolean result = areCompatible || (pokemon.getSpecies().showdownId().equalsIgnoreCase("ditto") && CobbleUtils.breedconfig.isDitto());
-        if (!result && notify) {
-          player.sendMessage(
-            AdventureTranslator.toNative(
-              PokemonUtils.replace(CobbleUtils.breedconfig.getNotCompatible(), pokemon)
-            )
-          );
-        }
-        return result;
+        return areCompatible || CobbleUtils.breedconfig.isDitto();
       }
     }
-
     if (isOtherDitto) {
-      boolean result = areCompatible || isInWhitelist || !pokemon.getSpecies().showdownId().equalsIgnoreCase("ditto");
-      if (!result && notify) {
-        player.sendMessage(
-          AdventureTranslator.toNative(
-            PokemonUtils.replace(CobbleUtils.breedconfig.getNotCompatible(), pokemon)
-          )
-        );
-      }
-      return result;
-    } else {
-      boolean result = areCompatible && (pokemon.getGender() == gender || isGenderless) ||
-        (isInWhitelist && (pokemon.getGender() == gender || isGenderless));
-      if (!result && notify) {
-        player.sendMessage(
-          AdventureTranslator.toNative(
-            PokemonUtils.replace(CobbleUtils.breedconfig.getNotCompatible(), pokemon)
-          )
-        );
-      }
-      return result;
+      return areCompatible || CobbleUtils.breedconfig.getWhitelist().contains(pokemon.getSpecies().showdownId());
     }
+    return false;
   }
-
 
   public static boolean arePokemonsCompatible(Pokemon malePokemon, Pokemon femalePokemon, ServerPlayerEntity player, boolean notify) {
-    // Verifica si alguno de los Pokémon pertenece al grupo de huevo "UNDISCOVERED" o es un huevo
-    if (malePokemon.getSpecies().getEggGroups().contains(EggGroup.UNDISCOVERED) ||
-      femalePokemon.getSpecies().getEggGroups().contains(EggGroup.UNDISCOVERED) ||
-      malePokemon.getSpecies().showdownId().equalsIgnoreCase("egg") ||
-      femalePokemon.getSpecies().showdownId().equalsIgnoreCase("egg")) {
-      if (notify) {
-        player.sendMessage(AdventureTranslator.toNative(CobbleUtils.breedconfig.getNotCompatible()));
-      }
+    if (!isPokemonBreedable(malePokemon, player, notify) || !isPokemonBreedable(femalePokemon, player, notify)) {
       return false;
     }
-
-    // Verifica si la cría con Ditto está permitida
-    if ((malePokemon.getSpecies().showdownId().equalsIgnoreCase("ditto") && !CobbleUtils.breedconfig.isDitto()) ||
-      (femalePokemon.getSpecies().showdownId().equalsIgnoreCase("ditto") && !CobbleUtils.breedconfig.isDitto())) {
-      if (notify) {
-        player.sendMessage(AdventureTranslator.toNative(CobbleUtils.breedconfig.getNotCompatible()));
-      }
-      return false;
-    }
-
-    // Verifica si alguno de los Pokémon no es breedable o está en la lista negra
-    if (!PokemonUtils.isBreedable(malePokemon) || !PokemonUtils.isBreedable(femalePokemon) ||
-      CobbleUtils.breedconfig.getBlacklist().contains(malePokemon.getSpecies().showdownId()) ||
-      CobbleUtils.breedconfig.getBlacklist().contains(femalePokemon.getSpecies().showdownId())) {
-      if (notify) {
-        player.sendMessage(
-          AdventureTranslator.toNative(
-            PokemonUtils.replace(CobbleUtils.breedconfig.getNotbreedable(), malePokemon)
-          )
-        );
-      }
-      return false;
-    }
-
-    boolean isMaleInWhitelist = CobbleUtils.breedconfig.getWhitelist().contains(malePokemon.getSpecies().showdownId());
-    boolean isFemaleInWhitelist = CobbleUtils.breedconfig.getWhitelist().contains(femalePokemon.getSpecies().showdownId());
-    boolean isMaleLegendaryOrUltraBeast = malePokemon.isLegendary() || malePokemon.isUltraBeast();
-    boolean isFemaleLegendaryOrUltraBeast = femalePokemon.isLegendary() || femalePokemon.isUltraBeast();
-
-    // Si cualquiera de los Pokémon es legendario o una Ultra Bestia y no está en la whitelist, no son compatibles
-    if ((isMaleLegendaryOrUltraBeast && !isMaleInWhitelist) || (isFemaleLegendaryOrUltraBeast && !isFemaleInWhitelist)) {
-      if (notify) {
-        player.sendMessage(
-          AdventureTranslator.toNative(
-            PokemonUtils.replace(CobbleUtils.breedconfig.getBlacklisted(), malePokemon)
-          )
-        );
-      }
-      return false;
-    }
-
-    boolean isMaleDitto = malePokemon.getSpecies().showdownId().equalsIgnoreCase("ditto");
-    boolean isFemaleDitto = femalePokemon.getSpecies().showdownId().equalsIgnoreCase("ditto");
     boolean areCompatible = EggData.isCompatible(malePokemon, femalePokemon);
-
-    // Maneja los casos de cría con Ditto
-    if (isMaleDitto || isFemaleDitto) {
-      if (isMaleDitto && isFemaleDitto) {
-        boolean result = CobbleUtils.breedconfig.isDoubleditto();
-        if (notify && !result) {
-          player.sendMessage(
-            AdventureTranslator.toNative(
-              PokemonUtils.replace(CobbleUtils.breedconfig.getNotdoubleditto(), malePokemon)
-            )
-          );
-        }
-        return result;
-      } else {
-        boolean result = areCompatible || CobbleUtils.breedconfig.isDitto();
-        if (!result && notify) {
-          player.sendMessage(
-            AdventureTranslator.toNative(
-              PokemonUtils.replace(CobbleUtils.breedconfig.getNotditto(), malePokemon)
-            )
-          );
-        }
-        return result;
-      }
-    }
-
-    // Caso general: Verificar si son compatibles según sus géneros y egg groups
-    boolean result = areCompatible ||
-      (isMaleInWhitelist && malePokemon.getGender() == Gender.MALE) ||
-      (isFemaleInWhitelist && femalePokemon.getGender() == Gender.FEMALE);
-
-    if (!result && notify) {
-      player.sendMessage(
-        AdventureTranslator.toNative(
-          PokemonUtils.replace(CobbleUtils.breedconfig.getNotCompatible(), malePokemon)
-        )
-      );
-    }
-
-    return result;
+    return checkDittoBreedingCompatibility(malePokemon, femalePokemon, areCompatible, notify, player);
   }
 
+  private static boolean checkDittoBreedingCompatibility(Pokemon malePokemon, Pokemon femalePokemon, boolean areCompatible, boolean notify, ServerPlayerEntity player) {
+    boolean isMaleDitto = malePokemon.getSpecies().showdownId().equalsIgnoreCase("ditto");
+    boolean isFemaleDitto = femalePokemon.getSpecies().showdownId().equalsIgnoreCase("ditto");
+    boolean isDoubledittoEnabled = CobbleUtils.breedconfig.isDoubleditto();
 
-  private static void processPokemon(Collection<Pokemon> pokemons, Pokemon pokemon, ServerPlayerEntity player,
-                                     Gender gender, PlotBreeding plotBreeding) {
-    if (isAcceptablePokemon(pokemon, gender, plotBreeding, player, false)) {
+    if (isMaleDitto && isFemaleDitto) {
+      return isDoubledittoEnabled;
+    } else if (isMaleDitto || isFemaleDitto) {
+      return areCompatible || CobbleUtils.breedconfig.isDitto();
+    } else {
+      return areCompatible;
+    }
+  }
+
+  private static void processPokemon(Collection<Pokemon> pokemons, Pokemon pokemon, ServerPlayerEntity player, Gender gender, PlotBreeding plotBreeding) {
+    if (isAcceptablePokemon(pokemon, gender, plotBreeding, player, true)) {
       pokemons.add(pokemon);
     }
   }
 
+  private static void sendMessageIfNeeded(ServerPlayerEntity player, boolean notify, String message, Pokemon pokemon) {
+    if (notify && player != null) {
+      player.sendMessage(AdventureTranslator.toNative(PokemonUtils.replace(message, pokemon)));
+    }
+  }
 }

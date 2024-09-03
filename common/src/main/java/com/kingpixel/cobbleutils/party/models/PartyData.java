@@ -22,12 +22,14 @@ import java.util.concurrent.CompletableFuture;
 @ToString
 @EqualsAndHashCode
 public class PartyData {
+  private UUID id;
   private String name;
   private PlayerInfo owner;
   private Set<PlayerInfo> members;
   private Set<UUID> invites;
 
   public PartyData(String name, PlayerInfo owner) {
+    this.id = UUID.randomUUID();
     this.name = name;
     this.owner = owner;
     this.members = new HashSet<>();
@@ -40,6 +42,7 @@ public class PartyData {
       el -> {
         Gson gson = Utils.newWithoutSpacingGson();
         PartyData config = gson.fromJson(el, PartyData.class);
+        id = config.getId();
         name = config.getName();
         owner = config.getOwner();
         members = config.getMembers();

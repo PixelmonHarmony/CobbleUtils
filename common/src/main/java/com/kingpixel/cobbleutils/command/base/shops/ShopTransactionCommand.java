@@ -40,7 +40,7 @@ public class ShopTransactionCommand implements Command<ServerCommandSource> {
       base
         .then(CommandManager.literal("transactions")
           .requires(source -> LuckPermsUtil.checkPermission(
-            source, 2, List.of("cobbleutils.admin", "cobbleutils.shop.transactions")
+            source, 2, List.of("cobbleutils.admin", "cobbleutils.shoptransactions")
           ))
           .executes(context -> {
             if (!context.getSource().isExecutedByPlayer()) {

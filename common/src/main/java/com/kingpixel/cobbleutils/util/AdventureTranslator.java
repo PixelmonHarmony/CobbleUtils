@@ -46,6 +46,12 @@ public class AdventureTranslator {
       .replace("%partyprefix%", CobbleUtils.partyLang.getPrefix()))));
   }
 
+  public static Text toNative(String displayname, String prefix) {
+    return toNative(miniMessage.deserialize(replaceNative(displayname
+      .replace("%prefix%", prefix)
+      .replace("%partyprefix%", CobbleUtils.partyLang.getPrefix()))));
+  }
+
   public static Text toNative(net.kyori.adventure.text.Component component) {
     return Text.Serializer.fromJson(GsonComponentSerializer.gson().serialize(component));
   }
@@ -94,7 +100,9 @@ public class AdventureTranslator {
     if (displayname == null) {
       return null;
     }
-    displayname = displayname.replace("&", "§").replace("§0", "<black>")
+    displayname = displayname
+      .replace("&", "§")
+      .replace("§0", "<black>")
       .replace("§1", "<dark_blue>")
       .replace("§2", "<dark_green>")
       .replace("§3", "<dark_aqua>")

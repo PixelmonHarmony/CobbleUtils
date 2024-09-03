@@ -1,6 +1,8 @@
 package com.kingpixel.cobbleutils.util;
 
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
+import com.cobblemon.mod.common.api.types.ElementalType;
+import com.cobblemon.mod.common.api.types.adapters.ElementalTypeAdapter;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -42,6 +44,25 @@ import java.util.function.Consumer;
 
 public abstract class Utils {
   public static final Random RANDOM = new Random();
+
+  public static Gson newGson() {
+    return new GsonBuilder()
+      .setPrettyPrinting()
+      .disableHtmlEscaping()
+      .registerTypeAdapter(ShopType.class, new ShopTypeAdapter())
+      .registerTypeAdapter(ShopTransactions.ShopAction.class, new ShopActionAdapter())
+      .registerTypeAdapter(ElementalType.class, ElementalTypeAdapter.INSTANCE)
+      .create();
+  }
+
+  public static Gson newWithoutSpacingGson() {
+    return new GsonBuilder()
+      .disableHtmlEscaping()
+      .registerTypeAdapter(ShopType.class, new ShopTypeAdapter())
+      .registerTypeAdapter(ShopTransactions.ShopAction.class, new ShopActionAdapter())
+      .registerTypeAdapter(ElementalType.class, ElementalTypeAdapter.INSTANCE)
+      .create();
+  }
 
   public static CompletableFuture<Boolean> writeFileAsync(String filePath, String filename, String data) {
     CompletableFuture<Boolean> future = new CompletableFuture<>();
@@ -156,22 +177,6 @@ public abstract class Utils {
     return Files.readString(Path.of(file.getPath()));
   }
 
-  public static Gson newGson() {
-    return new GsonBuilder()
-      .setPrettyPrinting()
-      .disableHtmlEscaping()
-      .registerTypeAdapter(ShopType.class, new ShopTypeAdapter())
-      .registerTypeAdapter(ShopTransactions.ShopAction.class, new ShopActionAdapter())
-      .create();
-  }
-
-  public static Gson newWithoutSpacingGson() {
-    return new GsonBuilder()
-      .disableHtmlEscaping()
-      .registerTypeAdapter(ShopType.class, new ShopTypeAdapter())
-      .registerTypeAdapter(ShopTransactions.ShopAction.class, new ShopActionAdapter())
-      .create();
-  }
 
   public static void broadcastMessage(String message) {
     MinecraftServer server = CobbleUtils.server;

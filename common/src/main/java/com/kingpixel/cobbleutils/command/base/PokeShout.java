@@ -21,20 +21,22 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
  * @author Carlos Varas Alonso - 26/07/2024 14:14
  */
 public class PokeShout implements Command<CommandSource> {
-  private static Map<UUID, Date> cooldowns;
+  private static Map<UUID, Date> cooldowns = new ConcurrentHashMap<>();
 
   public static void register(CommandDispatcher<ServerCommandSource> dispatcher,
                               LiteralArgumentBuilder<ServerCommandSource> base) {
     dispatcher.register(
       base
-        .requires(source -> LuckPermsUtil.checkPermission(source, 0, List.of("cobbleutils.pokeshout", "cobbleutils" +
-          ".user")))
+        .requires(source -> LuckPermsUtil.checkPermission(source, 0, List.of("cobbleutils.pokeshoutplus",
+          "cobbleutils" +
+            ".user")))
         .then(
           CommandManager.argument("slot", PartySlotArgumentType.Companion.partySlot())
             .executes(context -> {
@@ -46,7 +48,10 @@ public class PokeShout implements Command<CommandSource> {
               ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
               Date cooldown = cooldowns.get(player.getUuid());
               if (PlayerUtils.isCooldown(cooldown)) {
-                PlayerUtils.sendMessage(player, CobbleUtils.language.getMessageCooldown());
+                PlayerUtils.sendMessage(player, CobbleUtils.language.getMessageCooldown()
+                  .replace("%cooldown%", String.valueOf(PlayerUtils.getCooldown(cooldown)))
+                  .replace("%prefix%", CobbleUtils.config.getPrefix())
+                );
                 return 0;
               }
               cooldowns.put(player.getUuid(),

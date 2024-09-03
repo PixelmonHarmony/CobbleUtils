@@ -25,7 +25,7 @@ public class ShopCommand implements Command<ServerCommandSource> {
     dispatcher.register(
       base
         .requires(source -> LuckPermsUtil.checkPermission(
-          source, 2, List.of("cobbleutils.admin", "cobbleutils.shop",
+          source, 0, List.of("cobbleutils.admin", "cobbleutils.shop",
             "cobbleutils.user")
         ))
         .executes(context -> {
@@ -73,7 +73,7 @@ public class ShopCommand implements Command<ServerCommandSource> {
                 .then(
                   CommandManager.argument("player", EntityArgumentType.player())
                     .requires(source -> LuckPermsUtil.checkPermission(
-                      source, 2, List.of("cobbleutils.admin", "cobbleutils.shop.other")
+                      source, 2, List.of("cobbleutils.admin", "cobbleutils.shopother")
                     ))
                     .executes(context -> {
                       ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
@@ -86,7 +86,7 @@ public class ShopCommand implements Command<ServerCommandSource> {
         ).then(
           CommandManager.literal("reload")
             .requires(source -> LuckPermsUtil.checkPermission(
-              source, 2, List.of("cobbleutils.admin", "cobbleutils.shop.reload")
+              source, 2, List.of("cobbleutils.admin", "cobbleutils.shopreload")
             ))
             .executes(context -> {
               CobbleUtils.load();

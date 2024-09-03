@@ -43,7 +43,8 @@ public class Hatch implements Command<ServerCommandSource> {
               return hatch(context, player);
             }).then(
               CommandManager.argument("player", EntityArgumentType.player())
-                .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.hatch.other", "cobbleutils.admin")))
+                .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.hatchother",
+                  "cobbleutils.admin")))
                 .executes(context -> {
                   ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
                   return hatch(context, player);
@@ -52,7 +53,7 @@ public class Hatch implements Command<ServerCommandSource> {
         ).then(
           CommandManager.literal("all")
             .requires(source -> LuckPermsUtil.checkPermission(source, 2,
-              List.of("cobbleutils.hatch.all", "cobbleutils.admin")))
+              List.of("cobbleutils.hatchall", "cobbleutils.admin")))
             .executes(context -> {
               if (!context.getSource().isExecutedByPlayer())
                 return 0;
@@ -76,7 +77,8 @@ public class Hatch implements Command<ServerCommandSource> {
               return 1;
             }).then(
               CommandManager.argument("player", EntityArgumentType.player())
-                .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.hatch.all.other", "cobbleutils.admin")))
+                .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.hatchotherall",
+                  "cobbleutils.admin")))
                 .executes(context -> {
                   ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
                   if (cooldown(player)) return 0;

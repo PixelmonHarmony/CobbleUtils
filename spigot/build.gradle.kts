@@ -31,7 +31,7 @@ dependencies {
     // Minecraft
     minecraft("com.mojang:minecraft:${property("minecraft_version")}")
     mappings("net.fabricmc:yarn:${property("yarn_mappings")}:v2")
-    compileOnly("org.spigotmc:spigot-api:1.20.1-R0.1-SNAPSHOT")
+    api("org.spigotmc:spigot-api:1.20.1-R0.1-SNAPSHOT")
     //compileOnly("io.socket:socket.io-server:4.0.1")
 
     // Socket
@@ -40,7 +40,9 @@ dependencies {
     implementation("com.google.code.gson:gson:2.11.0")
     // Economy
     api("com.github.MilkBowl:VaultAPI:1.7")
+    api("net.luckperms:api:${property("luckperms_version")}")
     shadowCommon("org.java-websocket:Java-WebSocket:1.5.7")
+    shadowCommon("com.google.code.gson:gson:2.11.0")
 }
 
 tasks.processResources {

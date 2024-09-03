@@ -20,7 +20,7 @@ import java.util.*;
 @Getter
 public class PartyManager {
   // Map<PartyName, PartyData>
-  private final Map<String, PartyData> parties;
+  private final Map<UUID, PartyData> parties;
   // Map<UserUUID, PartyName>
   private final Map<UUID, UserParty> userParty;
 
@@ -40,7 +40,7 @@ public class PartyManager {
     PartyData partyData = new PartyData(partyName, owner);
     if (parties.get(partyName) == null) {
       // No existe el party
-      parties.put(partyName, partyData);
+      parties.put(partyData.getId(), partyData);
       userParty.setHasParty(true);
       userParty.setPartyName(partyName);
       partyData.init();
@@ -157,8 +157,8 @@ public class PartyManager {
       return;
     }
 
-    for (Map.Entry<String, PartyData> entry : parties.entrySet()) {
-      String partyName = entry.getKey();
+    for (Map.Entry<UUID, PartyData> entry : parties.entrySet()) {
+      UUID partyName = entry.getKey();
       PartyData partyData = entry.getValue();
 
       if (partyData.getInvites().contains(inviteuuid)) {
@@ -197,7 +197,7 @@ public class PartyManager {
     parties.forEach((partyName, partyData) -> {
       if (partyData.getInvites().contains(playerInfo.getUuid())) {
         partyData.getMembers().add(playerInfo);
-        userParty.get(playerInfo.getUuid()).setPartyName(partyName);
+        userParty.get(playerInfo.getUuid()).setPartyName(partyData.getName());
         userParty.get(playerInfo.getUuid()).setHasParty(true);
         partyData.getInvites().remove(playerInfo.getUuid());
         partyData.writeInfo();

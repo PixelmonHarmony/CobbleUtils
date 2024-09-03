@@ -75,7 +75,6 @@ public class CobbleUtils {
   }
 
   public static void load() {
-    addAllPermissions();
     checks();
     files();
     spawnRates.init();
@@ -83,6 +82,7 @@ public class CobbleUtils {
     sign();
     tasks();
     Features.register();
+    //addAllPermissions();
   }
 
   private static void checks() {
@@ -246,8 +246,8 @@ public class CobbleUtils {
       "cobbleutils.breed",
       "cobbleutils.bosses",
       "cobbleutils.pokerus",
-      "cobbleutils.pokeshout",
-      "cobbleutils.pokeshoutall",
+      "cobbleutils.pokeshoutplus",
+      "cobbleutils.pokeshoutplusall",
       "cobbleutils.hatch",
       "cobbleutils.scale",
       "cobbleutils.endbattle",
@@ -260,8 +260,8 @@ public class CobbleUtils {
       "cobbleutils.breedable",
       "cobbleutils.egg",
       "cobbleutils.egginfo",
-      "cobbleutils.breed.other",
-      "cobbleutils.breed.pokemons",
+      "cobbleutils.breeother",
+      "cobbleutils.breedpokemons",
       "cobbleutils.breedable",
       "cobbleutils.boss",
     };

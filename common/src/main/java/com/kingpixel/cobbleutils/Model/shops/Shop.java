@@ -16,6 +16,7 @@ import com.kingpixel.cobbleutils.Model.ItemChance;
 import com.kingpixel.cobbleutils.Model.ItemModel;
 import com.kingpixel.cobbleutils.Model.shops.types.ShopType;
 import com.kingpixel.cobbleutils.Model.shops.types.ShopTypeDynamic;
+import com.kingpixel.cobbleutils.Model.shops.types.ShopTypeDynamicWeekly;
 import com.kingpixel.cobbleutils.Model.shops.types.ShopTypePermanent;
 import com.kingpixel.cobbleutils.util.*;
 import lombok.Data;
@@ -257,7 +258,7 @@ public class Shop {
       if (shopType.getTypeShop() == ShopType.TypeShop.DYNAMIC) {
         products = ((ShopTypeDynamic) shopType).updateShop(this).getProducts(this);
       } else if (shopType.getTypeShop() == ShopType.TypeShop.DYNAMIC_WEEKLY) {
-        products = ((ShopTypeDynamic) shopType).updateShop(this).getProducts(this);
+        products = ((ShopTypeDynamicWeekly) shopType).updateShop(this).getProducts(this);
       } else {
         products = this.products;
       }

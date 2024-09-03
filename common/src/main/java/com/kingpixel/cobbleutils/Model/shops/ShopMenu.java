@@ -137,13 +137,12 @@ public class ShopMenu {
             );
             break;
           case DYNAMIC_WEEKLY:
-            ShopTypeDynamic shopTypeDynamicWeekly = ((ShopTypeDynamic) shop.getShopType()).updateShop(shop);
-            ShopTypeWeekly shopTypeWeekly1 = (ShopTypeWeekly) shop.getShopType();
+            ShopTypeDynamicWeekly shopTypeDynamicWeekly = ((ShopTypeDynamicWeekly) shop.getShopType()).updateShop(shop);
             lore.replaceAll(
               s -> s
                 .replace("%cooldown%", PlayerUtils.getCooldown(shopTypeDynamicWeekly.getCooldown(shop)))
                 .replace("%amountProducts%", String.valueOf(shopTypeDynamicWeekly.getAmountProducts()))
-                .replace("%days%", shopTypeWeekly1.getDayOfWeek().toString())
+                .replace("%days%", shopTypeDynamicWeekly.getDayOfWeek().toString())
             );
             break;
           default:

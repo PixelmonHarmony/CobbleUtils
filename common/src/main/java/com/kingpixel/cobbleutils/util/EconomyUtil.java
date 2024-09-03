@@ -67,7 +67,7 @@ public abstract class EconomyUtil {
       economyType = EconomyType.IMPACTOR;
       service = EconomyService.instance();
       CobbleUtils.LOGGER.info("Impactor economy found");
-    } else if (WebSocketClientMain.getInstance() != null) {
+    } else if (WebSocketClient.getInstance() != null) {
       economyType = EconomyType.VAULT;
       CobbleUtils.LOGGER.info("Vault economy found");
     } else {
@@ -159,7 +159,7 @@ public abstract class EconomyUtil {
         return false;
       }
       case VAULT: {
-        return WebSocketClientMain.getInstance().addMoney(player.getUuid(), currency, amount.doubleValue()).join();
+        return WebSocketClient.getInstance().addMoney(player.getUuid(), currency, amount.doubleValue()).join();
       }
       default:
         return false;
@@ -189,7 +189,7 @@ public abstract class EconomyUtil {
         EconomyTransaction transaction = account.withdraw(amount);
         return transaction.successful();
       case VAULT:
-        return WebSocketClientMain.getInstance().removeMoney(player.getUuid(), currency, amount.doubleValue()).join();
+        return WebSocketClient.getInstance().removeMoney(player.getUuid(), currency, amount.doubleValue()).join();
       default:
         return false;
     }
@@ -282,7 +282,7 @@ public abstract class EconomyUtil {
       case IMPACTOR:
         return hasEnoughImpactor(getAccount(player.getUuid(), currency.trim()), amount);
       case VAULT:
-        if (WebSocketClientMain.getInstance().hasEnough(player.getUuid(), currency, amount.doubleValue()).join()) {
+        if (WebSocketClient.getInstance().hasEnough(player.getUuid(), currency, amount.doubleValue()).join()) {
           sendMessage(player, amount, CobbleUtils.shopLang.getMessageBought());
           return true;
         }
@@ -470,7 +470,7 @@ public abstract class EconomyUtil {
       case IMPACTOR -> getAccount(player.getUuid(), currency).balance()
         .setScale(getCurrency(currency).decimals(), RoundingMode.HALF_UP);
       case VAULT -> {
-        double balance = WebSocketClientMain.getInstance().getBalance(player.getUuid(), currency).join();
+        double balance = WebSocketClient.getInstance().getBalance(player.getUuid(), currency).join();
         yield BigDecimal.valueOf(balance);
       }
       default -> BigDecimal.ZERO;
