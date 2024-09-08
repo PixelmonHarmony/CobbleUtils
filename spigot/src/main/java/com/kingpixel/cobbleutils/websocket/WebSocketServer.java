@@ -22,7 +22,7 @@ import java.util.logging.Logger;
 public class WebSocketServer extends org.java_websocket.server.WebSocketServer {
 
   private static final Logger LOGGER = Logger.getLogger(WebSocketServer.class.getName());
-  private static final int PORT = 8080;
+  private static final int PORT = 49154;
   private static Economy econ = null;
   private static LuckPerms luckPerms = null;
 

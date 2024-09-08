@@ -1,4 +1,6 @@
-package com.kingpixel.cobbleutils.Model.shops;
+package com.kingpixel.cobbleutils.features.shops.models;
+
+import com.kingpixel.cobbleutils.features.shops.Shop;
 
 import java.util.Date;
 import java.util.List;

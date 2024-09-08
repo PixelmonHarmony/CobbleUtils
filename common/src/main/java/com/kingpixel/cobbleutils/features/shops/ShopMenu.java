@@ -1,4 +1,4 @@
-package com.kingpixel.cobbleutils.Model.shops;
+package com.kingpixel.cobbleutils.features.shops;
 
 import ca.landonjw.gooeylibs2.api.UIManager;
 import ca.landonjw.gooeylibs2.api.button.GooeyButton;
@@ -7,7 +7,7 @@ import ca.landonjw.gooeylibs2.api.template.types.ChestTemplate;
 import com.google.gson.Gson;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.ItemModel;
-import com.kingpixel.cobbleutils.Model.shops.types.*;
+import com.kingpixel.cobbleutils.features.shops.models.types.*;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.PlayerUtils;
 import com.kingpixel.cobbleutils.util.SoundUtil;
@@ -160,12 +160,12 @@ public class ShopMenu {
                 isDay(player, shop, shopTypeWeekly);
               } else if (shop.getShopType().getTypeShop() == ShopType.TypeShop.DYNAMIC) {
                 ((ShopTypeDynamic) shop.getShopType()).updateShop(shop);
-                shop.open(player, this);
+                shop.open(player, this, false);
               } else if (shop.getShopType().getTypeShop() == ShopType.TypeShop.DYNAMIC_WEEKLY) {
                 ShopTypeDynamicWeekly shopTypeDynamicWeekly = ((ShopTypeDynamicWeekly) shop.getShopType()).updateShop(shop);
                 isDay(player, shop, shopTypeDynamicWeekly);
               } else {
-                shop.open(player, this);
+                shop.open(player, this, false);
               }
             } else {
               player.sendMessage(Text.literal("Shop is not active"));
@@ -219,7 +219,7 @@ public class ShopMenu {
     }
 
     if (dayOfWeek.contains(LocalDate.now().getDayOfWeek())) {
-      shop.open(player, this);
+      shop.open(player, this, false);
     } else {
       String message = CobbleUtils.shopLang.getMessageShopWeekly()
         .replace("%prefix%", CobbleUtils.shopLang.getPrefix())
@@ -239,10 +239,10 @@ public class ShopMenu {
     }
   }
 
-  public void open(ServerPlayerEntity player, String shop) {
+  public void open(ServerPlayerEntity player, String shop, boolean b) {
     Shop shop1 = shops.stream().filter(s -> s.getId().equals(shop)).findFirst().orElse(null);
     if (shop1 != null) {
-      shop1.open(player, this);
+      shop1.open(player, this,b);
     } else {
       player.sendMessage(Text.literal("Shop not found"));
     }
@@ -348,4 +348,5 @@ public class ShopMenu {
       .findFirst()
       .orElse(null);
   }
+
 }

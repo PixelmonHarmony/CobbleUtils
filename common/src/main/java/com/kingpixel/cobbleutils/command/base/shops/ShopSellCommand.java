@@ -1,8 +1,8 @@
 package com.kingpixel.cobbleutils.command.base.shops;
 
 import com.kingpixel.cobbleutils.CobbleUtils;
-import com.kingpixel.cobbleutils.Model.shops.ShopMenu;
-import com.kingpixel.cobbleutils.Model.shops.ShopSell;
+import com.kingpixel.cobbleutils.features.shops.ShopMenu;
+import com.kingpixel.cobbleutils.features.shops.ShopSell;
 import com.kingpixel.cobbleutils.util.LuckPermsUtil;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;

@@ -1,4 +1,4 @@
-package com.kingpixel.cobbleutils.Model.shops;
+package com.kingpixel.cobbleutils.features.shops;
 
 import ca.landonjw.gooeylibs2.api.UIManager;
 import ca.landonjw.gooeylibs2.api.button.Button;
@@ -14,10 +14,10 @@ import ca.landonjw.gooeylibs2.api.template.types.ChestTemplate;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.ItemChance;
 import com.kingpixel.cobbleutils.Model.ItemModel;
-import com.kingpixel.cobbleutils.Model.shops.types.ShopType;
-import com.kingpixel.cobbleutils.Model.shops.types.ShopTypeDynamic;
-import com.kingpixel.cobbleutils.Model.shops.types.ShopTypeDynamicWeekly;
-import com.kingpixel.cobbleutils.Model.shops.types.ShopTypePermanent;
+import com.kingpixel.cobbleutils.features.shops.models.types.ShopType;
+import com.kingpixel.cobbleutils.features.shops.models.types.ShopTypeDynamic;
+import com.kingpixel.cobbleutils.features.shops.models.types.ShopTypeDynamicWeekly;
+import com.kingpixel.cobbleutils.features.shops.models.types.ShopTypePermanent;
 import com.kingpixel.cobbleutils.util.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -237,7 +237,7 @@ public class Shop {
     }
   }
 
-  public void open(ServerPlayerEntity player, ShopMenu shopMenu) {
+  public void open(ServerPlayerEntity player, ShopMenu shopMenu, boolean byCommand) {
     try {
       short rows = this.rows;
       if (rows >= 6) {
@@ -357,9 +357,11 @@ public class Shop {
         SoundUtil.playSound(getSoundopen(), action.getPlayer());
       });
 
-      GooeyButton close = UIUtils.getCloseButton(action -> {
-        shopMenu.open(action.getPlayer());
-      });
+
+        GooeyButton close = UIUtils.getCloseButton(action -> {
+          shopMenu.open(action.getPlayer());
+        });
+
 
       if (!getFillItems().isEmpty()) {
         getFillItems().forEach(fillItem -> {
@@ -396,7 +398,9 @@ public class Shop {
 
       // Display
       template.set((this.rows * 9) - 1, next);
-      template.set((this.rows * 9) - 5, close);
+      if (!byCommand) {
+        template.set((this.rows * 9) - 5, close);
+      }
       template.set((this.rows * 9) - 9, previous);
 
       LinkedPage.Builder linkedPageBuilder = LinkedPage
@@ -491,7 +495,7 @@ public class Shop {
         if (buyProduct(player, product, finalamount, finalprice)) {
           ShopTransactions.addTransaction(player.getUuid(), this, ShopTransactions.ShopAction.BUY, product,
             BigDecimal.valueOf(finalamount), finalprice);
-          open(player, CobbleUtils.shopConfig.getShop());
+          open(player, CobbleUtils.shopConfig.getShop(), false);
           ShopTransactions.updateTransaction(player.getUuid(), shopMenu);
         }
       }
@@ -499,7 +503,7 @@ public class Shop {
         if (sellProduct(player, product, finalamount)) {
           ShopTransactions.addTransaction(player.getUuid(), this, ShopTransactions.ShopAction.SELL, product,
             BigDecimal.valueOf(finalamount), finalprice);
-          open(player, CobbleUtils.shopConfig.getShop());
+          open(player, CobbleUtils.shopConfig.getShop(), false);
           ShopTransactions.updateTransaction(player.getUuid(), shopMenu);
         }
       }
@@ -735,7 +739,7 @@ public class Shop {
 
   private void createCancelButton(ChestTemplate template, ServerPlayerEntity player) {
     ItemModel cancel = CobbleUtils.shopLang.getCancel();
-    template.set(cancel.getSlot(), cancel.getButton(action -> open(player, CobbleUtils.shopConfig.getShop())));
+    template.set(cancel.getSlot(), cancel.getButton(action -> open(player, CobbleUtils.shopConfig.getShop(), false)));
   }
 
   private ItemStack getViewItemStack(Product product, int amount) {
@@ -764,7 +768,7 @@ public class Shop {
   }
 
   private void createCloseButton(ChestTemplate template, ServerPlayerEntity player) {
-    template.set((CobbleUtils.shopConfig.getRowsBuySellMenu() * 9) - 5, UIUtils.getCloseButton(action -> open(player, CobbleUtils.shopConfig.getShop())));
+    template.set((CobbleUtils.shopConfig.getRowsBuySellMenu() * 9) - 5, UIUtils.getCloseButton(action -> open(player, CobbleUtils.shopConfig.getShop(), false)));
   }
 
 }

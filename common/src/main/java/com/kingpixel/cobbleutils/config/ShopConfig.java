@@ -2,8 +2,8 @@ package com.kingpixel.cobbleutils.config;
 
 import com.google.gson.Gson;
 import com.kingpixel.cobbleutils.CobbleUtils;
-import com.kingpixel.cobbleutils.Model.shops.ShopMenu;
-import com.kingpixel.cobbleutils.Model.shops.ShopSell;
+import com.kingpixel.cobbleutils.features.shops.ShopMenu;
+import com.kingpixel.cobbleutils.features.shops.ShopSell;
 import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,7 +12,7 @@ import lombok.ToString;
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 
-import static com.kingpixel.cobbleutils.Model.shops.ShopTransactions.loadTransactions;
+import static com.kingpixel.cobbleutils.features.shops.ShopTransactions.loadTransactions;
 
 /**
  * @author Carlos Varas Alonso - 13/08/2024 17:14

@@ -11,6 +11,7 @@ plugins {
 group = "${property("maven_group")}"
 
 allprojects {
+
     apply(plugin = "java")
     apply(plugin = "org.jetbrains.kotlin.jvm")
 
@@ -21,6 +22,7 @@ allprojects {
 
 
     repositories {
+
         mavenCentral()
         maven("https://cursemaven.com")
         maven("https://thedarkcolour.github.io/KotlinForForge/")

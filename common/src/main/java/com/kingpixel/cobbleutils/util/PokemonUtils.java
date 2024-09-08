@@ -12,14 +12,17 @@ import com.cobblemon.mod.common.pokemon.*;
 import com.cobblemon.mod.common.pokemon.abilities.HiddenAbilityType;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.CobbleUtilsTags;
+import com.kingpixel.cobbleutils.Model.PokemonChance;
 import com.kingpixel.cobbleutils.Model.ScalePokemonData;
 import com.kingpixel.cobbleutils.Model.SizeChanceWithoutItem;
+import com.kingpixel.cobbleutils.features.breeding.models.EggData;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -90,6 +93,83 @@ public class PokemonUtils {
     return replace(CobbleUtils.language.getPokemonnameformat(), pokemon);
   }
 
+  private static String replacePlaceholders(String message, Pokemon pokemon, Integer index) {
+    String indexStr = (index == null || index == 0) ? "" : index.toString();
+
+    if (pokemon == null) {
+      return message.replace("%pokemon" + indexStr + "%", CobbleUtils.language.getEmpty());
+    }
+
+    Nature nature = pokemon.getNature();
+    String ah;
+
+    if (isEgg(pokemon)) {
+      Pokemon p = PokemonProperties.Companion.parse(pokemon.getSpecies().showdownId()).create();
+      String ability = pokemon.getPersistentData().getString("ability");
+      if (!ability.isEmpty()) {
+        p.updateAbility(Abilities.INSTANCE.get(ability).create(false));
+      } else {
+        p.updateAbility(getRandomAbility(p));
+      }
+      ah = haveAH(p) ? CobbleUtils.language.getAH() : "";
+    } else {
+      ah = haveAH(pokemon) ? CobbleUtils.language.getAH() : "";
+    }
+
+    return message
+      .replace("%level" + indexStr + "%", String.valueOf(pokemon.getLevel()))
+      .replace("%nature" + indexStr + "%", getNatureTranslate(nature))
+      .replace("%pokemon" + indexStr + "%", isEgg(pokemon) ? pokemon.getPersistentData().getString("species") : pokemon.getSpecies().getName())
+      .replace("%shiny" + indexStr + "%", pokemon.getShiny() ? CobbleUtils.language.getSymbolshiny() : "")
+      .replace("%ability" + indexStr + "%", isEgg(pokemon)
+        ? pokemon.getPersistentData().getString("ability")
+        : getAbilityTranslate(pokemon.getAbility()))
+      .replace("%ivshp" + indexStr + "%", String.valueOf(pokemon.getIvs().get(Stats.HP)))
+      .replace("%ivsatk" + indexStr + "%", String.valueOf(pokemon.getIvs().get(Stats.ATTACK)))
+      .replace("%ivsdef" + indexStr + "%", String.valueOf(pokemon.getIvs().get(Stats.DEFENCE)))
+      .replace("%ivsspa" + indexStr + "%", String.valueOf(pokemon.getIvs().get(Stats.SPECIAL_ATTACK)))
+      .replace("%ivsspdef" + indexStr + "%", String.valueOf(pokemon.getIvs().get(Stats.SPECIAL_DEFENCE)))
+      .replace("%ivsspeed" + indexStr + "%", String.valueOf(pokemon.getIvs().get(Stats.SPEED)))
+      .replace("%evshp" + indexStr + "%", String.valueOf(pokemon.getEvs().get(Stats.HP)))
+      .replace("%evsatk" + indexStr + "%", String.valueOf(pokemon.getEvs().get(Stats.ATTACK)))
+      .replace("%evsdef" + indexStr + "%", String.valueOf(pokemon.getEvs().get(Stats.DEFENCE)))
+      .replace("%evsspa" + indexStr + "%", String.valueOf(pokemon.getEvs().get(Stats.SPECIAL_ATTACK)))
+      .replace("%evsspdef" + indexStr + "%", String.valueOf(pokemon.getEvs().get(Stats.SPECIAL_DEFENCE)))
+      .replace("%evsspeed" + indexStr + "%", String.valueOf(pokemon.getEvs().get(Stats.SPEED)))
+      .replace("%legendary" + indexStr + "%", pokemon.isLegendary() ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
+      .replace("%item" + indexStr + "%", ItemUtils.getTranslatedName(pokemon.heldItem()))
+      .replace("%size" + indexStr + "%", getSize(pokemon))
+      .replace("%form" + indexStr + "%", isEgg(pokemon) ? (pokemon.getPersistentData().getString("form").isEmpty()
+        ? "Normal"
+        : pokemon.getPersistentData().getString("form")) :
+        CobbleUtils.language.getForms().getOrDefault(pokemon.getForm().getName(), pokemon.getForm().getName()))
+      .replace("%aspect" + indexStr + "%", pokemon.getAspects().stream().toList().toString())
+      .replace("%up" + indexStr + "%", getStatTranslate(nature.getIncreasedStat()))
+      .replace("%down" + indexStr + "%", getStatTranslate(nature.getDecreasedStat()))
+      .replace("%ball" + indexStr + "%", getPokeBallTranslate(pokemon.getCaughtBall()))
+      .replace("%gender" + indexStr + "%", getGenderTranslate(pokemon.getGender()))
+      .replace("%ivs" + indexStr + "%", getIvsAverage(pokemon.getIvs()).toString())
+      .replace("%evs" + indexStr + "%", getEvsTotal(pokemon.getEvs()).toString())
+      .replace("%move" + indexStr + "1%", getMoveTranslate(pokemon.getMoveSet().get(0)))
+      .replace("%move" + indexStr + "2%", getMoveTranslate(pokemon.getMoveSet().get(1)))
+      .replace("%move" + indexStr + "3%", getMoveTranslate(pokemon.getMoveSet().get(2)))
+      .replace("%move" + indexStr + "4%", getMoveTranslate(pokemon.getMoveSet().get(3)))
+      .replace("%tradeable" + indexStr + "%", pokemon.getTradeable() ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
+      .replace("%owner" + indexStr + "%", getOwnerName(pokemon))
+      .replace("%ultrabeast" + indexStr + "%", pokemon.isUltraBeast() ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
+      .replace("%types" + indexStr + "%", getType(pokemon))
+      .replace("%rarity" + indexStr + "%", String.valueOf(getRarity(pokemon)))
+      .replace("%breedable" + indexStr + "%", isBreedable(pokemon) ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
+      .replace("%pokerus" + indexStr + "%", isPokerus(pokemon) ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
+      .replace("%friendship" + indexStr + "%", String.valueOf(pokemon.getFriendship()))
+      .replace("%ah" + indexStr + "%", ah)
+      .replace("%country" + indexStr + "%", pokemon.getPersistentData().getString(CobbleUtilsTags.COUNTRY_TAG).isEmpty()
+        ? CobbleUtils.language.getNone()
+        : pokemon.getPersistentData().getString(CobbleUtilsTags.COUNTRY_TAG))
+      .replace("%egggroups" + indexStr + "%", eggGroups(pokemon));
+  }
+
+
   /**
    * Replace the placeholders with the pokemon data
    *
@@ -111,85 +191,7 @@ public class PokemonUtils {
       message = message.replace("%lorepokemon%", lorepokemon);
     }
 
-    Nature nature = pokemon.getNature();
-
-    if (message.contains("%")) {
-      String ah;
-      if (isEgg(pokemon)) {
-        Pokemon p = PokemonProperties.Companion.parse(pokemon.getSpecies().showdownId()).create();
-        String ability = pokemon.getPersistentData().getString("ability");
-        if (!ability.isEmpty()) {
-          p.updateAbility(Abilities.INSTANCE.get(ability).create(false));
-        } else {
-          p.updateAbility(getRandomAbility(p));
-        }
-        if (haveAH(p)) {
-          ah = CobbleUtils.language.getAH();
-        } else {
-          ah = "";
-        }
-      } else {
-        if (haveAH(pokemon)) {
-          ah = CobbleUtils.language.getAH();
-        } else {
-          ah = "";
-        }
-      }
-      message = message
-        .replace("%level%", String.valueOf(pokemon.getLevel()))
-        .replace("%nature%", getNatureTranslate(nature))
-        .replace("%pokemon%", isEgg(pokemon) ? pokemon.getPersistentData().getString("species") : pokemon.getSpecies().getName())
-        .replace("%shiny%", pokemon.getShiny() ? CobbleUtils.language.getSymbolshiny() : "")
-        .replace("%ability%", isEgg(pokemon)
-          ? pokemon.getPersistentData().getString("ability")
-          : getAbilityTranslate(pokemon.getAbility()))
-        .replace("%ivshp%", String.valueOf(pokemon.getIvs().get(Stats.HP)))
-        .replace("%ivsatk%", String.valueOf(pokemon.getIvs().get(Stats.ATTACK)))
-        .replace("%ivsdef%", String.valueOf(pokemon.getIvs().get(Stats.DEFENCE)))
-        .replace("%ivsspa%", String.valueOf(pokemon.getIvs().get(Stats.SPECIAL_ATTACK)))
-        .replace("%ivsspdef%", String.valueOf(pokemon.getIvs().get(Stats.SPECIAL_DEFENCE)))
-        .replace("%ivsspeed%", String.valueOf(pokemon.getIvs().get(Stats.SPEED)))
-        .replace("%evshp%", String.valueOf(pokemon.getEvs().get(Stats.HP)))
-        .replace("%evsatk%", String.valueOf(pokemon.getEvs().get(Stats.ATTACK)))
-        .replace("%evsdef%", String.valueOf(pokemon.getEvs().get(Stats.DEFENCE)))
-        .replace("%evsspa%", String.valueOf(pokemon.getEvs().get(Stats.SPECIAL_ATTACK)))
-        .replace("%evsspdef%", String.valueOf(pokemon.getEvs().get(Stats.SPECIAL_DEFENCE)))
-        .replace("%evsspeed%", String.valueOf(pokemon.getEvs().get(Stats.SPEED)))
-        .replace("%legendary%", pokemon.isLegendary() ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
-        .replace("%item%", ItemUtils.getTranslatedName(pokemon.heldItem()))
-        .replace("%size%", getSize(pokemon))
-        .replace("%form%", isEgg(pokemon) ? (pokemon.getPersistentData().getString("form").isEmpty()
-          ? "Normal"
-          : pokemon.getPersistentData().getString("form")) :
-          CobbleUtils.language.getForms().getOrDefault(pokemon.getForm().getName(), pokemon.getForm().getName()))
-        .replace("%aspect%", pokemon.getAspects().stream().toList().toString())
-        .replace("%up%", getStatTranslate(nature.getIncreasedStat()))
-        .replace("%down%", getStatTranslate(nature.getDecreasedStat()))
-        .replace("%ball%", getPokeBallTranslate(pokemon.getCaughtBall()))
-        .replace("%gender%", getGenderTranslate(pokemon.getGender()))
-        .replace("%ivs%", getIvsAverage(pokemon.getIvs()).toString())
-        .replace("%evs%", getEvsTotal(pokemon.getEvs()).toString())
-        .replace("%move1%", getMoveTranslate(pokemon.getMoveSet().get(0)))
-        .replace("%move2%", getMoveTranslate(pokemon.getMoveSet().get(1)))
-        .replace("%move3%", getMoveTranslate(pokemon.getMoveSet().get(2)))
-        .replace("%move4%", getMoveTranslate(pokemon.getMoveSet().get(3)))
-        .replace("%tradeable%", pokemon.getTradeable() ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
-        .replace("%owner%", getOwnerName(pokemon))
-        .replace("%ultrabeast%",
-          pokemon.isUltraBeast() ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
-        .replace("%types%", getType(pokemon))
-        .replace("%rarity%", String.valueOf(getRarity(pokemon)))
-        .replace("%breedable%", isBreedable(pokemon) ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
-        .replace("%pokerus%", isPokerus(pokemon) ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
-        .replace("%friendship%", String.valueOf(pokemon.getFriendship()))
-        .replace("%ah%", ah)
-        .replace("%country%", pokemon.getPersistentData().getString(CobbleUtilsTags.COUNTRY_TAG).isEmpty()
-          ? CobbleUtils.language.getNone()
-          : pokemon.getPersistentData().getString(CobbleUtilsTags.COUNTRY_TAG))
-        .replace("%egggroups%", eggGroups(pokemon));
-    }
-
-    return message;
+    return replacePlaceholders(message, pokemon, null); // null indica que no hay índice
   }
 
   public static boolean isEgg(Pokemon pokemon) {
@@ -215,6 +217,7 @@ public class PokemonUtils {
     return pokemon.getPersistentData().getBoolean("pokerus");
   }
 
+
   /**
    * Replace the placeholders with the pokemon data
    *
@@ -230,65 +233,7 @@ public class PokemonUtils {
 
     for (int i = 0; i < pokemons.size(); i++) {
       Pokemon pokemon = pokemons.get(i);
-      String indexedMessage = message;
-      int index = i + 1;
-      if (indexedMessage.contains("%")) {
-        if (pokemon == null) {
-          message = indexedMessage.replace("%pokemon" + index + "%", CobbleUtils.language.getEmpty());
-          continue;
-        }
-        Nature nature = pokemon.getNature();
-        indexedMessage = indexedMessage.replace("%level" + index + "%", String.valueOf(pokemon.getLevel()))
-          .replace("%nature" + index + "%", getNatureTranslate(nature))
-          .replace("%pokemon" + index + "%", getTranslatedName(pokemon))
-          .replace("%shiny" + index + "%", pokemon.getShiny() ? CobbleUtils.language.getSymbolshiny() : "")
-          .replace("%ability" + index + "%", getAbilityTranslate(pokemon.getAbility()))
-          .replace("%ivshp" + index + "%", String.valueOf(pokemon.getIvs().get(Stats.HP)))
-          .replace("%ivsatk" + index + "%", String.valueOf(pokemon.getIvs().get(Stats.ATTACK)))
-          .replace("%ivsdef" + index + "%", String.valueOf(pokemon.getIvs().get(Stats.DEFENCE)))
-          .replace("%ivsspa" + index + "%", String.valueOf(pokemon.getIvs().get(Stats.SPECIAL_ATTACK)))
-          .replace("%ivsspdef" + index + "%", String.valueOf(pokemon.getIvs().get(Stats.SPECIAL_DEFENCE)))
-          .replace("%ivsspeed" + index + "%", String.valueOf(pokemon.getIvs().get(Stats.SPEED)))
-          .replace("%evshp" + index + "%", String.valueOf(pokemon.getEvs().get(Stats.HP)))
-          .replace("%evsatk" + index + "%", String.valueOf(pokemon.getEvs().get(Stats.ATTACK)))
-          .replace("%evsdef" + index + "%", String.valueOf(pokemon.getEvs().get(Stats.DEFENCE)))
-          .replace("%evsspa" + index + "%", String.valueOf(pokemon.getEvs().get(Stats.SPECIAL_ATTACK)))
-          .replace("%evsspdef" + index + "%", String.valueOf(pokemon.getEvs().get(Stats.SPECIAL_DEFENCE)))
-          .replace("%evsspeed" + index + "%", String.valueOf(pokemon.getEvs().get(Stats.SPEED)))
-          .replace("%legendary" + index + "%",
-            pokemon.isLegendary() ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
-          .replace("%item" + index + "%", pokemon.heldItem().getName().getString())
-          .replace("%size" + index + "%", getSize(pokemon))
-          .replace("%form" + index + "%",
-            CobbleUtils.language.getForms().getOrDefault(pokemon.getForm().getName(), pokemon.getForm().getName()))
-          .replace("%up" + index + "%", getStatTranslate(nature.getIncreasedStat()))
-          .replace("%down" + index + "%", getStatTranslate(nature.getDecreasedStat()))
-          .replace("%ball" + index + "%", getPokeBallTranslate(pokemon.getCaughtBall()))
-          .replace("%gender" + index + "%", getGenderTranslate(pokemon.getGender()))
-          .replace("%ivs" + index + "%", getIvsAverage(pokemon.getIvs()).toString())
-          .replace("%evs" + index + "%", getEvsTotal(pokemon.getEvs()).toString())
-          .replace("%move" + index + "1%", getMoveTranslate(pokemon.getMoveSet().get(0)))
-          .replace("%move" + index + "2%", getMoveTranslate(pokemon.getMoveSet().get(1)))
-          .replace("%move" + index + "3%", getMoveTranslate(pokemon.getMoveSet().get(2)))
-          .replace("%move" + index + "4%", getMoveTranslate(pokemon.getMoveSet().get(3)))
-          .replace("%tradeable" + index + "%",
-            pokemon.getTradeable() ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
-          .replace("%owner" + index + "%", getOwnerName(pokemon))
-          .replace("%ultrabeast" + index + "%",
-            pokemon.isUltraBeast() ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
-          .replace("%types" + index + "%", getType(pokemon))
-          .replace("%rarity" + index + "%", String.valueOf(getRarity(pokemon)))
-          .replace("%breedable" + index + "%",
-            isBreedable(pokemon) ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
-          .replace("%country" + index + "%",
-            pokemon.getPersistentData().getString(CobbleUtilsTags.COUNTRY_TAG).isEmpty()
-              ? CobbleUtils.language.getNone()
-              : pokemon.getPersistentData().getString(CobbleUtilsTags.COUNTRY_TAG))
-          .replace("%egggroups" + index + "%", eggGroups(pokemon));
-
-      }
-
-      message = indexedMessage;
+      message = replacePlaceholders(message, pokemon, i + 1); // i + 1 para obtener índices 1, 2, 3...
     }
 
     return message;
@@ -299,17 +244,53 @@ public class PokemonUtils {
   }
 
   public static Pokemon getFirstEvolution(Species currentSpecies) {
+    return getFirstPreEvolution(currentSpecies).create(1);
+  }
 
-    while (currentSpecies.getPreEvolution() != null) {
-      Species nextPreevolution = currentSpecies.getPreEvolution().getSpecies();
+  public static Pokemon getEvolutionPokemonEgg(Pokemon pokemon) {
+    return getEvolutionPokemonEgg(pokemon.getSpecies());
+  }
 
-      if (nextPreevolution == null || nextPreevolution.showdownId().equalsIgnoreCase(currentSpecies.showdownId())) {
+  public static Pokemon getEvolutionPokemonEgg(Species species) {
+    Species firstEvolution = getFirstPreEvolution(species);
+
+    Pokemon specialPokemon = findSpecialPokemon(firstEvolution);
+
+    // Usamos Objects.requireNonNullElseGet para devolver el Pokémon especial si existe, o crear uno nuevo si no
+    return Objects.requireNonNullElseGet(specialPokemon, () -> firstEvolution.create(1));
+  }
+
+  private static Species getFirstPreEvolution(Species species) {
+    while (species.getPreEvolution() != null) {
+      Species preEvolution = species.getPreEvolution().getSpecies();
+
+      // Si encontramos un bucle en la cadena evolutiva, rompemos el ciclo
+      if (preEvolution.showdownId().equalsIgnoreCase(species.showdownId())) {
         break;
       }
-      currentSpecies = nextPreevolution;
+
+      species = preEvolution;
     }
-    return currentSpecies.create(1);
+
+    return species;
   }
+
+  private static Pokemon findSpecialPokemon(Species species) {
+    List<PokemonChance> specialPokemons = new ArrayList<>();
+
+    for (EggData.PokemonRareMecanic pokemonRareMechanic : CobbleUtils.breedconfig.getPokemonRareMechanics()) {
+      for (PokemonChance pokemon : pokemonRareMechanic.getPokemons()) {
+        if (pokemon.getPokemon().equalsIgnoreCase(species.showdownId())) {
+          specialPokemons = pokemonRareMechanic.getPokemons();
+          break;
+        }
+      }
+    }
+
+
+    return PokemonChance.getPokemonCreate(specialPokemons);
+  }
+
 
   /**
    *

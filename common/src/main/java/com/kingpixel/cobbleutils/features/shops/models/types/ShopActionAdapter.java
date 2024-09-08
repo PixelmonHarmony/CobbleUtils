@@ -1,9 +1,9 @@
-package com.kingpixel.cobbleutils.Model.shops.types;
+package com.kingpixel.cobbleutils.features.shops.models.types;
 
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-import com.kingpixel.cobbleutils.Model.shops.ShopTransactions;
+import com.kingpixel.cobbleutils.features.shops.ShopTransactions;
 
 import java.io.IOException;
 

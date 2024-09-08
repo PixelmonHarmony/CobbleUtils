@@ -1,4 +1,4 @@
-package com.kingpixel.cobbleutils.Model.shops;
+package com.kingpixel.cobbleutils.features.shops;
 
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;

@@ -9,17 +9,20 @@ import ca.landonjw.gooeylibs2.api.helpers.PaginationHelper;
 import ca.landonjw.gooeylibs2.api.page.GooeyPage;
 import ca.landonjw.gooeylibs2.api.page.LinkedPage;
 import ca.landonjw.gooeylibs2.api.template.types.ChestTemplate;
+import com.cobblemon.mod.common.api.storage.player.PlayerData;
 import com.kingpixel.cobbleutils.CobbleUtils;
-import com.kingpixel.cobbleutils.Model.shops.ShopMenu;
-import com.kingpixel.cobbleutils.Model.shops.ShopTransactions;
+import com.kingpixel.cobbleutils.features.shops.ShopMenu;
+import com.kingpixel.cobbleutils.features.shops.ShopTransactions;
 import com.kingpixel.cobbleutils.util.*;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import dev.architectury.event.events.common.TickEvent;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.PlayerManager;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -90,7 +93,9 @@ public class ShopTransactionCommand implements Command<ServerCommandSource> {
   private static GooeyButton createPlayerButton(ServerPlayerEntity viewer, UUID uuid,
                                                 Map<String, ShopTransactions.TransactionSummary> shopActions) {
     ServerPlayerEntity player = CobbleUtils.server.getPlayerManager().getPlayer(uuid);
+
     String title = (player != null) ? player.getName().getString() : uuid.toString();
+
     ItemStack itemStack = PlayerUtils.getHeadItem(player);
 
     List<String> lore = new ArrayList<>();
@@ -110,19 +115,19 @@ public class ShopTransactionCommand implements Command<ServerCommandSource> {
 
     // Total Money Spent
     BigDecimal totalMoneySpent = shopActions.values().stream()
-      .map(ShopTransactions.TransactionSummary::getTotalMoneySpent) // Método hipotético que devuelve el dinero total gastado en compras
+      .map(ShopTransactions.TransactionSummary::getTotalSpent)
       .reduce(BigDecimal.ZERO, BigDecimal::add);
     lore.add("&7Total Money Spent: &b" + totalMoneySpent.toPlainString());
 
     // Total Bought Quantity
     BigDecimal totalBoughtQuantity = shopActions.values().stream()
-      .map(ShopTransactions.TransactionSummary::getTotalBoughtQuantity) // Método hipotético que devuelve la cantidad total comprada
+      .map(ShopTransactions.TransactionSummary::getTotalBoughtQuantity)
       .reduce(BigDecimal.ZERO, BigDecimal::add);
     lore.add("&7Total Bought Quantity: &b" + totalBoughtQuantity.toPlainString());
 
     // Total Sold Quantity
     BigDecimal totalSoldQuantity = shopActions.values().stream()
-      .map(ShopTransactions.TransactionSummary::getTotalSoldAmount) // Método hipotético que devuelve la cantidad total
+      .map(ShopTransactions.TransactionSummary::getTotalSoldAmount)
       // vendida
       .reduce(BigDecimal.ZERO, BigDecimal::add);
     lore.add("&7Total Sold Quantity: &b" + totalSoldQuantity.toPlainString());
@@ -185,8 +190,10 @@ public class ShopTransactionCommand implements Command<ServerCommandSource> {
     );
 
 
+    ItemStack itemStack = shop.getProductById(product).getItemStack();
     return GooeyButton.builder()
-      .display(shop.getProductById(product).getItemStack())
+      .display(itemStack)
+      .title(AdventureTranslator.toNative(itemStack.getName().getString()))
       .lore(Text.class, AdventureTranslator.toNativeL(lore))
       .build();
   }

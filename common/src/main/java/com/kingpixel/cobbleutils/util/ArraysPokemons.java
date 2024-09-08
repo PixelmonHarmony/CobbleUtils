@@ -90,15 +90,28 @@ public class ArraysPokemons {
 
     pokemonsByType = new HashMap<>();
 
-    pokemons.forEach(species1 -> species1.getForms().forEach(formData -> {
+    all.forEach(species1 -> species1.getForms().forEach(formData -> {
       for (ElementalType type : formData.getTypes()) {
         if (!pokemonsByType.containsKey(type)) {
           pokemonsByType.put(type, new ArrayList<>());
         }
         if (formData.getAspects().isEmpty()) {
-          pokemonsByType.get(type).add(PokemonProperties.Companion.parse(species1.showdownId()).create());
+          pokemonsByType.get(type).add(formData.getSpecies().create(1));
         } else {
-          pokemonsByType.get(type).add(PokemonProperties.Companion.parse(species1.showdownId() + " " + formData.getAspects().get(0)).create());
+          formData.getAspects().forEach(aspect -> {
+            if (aspect.equals("male") || aspect.equals("female") || aspect.equals("unknown")) return;
+
+            String form = aspect;
+
+            form = form.replace("-", "_");
+
+            int lastUnderscoreIndex = form.lastIndexOf("_");
+
+            if (lastUnderscoreIndex != -1) {
+              form = form.substring(0, lastUnderscoreIndex) + "=" + form.substring(lastUnderscoreIndex + 1);
+            }
+            pokemonsByType.get(type).add(PokemonProperties.Companion.parse(species1.showdownId() + " " + form).create());
+          });
         }
       }
     }));

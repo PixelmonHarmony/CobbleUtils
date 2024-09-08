@@ -168,7 +168,6 @@ public class CobbleUtils {
     LifecycleEvent.SERVER_STOPPING.register(server -> {
       scheduledTasks.forEach(task -> task.cancel(true));
       scheduledTasks.clear();
-      LOGGER.info("CobbleUtils has been stopped.");
     });
 
 

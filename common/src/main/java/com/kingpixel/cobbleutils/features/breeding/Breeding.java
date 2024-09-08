@@ -103,12 +103,13 @@ public class Breeding {
 
     LifecycleEvent.SERVER_STOPPING.register(instance -> {
       for (ScheduledFuture<?> task : scheduledTasks) {
-        task.cancel(false);
+        task.cancel(true);
       }
       scheduledTasks.clear();
       CobbleUtils.LOGGER.info("Writing info breeding");
       managerPlotEggs.getEggs().forEach((key, value) -> managerPlotEggs.writeInfo(key));
     });
+
     ChunkEvent.LOAD_DATA.register((chunk, level, nbtCompound) -> {
       if (!CobbleUtils.breedconfig.isSpawnEggWorld()) return;
       //PokemonEntity entity = EggData.spawnEgg(chunk, level);
@@ -135,8 +136,6 @@ public class Breeding {
     EggThrow.register();
     PastureUI.register();
     NationalityPokemon.register();
-
-
   }
 
   private static EventResult egg(Entity entity, ServerPlayerEntity player) {

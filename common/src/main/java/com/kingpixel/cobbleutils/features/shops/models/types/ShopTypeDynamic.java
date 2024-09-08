@@ -1,8 +1,8 @@
-package com.kingpixel.cobbleutils.Model.shops.types;
+package com.kingpixel.cobbleutils.features.shops.models.types;
 
 import com.kingpixel.cobbleutils.CobbleUtils;
-import com.kingpixel.cobbleutils.Model.shops.Shop;
-import com.kingpixel.cobbleutils.Model.shops.ShopDynamicData;
+import com.kingpixel.cobbleutils.features.shops.Shop;
+import com.kingpixel.cobbleutils.features.shops.models.ShopDynamicData;
 import com.kingpixel.cobbleutils.util.PlayerUtils;
 import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Getter;
@@ -38,7 +38,7 @@ public class ShopTypeDynamic extends ShopType {
   public ShopTypeDynamic updateShop(Shop shop) {
     // Asegúrate de que las estructuras en ShopMenu estén inicializadas
     initializeShopMenu();
-    
+
     // Si el cooldown ha expirado o no existe, realiza la reposición de productos
     if (!PlayerUtils.isCooldown(ShopDynamicData.cooldowns.get(shop.getId()))) {
       // Actualiza el cooldown

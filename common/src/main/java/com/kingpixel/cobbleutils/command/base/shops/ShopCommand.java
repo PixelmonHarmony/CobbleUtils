@@ -67,7 +67,7 @@ public class ShopCommand implements Command<ServerCommandSource> {
                   }
                   ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
                   String shop = StringArgumentType.getString(context, "shop");
-                  CobbleUtils.shopConfig.getShop().open(player, shop);
+                  CobbleUtils.shopConfig.getShop().open(player, shop, false);
                   return 0;
                 })
                 .then(
@@ -78,7 +78,7 @@ public class ShopCommand implements Command<ServerCommandSource> {
                     .executes(context -> {
                       ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
                       String shop = StringArgumentType.getString(context, "shop");
-                      CobbleUtils.shopConfig.getShop().open(player, shop);
+                      CobbleUtils.shopConfig.getShop().open(player, shop, true);
                       return 0;
                     })
                 )

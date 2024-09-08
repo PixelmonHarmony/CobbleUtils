@@ -1,4 +1,4 @@
-package com.kingpixel.cobbleutils.Model.shops.types;
+package com.kingpixel.cobbleutils.features.shops.models.types;
 
 import lombok.Getter;
 import lombok.Setter;

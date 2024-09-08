@@ -25,17 +25,18 @@ public class ScaleEvent {
   private static final ScalePropertyType ScalePropertyType = new ScalePropertyType();
 
   public static void register() {
-    CobblemonEvents.FOSSIL_REVIVED.subscribe(Priority.HIGH, (evt) -> {
+    CobblemonEvents.FOSSIL_REVIVED.subscribe(Priority.NORMAL, (evt) -> {
       if (!CobbleUtils.config.isRandomsize()) return Unit.INSTANCE;
       scalePokemon(evt.getPokemon());
       return Unit.INSTANCE;
     });
-    CobblemonEvents.STARTER_CHOSEN.subscribe(Priority.HIGH, (evt) -> {
+    CobblemonEvents.STARTER_CHOSEN.subscribe(Priority.NORMAL, (evt) -> {
       if (!CobbleUtils.config.isRandomsize()) return Unit.INSTANCE;
       scalePokemon(evt.getPokemon());
       return Unit.INSTANCE;
     });
-    CobblemonEvents.POKEMON_ENTITY_SPAWN.subscribe(Priority.HIGH, (evt) -> {
+
+    CobblemonEvents.POKEMON_ENTITY_SPAWN.subscribe(Priority.NORMAL, (evt) -> {
       if (!CobbleUtils.config.isRandomsize()) return Unit.INSTANCE;
       PokemonEntity pokemonEntity = evt.getEntity();
       if (pokemonEntity.isPersistent()) return Unit.INSTANCE;
@@ -92,7 +93,9 @@ public class ScaleEvent {
   }
 
   private static void applyScale(Pokemon pokemon, String id, float size) {
-    if (!CobbleUtils.config.isRandomsize()) return;
+    if (CobbleUtils.config.isDebug()) {
+      CobbleUtils.LOGGER.info("Change Scale Pokemon: " + pokemon.showdownId() + " Size: " + size + " ID: " + id);
+    }
     pokemon.getPersistentData().putString(SIZE_TAG, id);
     pokemon.setScaleModifier(size);
   }

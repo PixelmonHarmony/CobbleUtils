@@ -3,6 +3,9 @@ package com.kingpixel.cobbleutils.features.breeding.config;
 import com.google.gson.Gson;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.ItemModel;
+import com.kingpixel.cobbleutils.Model.PokemonChance;
+import com.kingpixel.cobbleutils.Model.PokemonData;
+import com.kingpixel.cobbleutils.features.breeding.models.EggData;
 import com.kingpixel.cobbleutils.features.breeding.models.Incense;
 import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Data;
@@ -61,6 +64,11 @@ public class BreedConfig {
   private String notditto;
   private String notCompatible;
   private String blacklisted;
+
+  private List<EggData.EggForm> eggForms;
+  private List<EggData.EggSpecialForm> eggSpecialForms;
+  private List<EggData.PokemonRareMecanic> pokemonRareMechanics;
+
   private ItemModel plotItem;
   private ItemModel plotThereAreEggs;
   private ItemModel maleSelectItem;
@@ -149,7 +157,29 @@ public class BreedConfig {
     this.incenses = Incense.defaultIncenses();
     this.blacklistForm = List.of("halloween");
 
-    //this.nationalities = List.of("es", "en", "fr", "de", "it", "pt", "jp", "ko", "zh", "ru");
+    this.eggForms = List.of(
+      new EggData.EggForm("galarian",
+        List.of("perrserker", "sirfetchd", "mrrime", "cursola", "runerigus", "obstagoon")),
+      new EggData.EggForm("paldean", List.of("clodsire")),
+      new EggData.EggForm("hisuian", List.of("overqwil", "sneasler"))
+    );
+
+    this.eggSpecialForms = List.of(
+      new EggData.EggSpecialForm("region_bias=hisui",
+        List.of(new PokemonData("decidueye", "hisuian")))
+    );
+
+    this.pokemonRareMechanics = List.of(
+      new EggData.PokemonRareMecanic(List.of(
+        new PokemonChance("nidoranf", 50),
+        new PokemonChance("nidoranm", 50)
+      )),
+      new EggData.PokemonRareMecanic(List.of(
+        new PokemonChance("illumise", 50),
+        new PokemonChance("volbeat", 50)
+      ))
+    );
+
   }
 
   public void init() {
@@ -211,6 +241,9 @@ public class BreedConfig {
         plotThereAreEggs = config.getPlotThereAreEggs();
         notbreedable = config.getNotbreedable();
         blacklistForm = config.getBlacklistForm();
+        eggForms = config.getEggForms();
+        eggSpecialForms = config.getEggSpecialForms();
+        pokemonRareMechanics = config.getPokemonRareMechanics();
 
 
         //nationalities = config.getNationalities();

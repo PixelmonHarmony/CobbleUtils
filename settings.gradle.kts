@@ -48,4 +48,12 @@ pluginManagement {
 
 }
 
-include("common", "fabric", "forge", "spigot")
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        mavenCentral()
+        maven(url = "https://jitpack.io")
+    }
+}
+
+include("common", "fabric", "forge")

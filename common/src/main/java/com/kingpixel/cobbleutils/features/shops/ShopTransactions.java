@@ -1,4 +1,4 @@
-package com.kingpixel.cobbleutils.Model.shops;
+package com.kingpixel.cobbleutils.features.shops;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -17,13 +17,17 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Getter
 @ToString
 @Data
 public class ShopTransactions {
+
   // UUID (Player) -> Product -> TransactionSummary
-  public static Map<UUID, Map<String, TransactionSummary>> transactions = new ConcurrentHashMap<>();
+  public static final Map<UUID, Map<String, TransactionSummary>> transactions = new ConcurrentHashMap<>();
+  private static final ReentrantLock writeLock = new ReentrantLock();
+  private static boolean firstTime = false;
 
   @Getter
   @ToString
@@ -45,50 +49,41 @@ public class ShopTransactions {
       totalSoldPrice = totalSoldPrice.add(price);
     }
 
+    // Devuelve el total de dinero gastado en compras
     public BigDecimal getTotalSpent() {
       return totalBoughtPrice;
     }
 
+    // Devuelve el total de dinero ganado con las ventas
     public BigDecimal getTotalEarned() {
       return totalSoldPrice;
     }
 
+    // Devuelve la diferencia neta entre lo ganado y lo gastado
     public BigDecimal getNet() {
       return totalSoldPrice.subtract(totalBoughtPrice);
     }
 
-    public BigDecimal getTotalMoneySpent() {
-      return totalBoughtPrice;
-    }
-
+    // Devuelve la cantidad total comprada
     public BigDecimal getTotalBoughtQuantity() {
       return totalBoughtAmount;
     }
 
+    // Devuelve la cantidad total vendida
     public BigDecimal getTotalSoldQuantity() {
       return totalSoldAmount;
     }
   }
 
-  private static boolean firstTime = false;
 
   public static synchronized void addTransaction(UUID player, Shop shop, ShopAction action, Shop.Product product, BigDecimal amount, BigDecimal price) {
-    transactions.computeIfAbsent(player, k -> new HashMap<>())
-      .computeIfAbsent(product.getProduct(), k -> new TransactionSummary()); // Usa el ID del producto como clave
-
-    TransactionSummary summary = transactions.get(player).get(product.getProduct());
-
-    if (action == ShopAction.BUY) {
-      summary.addBuy(amount, price);
-    } else if (action == ShopAction.SELL) {
-      summary.addSell(amount, price);
-    }
-    summary.setCurrency(shop.getCurrency());
+    addTransaction(player, shop.getCurrency(), action, product, amount, price);
   }
 
   public static synchronized void addTransaction(UUID player, String currency, ShopAction action, Shop.Product product, BigDecimal amount, BigDecimal price) {
     transactions.computeIfAbsent(player, k -> new HashMap<>())
-      .computeIfAbsent(product.getProduct(), k -> new TransactionSummary()); // Usa el ID del producto como clave
+      .computeIfAbsent(product.getProduct(), k -> new TransactionSummary())
+      .setCurrency(currency);
 
     TransactionSummary summary = transactions.get(player).get(product.getProduct());
 
@@ -97,7 +92,6 @@ public class ShopTransactions {
     } else if (action == ShopAction.SELL) {
       summary.addSell(amount, price);
     }
-    summary.setCurrency(currency);
   }
 
   public static synchronized void updateTransaction(UUID player, ShopMenu shopMenu) {
@@ -105,19 +99,21 @@ public class ShopTransactions {
       List<Shop.Product> currentProducts = shopMenu.getAllProducts();
 
       transactions.computeIfPresent(player, (uuid, productMap) -> {
-        productMap.keySet().removeIf(productId -> {
-          // Filtra los productos que no están en los productos actuales
-          Shop.Product product = shopMenu.getProductById(productId);
-          return product == null || !currentProducts.contains(product);
-        });
+        productMap.keySet().removeIf(productId -> shopMenu.getProductById(productId) == null);
         return productMap.isEmpty() ? null : productMap;
       });
 
-      Utils.writeFileAsync(shopMenu.getLogg(), player + ".json", Utils.newWithoutSpacingGson().toJson(transactions.get(player)))
-        .exceptionally(ex -> {
-          ex.printStackTrace(); // Manejo de excepciones
-          return null;
-        });
+      // Escribe el archivo de manera segura usando un lock para evitar concurrencia
+      writeLock.lock();
+      try {
+        Utils.writeFileAsync(shopMenu.getLogg(), player + ".json", Utils.newWithoutSpacingGson().toJson(transactions.get(player)))
+          .exceptionally(ex -> {
+            ex.printStackTrace(); // Manejo de excepciones
+            return null;
+          });
+      } finally {
+        writeLock.unlock();
+      }
     }).exceptionally(ex -> {
       ex.printStackTrace(); // Manejo de excepciones durante la carga
       return null;
@@ -136,13 +132,9 @@ public class ShopTransactions {
 
       for (File file : files) {
         try {
-          // Leer el archivo JSON
           String data = Utils.readFileSync(file);
-
-          // Deserializar el JSON
           Gson gson = Utils.newWithoutSpacingGson();
-          Type type = new TypeToken<Map<String, TransactionSummary>>() {
-          }.getType();
+          Type type = new TypeToken<Map<String, TransactionSummary>>() {}.getType();
           Map<String, TransactionSummary> map = gson.fromJson(data, type);
 
           if (map == null) {
@@ -150,7 +142,6 @@ public class ShopTransactions {
             continue;
           }
 
-          // Procesar y convertir el ID del producto de vuelta a Shop.Product
           Map<String, TransactionSummary> processedMap = new HashMap<>();
           map.forEach((productId, summary) -> {
             Shop.Product product = shopMenu.getProductById(productId);
@@ -159,7 +150,6 @@ public class ShopTransactions {
             }
           });
 
-          // Almacenar las transacciones procesadas
           transactions.put(UUID.fromString(file.getName().replace(".json", "")), processedMap);
         } catch (JsonSyntaxException e) {
           System.err.println("Error de sintaxis JSON en el archivo " + file.getName() + ": " + e.getMessage());
@@ -171,7 +161,6 @@ public class ShopTransactions {
       firstTime = true;
     });
   }
-
 
   public enum ShopAction {
     BUY,

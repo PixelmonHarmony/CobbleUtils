@@ -1,7 +1,6 @@
 package com.kingpixel.cobbleutils.util;
 
 import com.kingpixel.cobbleutils.CobbleUtils;
-import dev.architectury.platform.Platform;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
@@ -19,9 +18,6 @@ public abstract class LuckPermsUtil {
   private enum Permission {
     LUCKPERMS,
     SPIGOT,
-    FORGE,
-    FABRIC,
-    NONE,
   }
 
   private static void setup() {
@@ -32,16 +28,6 @@ public abstract class LuckPermsUtil {
     } else if (WebSocketClient.getInstance() != null) {
       PERMISSION_TYPE = Permission.SPIGOT;
       CobbleUtils.LOGGER.info("WebSocket permissions detected");
-    } else if (Platform.isForge()) {
-      Permission
-        PERMISSION_TYPE = Permission.FORGE;
-      CobbleUtils.LOGGER.error("Forge permission system not implemented");
-    } else if (Platform.isFabric()) {
-      PERMISSION_TYPE = Permission.FABRIC;
-      CobbleUtils.LOGGER.error("Fabric permission system not implemented");
-    } else {
-      PERMISSION_TYPE = Permission.NONE;
-      CobbleUtils.LOGGER.error("No permission system detected");
     }
   }
 
@@ -139,9 +125,7 @@ public abstract class LuckPermsUtil {
       case SPIGOT:
         WebSocketClient.getInstance().addPermission(permission);
         break;
-      case NONE:
       default:
-
         break;
     }
   }

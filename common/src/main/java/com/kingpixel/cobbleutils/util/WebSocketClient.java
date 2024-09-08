@@ -22,26 +22,26 @@ public class WebSocketClient extends org.java_websocket.client.WebSocketClient {
   private static final Logger LOGGER = Logger.getLogger(WebSocketClient.class.getName());
   private static volatile WebSocketClient INSTANCE;
 
-  private static final AtomicLong REQUEST_ID_GENERATOR = new AtomicLong();  // Generador de IDs únicos para las solicitudes
-  private static final ConcurrentHashMap<Long, CompletableFuture<?>> pendingRequests = new ConcurrentHashMap<>();  // Almacenar futuros de solicitudes pendientes
+  private static final AtomicLong REQUEST_ID_GENERATOR = new AtomicLong();  // Unique ID generator for requests
+  private static final ConcurrentHashMap<Long, CompletableFuture<?>> pendingRequests = new ConcurrentHashMap<>();  // Store pending request futures
 
   private static final int MAX_RETRY_ATTEMPTS = 5;
   private static final int RETRY_DELAY_MS = 2000;
 
   public static WebSocketClient getInstance() {
-    try {
-      if (INSTANCE == null) {
-        synchronized (WebSocketClient.class) {
-          if (INSTANCE == null) {
-            init();
+    if (INSTANCE == null) {
+      synchronized (WebSocketClient.class) {
+        if (INSTANCE == null) {
+          // Attempt to initialize the instance
+          boolean success = init();
+          if (!success) {
+            LOGGER.log(Level.SEVERE, "Failed to initialize WebSocket client.");
+            return null;
           }
         }
       }
-      return INSTANCE;
-    } catch (Exception e) {
-      LOGGER.log(Level.SEVERE, "Error al obtener la instancia del cliente WebSocket: " + e.getMessage(), e);
-      return null;
     }
+    return INSTANCE;
   }
 
   private WebSocketClient(String serverUri) throws URISyntaxException {
@@ -50,33 +50,33 @@ public class WebSocketClient extends org.java_websocket.client.WebSocketClient {
 
   @Override
   public void onOpen(ServerHandshake handshakedata) {
-    LOGGER.log(Level.INFO, "Conectado al servidor WebSocket.");
+    LOGGER.log(Level.INFO, "Connected to WebSocket server.");
   }
 
   @Override
   public void onMessage(String message) {
     if (CobbleUtils.config.isDebug()) {
-      LOGGER.log(Level.INFO, "Mensaje recibido del servidor: " + message);
+      LOGGER.log(Level.INFO, "Message received from server: " + message);
     }
 
-    // Parsear el mensaje recibido del servidor
+    // Parse the received message from the server
     try {
       JsonObject jsonObject = JsonParser.parseString(message).getAsJsonObject();
 
       Long requestId = jsonObject.has("requestId") ? jsonObject.get("requestId").getAsLong() : null;
 
       if (requestId != null) {
-        CompletableFuture<?> future = pendingRequests.remove(requestId);  // Obtener el futuro correspondiente
+        CompletableFuture<?> future = pendingRequests.remove(requestId);  // Get the corresponding future
 
         if (future == null) {
-          LOGGER.log(Level.WARNING, "No se encontró la solicitud correspondiente para requestId: " + requestId);
+          LOGGER.log(Level.WARNING, "No matching request found for requestId: " + requestId);
           return;
         }
 
         handleResponse(jsonObject, future);
       }
     } catch (Exception e) {
-      LOGGER.log(Level.SEVERE, "Error al procesar el mensaje del servidor: " + message, e);
+      LOGGER.log(Level.SEVERE, "Error processing message from server: " + message, e);
     }
   }
 
@@ -92,8 +92,8 @@ public class WebSocketClient extends org.java_websocket.client.WebSocketClient {
         boolean success = status.equals("success");
         ((CompletableFuture<Boolean>) future).complete(success);
       } else {
-        LOGGER.log(Level.WARNING, "Respuesta del servidor sin status.");
-        future.completeExceptionally(new RuntimeException("Respuesta del servidor sin status."));
+        LOGGER.log(Level.WARNING, "Server response without status.");
+        future.completeExceptionally(new RuntimeException("Server response without status."));
       }
     } finally {
       pendingRequests.remove(jsonObject.get("requestId").getAsLong());
@@ -102,47 +102,49 @@ public class WebSocketClient extends org.java_websocket.client.WebSocketClient {
 
   @Override
   public void onClose(int code, String reason, boolean remote) {
-    LOGGER.log(Level.INFO, "Conexión cerrada. Razón: " + reason);
+    LOGGER.log(Level.INFO, "Connection closed. Reason: " + reason);
+    // Nullify INSTANCE on close if needed, but this depends on your use case
+    INSTANCE = null;
   }
 
   @Override
   public void onError(Exception ex) {
-    LOGGER.log(Level.SEVERE, "Error en el cliente WebSocket: " + ex.getMessage(), ex);
+    LOGGER.log(Level.SEVERE, "WebSocket client error: " + ex.getMessage(), ex);
   }
 
-  // Método para solicitar el balance de un jugador
+  // Method to request a player's balance
   public CompletableFuture<Double> getBalance(UUID playerUUID, String currency) {
     return sendRequest(playerUUID, currency, 0, "getBalance", new CompletableFuture<>());
   }
 
-  // Método para verificar si un jugador tiene suficiente dinero
+  // Method to check if a player has enough money
   public CompletableFuture<Boolean> hasEnough(UUID playerUUID, String currency, double amount) {
     return sendRequest(playerUUID, currency, amount, "hasEnough", new CompletableFuture<>());
   }
 
-  // Método para añadir dinero a un jugador
+  // Method to add money to a player
   public CompletableFuture<Boolean> addMoney(UUID playerUUID, String currency, double amount) {
     return sendRequest(playerUUID, currency, amount, "addMoney", new CompletableFuture<>());
   }
 
-  // Método para remover dinero de un jugador
+  // Method to remove money from a player
   public CompletableFuture<Boolean> removeMoney(UUID playerUUID, String currency, double amount) {
     return sendRequest(playerUUID, currency, amount, "removeMoney", new CompletableFuture<>());
   }
 
-  public static boolean init() {
+  private static boolean init() {
     int attempt = 0;
     while (attempt < MAX_RETRY_ATTEMPTS) {
       try {
-        WebSocketClient client = new WebSocketClient("ws://localhost:8080");
-        client.connectBlocking();  // Bloquea hasta que la conexión esté abierta
+        WebSocketClient client = new WebSocketClient("ws://localhost:49154");
+        client.connectBlocking();  // Blocks until the connection is open
         INSTANCE = client;
         return true;
       } catch (URISyntaxException | InterruptedException e) {
-        LOGGER.log(Level.SEVERE, "Error al iniciar el cliente WebSocket (Intento " + (attempt + 1) + "): " + e.getMessage(), e);
+        LOGGER.log(Level.SEVERE, "Error initializing WebSocket client (Attempt " + (attempt + 1) + "): " + e.getMessage(), e);
         attempt++;
         try {
-          Thread.sleep(RETRY_DELAY_MS);  // Espera antes de intentar reconectar
+          Thread.sleep(RETRY_DELAY_MS);  // Wait before retrying
         } catch (InterruptedException ignored) {
         }
       }
@@ -150,21 +152,21 @@ public class WebSocketClient extends org.java_websocket.client.WebSocketClient {
     return false;
   }
 
-  // Método para agregar un permiso
+  // Method to add a permission
   public void addPermission(String permission) {
     CompletableFuture<Boolean> future = new CompletableFuture<>();
     sendRequest(null, null, 0, "addPermission", future).thenAccept(success -> {
       if (CobbleUtils.config.isDebug()) {
         if (success) {
-          LOGGER.log(Level.INFO, "Permiso agregado correctamente: " + permission);
+          LOGGER.log(Level.INFO, "Permission successfully added: " + permission);
         } else {
-          LOGGER.log(Level.WARNING, "Error al agregar el permiso: " + permission);
+          LOGGER.log(Level.WARNING, "Error adding permission: " + permission);
         }
       }
     });
   }
 
-  // Método para verificar un permiso de un jugador
+  // Method to check a player's permission
   public CompletableFuture<Boolean> checkPermission(ServerPlayerEntity player, String permission) {
     return sendRequest(UUID.fromString(player.getUuid().toString()), null, 0, "checkPermission", new CompletableFuture<>(), permission);
   }
@@ -197,10 +199,10 @@ public class WebSocketClient extends org.java_websocket.client.WebSocketClient {
     pendingRequests.put(requestId, future);
     send(request.toString());
 
-    // Establecer un timeout para la solicitud
+    // Set a timeout for the request
     future.orTimeout(30, TimeUnit.SECONDS).exceptionally(ex -> {
       pendingRequests.remove(requestId);
-      LOGGER.log(Level.WARNING, "Solicitud con requestId " + requestId + " ha expirado.", ex);
+      LOGGER.log(Level.WARNING, "Request with requestId " + requestId + " has timed out.", ex);
       return null;
     });
 
