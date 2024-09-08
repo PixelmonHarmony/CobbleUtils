@@ -24,6 +24,7 @@ allprojects {
         maven("https://thedarkcolour.github.io/KotlinForForge/")
         maven("https://maven.fabricmc.net/")
         maven("https://maven.architectury.dev/")
+
         maven("https://repo.maven.apache.org/maven2/")
         maven("https://repo.spongepowered.org/maven/")
         maven("https://files.minecraftforge.net/maven/")
@@ -32,6 +33,7 @@ allprojects {
         maven("https://maven.impactdev.net/repository/development")
         maven("https://repo.essentialsx.net/releases/")
         mavenLocal()
+
         maven("https://maven.nucleoid.xyz/") {
             name = "Nucleoid"
         }
@@ -75,7 +77,12 @@ publishing {
     }
     repositories {
         maven {
-            url = uri("https://jitpack.io")
+            url = uri("https://maven.pkg.github.com/zonary123/CobbleUtils")
+            credentials {
+                username = project.findProperty("gpr.user") as String? ?: System.getenv("USERNAME")
+                password = project.findProperty("gpr.token") as String? ?: System.getenv("TOKEN")
+            }
         }
     }
 }
+

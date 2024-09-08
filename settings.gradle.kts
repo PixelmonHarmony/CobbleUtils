@@ -2,6 +2,7 @@ rootProject.name = "CobbleUtils"
 
 pluginManagement {
     repositories {
+        
         mavenCentral()
         maven("https://cursemaven.com")
         maven("https://thedarkcolour.github.io/KotlinForForge/")
