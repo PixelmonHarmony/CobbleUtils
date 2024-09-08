@@ -1,32 +1,27 @@
 plugins {
     id("java")
     id("java-library")
-    kotlin("jvm") version ("1.9.0")
-
-    id("dev.architectury.loom") version ("1.6-SNAPSHOT") apply false
-    id("architectury-plugin") version ("3.4-SNAPSHOT") apply false
-
+    kotlin("jvm") version "1.9.0"
+    `maven-publish`
+    id("dev.architectury.loom") version "1.6-SNAPSHOT" apply false
+    id("architectury-plugin") version "3.4-SNAPSHOT" apply false
 }
 
 group = "${property("maven_group")}"
 
+
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
 allprojects {
-
-    apply(plugin = "java")
-    apply(plugin = "org.jetbrains.kotlin.jvm")
-
-
-    version = "${property("mod_version")}"
-    group = "${property("maven_group")}"
-
-
-
     repositories {
-
         mavenCentral()
         maven("https://cursemaven.com")
         maven("https://thedarkcolour.github.io/KotlinForForge/")
-        maven("https://jitpack.io")
         maven("https://maven.fabricmc.net/")
         maven("https://maven.architectury.dev/")
         maven("https://repo.maven.apache.org/maven2/")
@@ -36,11 +31,8 @@ allprojects {
         maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
         maven("https://maven.impactdev.net/repository/development")
         maven("https://repo.essentialsx.net/releases/")
-        gradlePluginPortal()
-        mavenCentral()
         mavenLocal()
-        maven {
-            url = uri("https://maven.nucleoid.xyz/")
+        maven("https://maven.nucleoid.xyz/") {
             name = "Nucleoid"
         }
         maven("https://oss.sonatype.org/content/repositories/snapshots") {
@@ -52,3 +44,38 @@ allprojects {
     }
 }
 
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            from(components["java"])
+            pom {
+                name.set("CobbleUtils")
+                description.set("A library for Minecraft servers")
+                url.set("https://github.com/zonary123/CobbleUtils")
+                licenses {
+                    license {
+                        name.set("The MIT License")
+                        url.set("https://opensource.org/licenses/MIT")
+                    }
+                }
+                developers {
+                    developer {
+                        id.set("zonary123")
+                        name.set("zonary123")
+                        email.set("carlosvarasalonso10@gmail.com")
+                    }
+                }
+                scm {
+                    url.set("https://github.com/zonary123/CobbleUtils")
+                    connection.set("scm:git:git://github.com/zonary123/CobbleUtils.git")
+                    developerConnection.set("scm:git:ssh://github.com/zonary123/CobbleUtils.git")
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            url = uri("https://jitpack.io")
+        }
+    }
+}

@@ -16,10 +16,8 @@ pluginManagement {
         maven("https://maven.impactdev.net/repository/development")
         maven("https://repo.essentialsx.net/releases/")
         gradlePluginPortal()
-        mavenCentral()
         mavenLocal()
-        maven {
-            url = uri("https://maven.nucleoid.xyz/")
+        maven("https://maven.nucleoid.xyz/") {
             name = "Nucleoid"
         }
         maven("https://oss.sonatype.org/content/repositories/snapshots") {
@@ -28,31 +26,6 @@ pluginManagement {
         maven("https://s01.oss.sonatype.org/content/repositories/snapshots") {
             name = "Sonatype 01 Snapshots"
         }
-    }
-
-    listOf(
-        "net.kyori:examination-api:1.3.0",
-        "net.kyori:examination-string:1.3.0",
-        "net.kyori:adventure-api:4.14.0",
-        "net.kyori:adventure-key:4.14.0",
-        "net.kyori:adventure-nbt:4.14.0",
-        "net.kyori:adventure-text-serializer-plain:4.14.0",
-        "net.kyori:adventure-text-serializer-legacy:4.14.0",
-        "net.kyori:adventure-text-serializer-gson:4.14.0",
-        "net.kyori:adventure-text-serializer-json:4.14.0",
-        "net.kyori:adventure-text-minimessage:4.14.0",
-        "net.kyori:adventure-text-logger-slf4j:4.14.0",
-        "net.kyori:event-api:5.0.0-SNAPSHOT",
-    ).forEach { include(it) }
-
-
-}
-
-dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    repositories {
-        mavenCentral()
-        maven(url = "https://jitpack.io")
     }
 }
 
