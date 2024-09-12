@@ -24,7 +24,7 @@ allprojects {
         maven("https://thedarkcolour.github.io/KotlinForForge/")
         maven("https://maven.fabricmc.net/")
         maven("https://maven.architectury.dev/")
-
+        maven("https://jitpack.io")
         maven("https://repo.maven.apache.org/maven2/")
         maven("https://repo.spongepowered.org/maven/")
         maven("https://files.minecraftforge.net/maven/")

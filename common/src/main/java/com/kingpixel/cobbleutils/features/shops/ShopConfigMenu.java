@@ -7,25 +7,24 @@ import ca.landonjw.gooeylibs2.api.template.types.ChestTemplate;
 import com.google.gson.Gson;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.ItemModel;
+import com.kingpixel.cobbleutils.config.ShopConfig;
 import com.kingpixel.cobbleutils.features.shops.models.types.*;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.PlayerUtils;
 import com.kingpixel.cobbleutils.util.SoundUtil;
 import com.kingpixel.cobbleutils.util.Utils;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
 import java.io.File;
 import java.io.FileReader;
-import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Carlos Varas Alonso - 06/08/2024 11:10
@@ -34,52 +33,83 @@ import java.util.List;
 @Setter
 @ToString
 @Data
-public class ShopMenu {
+public class ShopConfigMenu {
   private String logg;
   private String title;
   private String soundopen;
   private String soundclose;
+  private short rowsBuySellMenu;
+  private short slotViewProduct;
   private int rows;
   private ItemModel fill;
   private List<Shop.FillItems> fillItems;
-  private List<Shop> shops;
+  private static Map<ShopMod, List<Shop>> shops = new ConcurrentHashMap<>();
 
-  public ShopMenu() {
+  public static void addShops(String modId, String pathShops, List<Shop> shopList) {
+    ShopMod shopMod = new ShopMod(modId, pathShops);
+    shops.put(shopMod, shopList);
+  }
+
+  @Data
+  @EqualsAndHashCode
+  public static class ShopMod {
+    private String mod_id;
+    private String path;
+
+    public ShopMod(String modId, String path) {
+      this.mod_id = modId;
+      this.path = path;
+    }
+  }
+
+  public ShopConfigMenu() {
     this.logg = "config/cobbleutils/shop/transactions";
     this.title = "Test";
+    this.rowsBuySellMenu = 6;
+    this.slotViewProduct = 22;
     this.rows = 6;
     this.soundopen = "cobblemon:pc.on";
     this.soundclose = "cobblemon:pc.off";
     this.fill = new ItemModel("minecraft:gray_stained_glass_pane");
     this.fillItems = new ArrayList<>();
     this.fillItems.add(new Shop.FillItems());
-    this.shops = defaultShops();
   }
 
-  public ShopMenu(String title) {
+  public ShopConfigMenu(String title) {
     this.logg = "config/cobbleutils/shop/transactions";
     this.title = title;
     this.rows = 6;
+    this.rowsBuySellMenu = 6;
+    this.slotViewProduct = 22;
     this.soundopen = "cobblemon:pc.on";
     this.soundclose = "cobblemon:pc.off";
     this.fill = new ItemModel("minecraft:gray_stained_glass_pane");
     this.fillItems = new ArrayList<>();
-    this.shops = List.of(new Shop());
   }
 
-  public ShopMenu(String title, List<Shop> shops) {
+  public ShopConfigMenu(String title, List<Shop> shops) {
     this.logg = "config/cobbleutils/shop/transactions";
     this.title = title;
     this.rows = 6;
+    this.rowsBuySellMenu = 6;
+    this.slotViewProduct = 22;
     this.soundopen = "cobblemon:pc.on";
     this.soundclose = "cobblemon:pc.off";
     this.fill = new ItemModel("minecraft:gray_stained_glass_pane");
     this.fillItems = new ArrayList<>();
-    this.shops = shops;
+  }
+
+
+  public static List<Shop> getShopsMod(String mod_id) {
+    return shops.entrySet().stream()
+      .filter(entry -> entry.getKey().getMod_id().equals(mod_id))
+      .findFirst()
+      .map(Map.Entry::getValue)
+      .orElse(new ArrayList<>());
   }
 
   public static List<Shop> getShops(String path) {
-    List<Shop> shops = new ArrayList<>();
+    List<Shop> shopList = new ArrayList<>();
     File folder = Utils.getAbsolutePath(path);
 
     if (folder.exists() && folder.isDirectory()) {
@@ -94,7 +124,7 @@ public class ShopMenu {
             if (shop.getShopType() == null) {
               shop.setShopType(new ShopTypePermanent());
             }
-            shops.add(shop);
+            shopList.add(shop);
           } catch (Exception e) {
             e.printStackTrace();
           }
@@ -102,22 +132,17 @@ public class ShopMenu {
       }
     }
 
-    return shops;
+    saveShops();
+    return shopList;
   }
 
-  public static void createDefaultShop(String path) {
-    ShopMenu shopMenu = new ShopMenu();
-    shopMenu.getShops().forEach(shop -> Utils.writeFileAsync(path, shop.getId() + ".json", Utils.newGson().toJson(shop)).join());
-  }
-
-
-  public void open(ServerPlayerEntity player) {
+  public static void open(ServerPlayerEntity player, ShopConfig shopConfig, String mod_id, boolean byCommand) {
     try {
       ChestTemplate template = ChestTemplate
-        .builder(this.rows)
+        .builder(shopConfig.getShop().rows)
         .build();
 
-      shops.forEach(shop -> {
+      getShopsMod(mod_id).forEach(shop -> {
         ItemModel itemModelShop = shop.getDisplay();
         List<String> lore = new ArrayList<>(itemModelShop.getLore());
         switch (shop.getShopType().getTypeShop()) {
@@ -157,15 +182,15 @@ public class ShopMenu {
               if (shop.getShopType() == null) shop.setShopType(new ShopTypePermanent());
               if (shop.getShopType().getTypeShop() == ShopType.TypeShop.WEEKLY) {
                 ShopTypeWeekly shopTypeWeekly = (ShopTypeWeekly) shop.getShopType();
-                isDay(player, shop, shopTypeWeekly);
+                isDay(player, shopConfig, mod_id, shop, shopTypeWeekly);
               } else if (shop.getShopType().getTypeShop() == ShopType.TypeShop.DYNAMIC) {
                 ((ShopTypeDynamic) shop.getShopType()).updateShop(shop);
-                shop.open(player, this, false);
+                shop.open(player, shopConfig, mod_id, byCommand);
               } else if (shop.getShopType().getTypeShop() == ShopType.TypeShop.DYNAMIC_WEEKLY) {
                 ShopTypeDynamicWeekly shopTypeDynamicWeekly = ((ShopTypeDynamicWeekly) shop.getShopType()).updateShop(shop);
-                isDay(player, shop, shopTypeDynamicWeekly);
+                isDay(player, shopConfig, mod_id, shop, shopTypeDynamicWeekly);
               } else {
-                shop.open(player, this, false);
+                shop.open(player, shopConfig, mod_id, byCommand);
               }
             } else {
               player.sendMessage(Text.literal("Shop is not active"));
@@ -177,10 +202,10 @@ public class ShopMenu {
         template.set(itemModelShop.getSlot(), button);
       });
 
-      template.fill(GooeyButton.of(fill.getItemStack()));
+      template.fill(GooeyButton.of(shopConfig.getShop().fill.getItemStack()));
 
-      if (fillItems != null && !fillItems.isEmpty()) {
-        fillItems.forEach(fill -> {
+      if (shopConfig.getShop().fillItems != null && !shopConfig.getShop().fillItems.isEmpty()) {
+        shopConfig.getShop().fillItems.forEach(fill -> {
           GooeyButton button = GooeyButton.builder()
             .display(fill.getItemStack())
             .title(AdventureTranslator.toNative(fill.getDisplayname()))
@@ -197,9 +222,9 @@ public class ShopMenu {
       GooeyPage page = GooeyPage
         .builder()
         .template(template)
-        .title(AdventureTranslator.toNative(this.title))
+        .title(AdventureTranslator.toNative(shopConfig.getShop().title))
         .onClose(pageAction -> {
-          SoundUtil.playSound(getSoundclose(), player);
+          SoundUtil.playSound(shopConfig.getShop().getSoundclose(), player);
         })
         .build();
 
@@ -209,8 +234,8 @@ public class ShopMenu {
     }
   }
 
-  private void isDay(ServerPlayerEntity player, Shop shop, ShopType shopType) {
 
+  private static void isDay(ServerPlayerEntity player, ShopConfig shopConfig, String mod_id, Shop shop, ShopType shopType) {
     List<DayOfWeek> dayOfWeek = new ArrayList<>();
     if (shopType.getTypeShop() == ShopType.TypeShop.WEEKLY) {
       dayOfWeek = ((ShopTypeWeekly) shopType).getDayOfWeek();
@@ -219,7 +244,7 @@ public class ShopMenu {
     }
 
     if (dayOfWeek.contains(LocalDate.now().getDayOfWeek())) {
-      shop.open(player, this, false);
+      shop.open(player, shopConfig, mod_id, false);
     } else {
       String message = CobbleUtils.shopLang.getMessageShopWeekly()
         .replace("%prefix%", CobbleUtils.shopLang.getPrefix())
@@ -239,109 +264,30 @@ public class ShopMenu {
     }
   }
 
-  public void open(ServerPlayerEntity player, String shop, boolean b) {
-    Shop shop1 = shops.stream().filter(s -> s.getId().equals(shop)).findFirst().orElse(null);
-    if (shop1 != null) {
-      shop1.open(player, this,b);
+  public void open(ServerPlayerEntity player, String shopId, ShopConfig shopConfig, String mod_id, boolean b) {
+    Shop shop = shops.values().stream()
+      .flatMap(List::stream)
+      .filter(s -> s.getId().equals(shopId))
+      .findFirst()
+      .orElse(null);
+    if (shop != null) {
+      shop.open(player, shopConfig, mod_id, b);
     } else {
       player.sendMessage(Text.literal("Shop not found"));
     }
   }
 
-  private List<Shop> defaultShops() {
-    shops = new ArrayList<>();
-    shops.add(dynamic());
-    shops.add(weekly());
-    shops.add(dynamicWeekly());
-    shops.add(permanent());
-    shops.add(shopdefault());
-    shops.add(pokeBalls());
-    return shops;
-  }
-
-  private Shop dynamic() {
-    Shop shop = new Shop("dynamic", "<#de504b>Dynamic", (short) 6, "impactor:dollars",
-      new ItemModel("minecraft:sculk_sensor"), new ShopTypeDynamic(1));
-    List<Shop.Product> products = new ArrayList<>();
-    shop.getDisplay().setSlot(0);
-    shop.getDisplay().setDisplayname("<#de504b>Dynamic");
-    shop.getDisplay().setLore(List.of("&b%cooldown%", "&b%amountProducts%"));
-    products.add(new Shop.Product("minecraft:stone", BigDecimal.valueOf(100), BigDecimal.ZERO));
-    products.add(new Shop.Product("minecraft:dirt", BigDecimal.valueOf(100), BigDecimal.ZERO));
-    products.add(new Shop.Product("minecraft:gravel", BigDecimal.valueOf(100), BigDecimal.ZERO));
-    shop.setProducts(products);
-    return shop;
-  }
-
-  private Shop weekly() {
-    Shop shop = new Shop("weekly", "<#de504b>Weekly", (short) 6, "impactor:dollars",
-      new ItemModel("minecraft:clock"), new ShopTypeWeekly());
-    shop.getDisplay().setSlot(1);
-    shop.getDisplay().setDisplayname("<#de504b>Weekly");
-    shop.getDisplay().setLore(List.of("&b%days%"));
-    List<Shop.Product> products = new ArrayList<>();
-    products.add(new Shop.Product("minecraft:stone", BigDecimal.valueOf(100), BigDecimal.ZERO));
-    shop.setProducts(products);
-    return shop;
-  }
-
-  private Shop dynamicWeekly() {
-    Shop shop = new Shop("dynamic_weekly", "<#de504b>Dynamic Weekly", (short) 6, "impactor:dollars",
-      new ItemModel("minecraft:compass"), new ShopTypeDynamicWeekly());
-    shop.getDisplay().setSlot(2);
-    shop.getDisplay().setDisplayname("<#de504b>Dynamic Weekly");
-    shop.getDisplay().setLore(List.of("&b%cooldown%", "&b%amountProducts%", "&b%days%"));
-    List<Shop.Product> products = new ArrayList<>();
-    products.add(new Shop.Product("minecraft:stone", BigDecimal.valueOf(100), BigDecimal.ZERO));
-    products.add(new Shop.Product("minecraft:dirt", BigDecimal.valueOf(100), BigDecimal.ZERO));
-    products.add(new Shop.Product("minecraft:gravel", BigDecimal.valueOf(100), BigDecimal.ZERO));
-    shop.setProducts(products);
-    return shop;
-
-  }
-
-  private Shop permanent() {
-    Shop shop = new Shop("permanent", "<#de504b>Permanent", (short) 6, "impactor:dollars",
-      new ItemModel("minecraft:beacon"), new ShopTypePermanent());
-    shop.getDisplay().setSlot(3);
-    shop.getDisplay().setDisplayname("<#de504b>Permanent");
-    List<Shop.Product> products = new ArrayList<>();
-    products.add(new Shop.Product("minecraft:stone", BigDecimal.valueOf(100), BigDecimal.ZERO));
-    shop.setProducts(products);
-    return shop;
-  }
-
-  private Shop shopdefault() {
-    Shop shop = new Shop("Default", "<#de504b>Default", (short) 6, "impactor:dollars", new ItemModel("cobblemon:poke_ball"));
-    shop.getDisplay().setSlot(4);
-    shop.getDisplay().setDisplayname("<#de504b>Default");
-    List<Shop.Product> products = new ArrayList<>();
-    products.add(new Shop.Product("minecraft:stone", BigDecimal.valueOf(100), BigDecimal.ZERO, "cobblemon.command.pc"));
-    shop.setProducts(products);
-    return shop;
-  }
-
-
-  // PokeBalls
-  private Shop pokeBalls() {
-    Shop shop = new Shop("pokeballs", "<#de504b>Pokeballs", (short) 6, "impactor:dollars", new ItemModel("cobblemon" +
-      ":poke_ball"));
-    shop.getDisplay().setSlot(5);
-    shop.getDisplay().setDisplayname("<#de504b>Pokeballs");
-    List<Shop.Product> products = new ArrayList<>();
-    products.add(new Shop.Product("minecraft:stone", BigDecimal.valueOf(100), BigDecimal.ZERO));
-    shop.setProducts(products);
-    return shop;
-  }
-
   public List<Shop.Product> getAllProducts() {
     List<Shop.Product> products = new ArrayList<>();
-    shops.forEach(shop -> products.addAll(shop.getProducts()));
+    shops.values().forEach(shopList -> products.addAll(shopList.stream()
+      .flatMap(shop -> shop.getProducts().stream())
+      .toList()));
     return products;
   }
 
   public Shop.Product getProductById(String productId) {
-    return shops.stream()
+    return shops.values().stream()
+      .flatMap(List::stream)
       .map(Shop::getProducts)
       .flatMap(List::stream)
       .filter(product -> product.getProduct().equals(productId))
@@ -349,4 +295,24 @@ public class ShopMenu {
       .orElse(null);
   }
 
+  public static void saveShops() {
+    Gson gson = Utils.newGson();
+
+    for (Map.Entry<ShopMod, List<Shop>> entry : shops.entrySet()) {  // Itera sobre cada ShopMod y su lista de Shops
+      ShopMod shopMod = entry.getKey();
+      List<Shop> shopList = entry.getValue();
+
+      for (Shop shop : shopList) {  // Itera sobre cada Shop en la lista de Shops
+        String json = gson.toJson(shop);  // Convierte el objeto Shop a JSON
+        String fileName = shop.getId() + ".json";  // Usa el ID de la tienda como nombre de archivo
+
+        try {
+          // Escribe el JSON en el archivo correspondiente
+          Utils.writeFileAsync(shopMod.path, fileName, json).join();
+        } catch (Exception e) {
+          e.printStackTrace();  // Maneja cualquier excepción que ocurra durante la escritura
+        }
+      }
+    }
+  }
 }

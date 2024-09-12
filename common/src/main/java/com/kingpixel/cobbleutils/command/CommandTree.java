@@ -112,7 +112,7 @@ public class CommandTree {
     }
 
     if (CobbleUtils.config.isShops()) {
-      ShopCommand.register(dispatcher, CommandManager.literal("shop"));
+      ShopCommand.register(dispatcher, CommandManager.literal("shop"), CobbleUtils.shopConfig, CobbleUtils.MOD_ID);
       ShopSellCommand.register(dispatcher, CommandManager.literal("sell"));
       ShopTransactionCommand.register(dispatcher, CommandManager.literal("shop"));
     }

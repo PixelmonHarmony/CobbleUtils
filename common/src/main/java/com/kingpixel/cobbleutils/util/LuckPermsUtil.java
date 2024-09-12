@@ -13,9 +13,9 @@ import java.util.List;
 
 public abstract class LuckPermsUtil {
 
-  private static Permission PERMISSION_TYPE;
+  public static Permission PERMISSION_TYPE;
 
-  private enum Permission {
+  public enum Permission {
     LUCKPERMS,
     SPIGOT,
   }

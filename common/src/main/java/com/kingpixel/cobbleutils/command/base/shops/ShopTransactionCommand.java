@@ -9,9 +9,8 @@ import ca.landonjw.gooeylibs2.api.helpers.PaginationHelper;
 import ca.landonjw.gooeylibs2.api.page.GooeyPage;
 import ca.landonjw.gooeylibs2.api.page.LinkedPage;
 import ca.landonjw.gooeylibs2.api.template.types.ChestTemplate;
-import com.cobblemon.mod.common.api.storage.player.PlayerData;
 import com.kingpixel.cobbleutils.CobbleUtils;
-import com.kingpixel.cobbleutils.features.shops.ShopMenu;
+import com.kingpixel.cobbleutils.features.shops.ShopConfigMenu;
 import com.kingpixel.cobbleutils.features.shops.ShopTransactions;
 import com.kingpixel.cobbleutils.util.*;
 import com.mojang.brigadier.Command;
@@ -19,10 +18,8 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import dev.architectury.event.events.common.TickEvent;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.item.ItemStack;
-import net.minecraft.server.PlayerManager;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -69,7 +66,7 @@ public class ShopTransactionCommand implements Command<ServerCommandSource> {
     );
   }
 
-  private static GooeyPage getTransactionsPlayers(ServerPlayerEntity viewer, ShopMenu shop) {
+  private static GooeyPage getTransactionsPlayers(ServerPlayerEntity viewer, ShopConfigMenu shop) {
     ChestTemplate template = ChestTemplate.builder(6).build();
 
     List<Button> buttons = generatePlayerButtons(viewer);
@@ -152,7 +149,7 @@ public class ShopTransactionCommand implements Command<ServerCommandSource> {
       .build();
   }
 
-  private static GooeyPage getTransactionPlayer(ServerPlayerEntity player, UUID uuid, ShopMenu shop) {
+  private static GooeyPage getTransactionPlayer(ServerPlayerEntity player, UUID uuid, ShopConfigMenu shop) {
     ChestTemplate template = ChestTemplate.builder(6).build();
     List<Button> buttons = generateTransactionButtons(player, uuid, shop);
 
@@ -167,7 +164,7 @@ public class ShopTransactionCommand implements Command<ServerCommandSource> {
     return PaginationHelper.createPagesFromPlaceholders(template, buttons, linkedPageBuilder);
   }
 
-  private static List<Button> generateTransactionButtons(ServerPlayerEntity player, UUID uuid, ShopMenu shop) {
+  private static List<Button> generateTransactionButtons(ServerPlayerEntity player, UUID uuid, ShopConfigMenu shop) {
     Map<String, ShopTransactions.TransactionSummary> transactions = ShopTransactions.transactions.getOrDefault(uuid,
       Collections.emptyMap());
 
@@ -177,7 +174,7 @@ public class ShopTransactionCommand implements Command<ServerCommandSource> {
   }
 
   private static GooeyButton createTransactionButton(ServerPlayerEntity player, String product,
-                                                     ShopTransactions.TransactionSummary transaction, ShopMenu shop) {
+                                                     ShopTransactions.TransactionSummary transaction, ShopConfigMenu shop) {
     List<String> lore = List.of(
       "&7Bought: &b" + EconomyUtil.formatCurrency(transaction.getTotalBoughtPrice(), transaction.getCurrency(),
         player.getUuid()),

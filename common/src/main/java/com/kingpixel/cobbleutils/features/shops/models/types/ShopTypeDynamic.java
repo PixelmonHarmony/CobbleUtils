@@ -36,7 +36,7 @@ public class ShopTypeDynamic extends ShopType {
   }
 
   public ShopTypeDynamic updateShop(Shop shop) {
-    // Asegúrate de que las estructuras en ShopMenu estén inicializadas
+    // Asegúrate de que las estructuras en ShopConfigMenu estén inicializadas
     initializeShopMenu();
 
     // Si el cooldown ha expirado o no existe, realiza la reposición de productos

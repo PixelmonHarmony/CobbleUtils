@@ -41,6 +41,7 @@ dependencies {
     // Economy
     api("com.github.MilkBowl:VaultAPI:1.7")
     api("net.luckperms:api:${property("luckperms_version")}")
+
     shadowCommon("org.java-websocket:Java-WebSocket:1.5.7")
     shadowCommon("com.google.code.gson:gson:2.11.0")
 }

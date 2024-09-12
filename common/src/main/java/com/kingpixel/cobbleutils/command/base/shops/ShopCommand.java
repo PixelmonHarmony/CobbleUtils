@@ -1,6 +1,8 @@
 package com.kingpixel.cobbleutils.command.base.shops;
 
 import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.config.ShopConfig;
+import com.kingpixel.cobbleutils.features.shops.ShopConfigMenu;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.LuckPermsUtil;
 import com.mojang.brigadier.Command;
@@ -21,7 +23,8 @@ import java.util.List;
  */
 public class ShopCommand implements Command<ServerCommandSource> {
   public static void register(CommandDispatcher<ServerCommandSource> dispatcher,
-                              LiteralArgumentBuilder<ServerCommandSource> base) {
+                              LiteralArgumentBuilder<ServerCommandSource> base,
+                              ShopConfig shopConfig, String mod_id) {
     dispatcher.register(
       base
         .requires(source -> LuckPermsUtil.checkPermission(
@@ -34,7 +37,7 @@ public class ShopCommand implements Command<ServerCommandSource> {
             return 0;
           }
           ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
-          CobbleUtils.shopConfig.getShop().open(player);
+          ShopConfigMenu.open(player, shopConfig, mod_id, false);
           return 0;
         })
         .then(
@@ -47,7 +50,7 @@ public class ShopCommand implements Command<ServerCommandSource> {
             .then(
               CommandManager.argument("shop", StringArgumentType.string())
                 .suggests((context, builder) -> {
-                  CobbleUtils.shopConfig.getShop().getShops().forEach(shop -> {
+                  ShopConfigMenu.getShopsMod(mod_id).forEach(shop -> {
                     if (context.getSource().isExecutedByPlayer()) {
                       if (LuckPermsUtil.checkPermission(
                         context.getSource(), 2, List.of("cobbleutils.admin", "cobbleutils.shop." + shop.getId())
@@ -67,7 +70,7 @@ public class ShopCommand implements Command<ServerCommandSource> {
                   }
                   ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
                   String shop = StringArgumentType.getString(context, "shop");
-                  CobbleUtils.shopConfig.getShop().open(player, shop, false);
+                  shopConfig.getShop().open(player, shop, shopConfig, mod_id, false);
                   return 0;
                 })
                 .then(
@@ -78,7 +81,7 @@ public class ShopCommand implements Command<ServerCommandSource> {
                     .executes(context -> {
                       ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
                       String shop = StringArgumentType.getString(context, "shop");
-                      CobbleUtils.shopConfig.getShop().open(player, shop, true);
+                      shopConfig.getShop().open(player, shop, shopConfig, mod_id, true);
                       return 0;
                     })
                 )

@@ -1,7 +1,6 @@
 package com.kingpixel.cobbleutils.Model;
 
 import com.cobblemon.mod.common.pokemon.Pokemon;
-import com.kingpixel.cobbleutils.CobbleUtils;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -46,10 +45,6 @@ public class SizeChanceWithoutItem {
   }
 
   public void apply(Pokemon pokemon) {
-    if (CobbleUtils.config.isDebug()) {
-      CobbleUtils.LOGGER.info("Pokemon: " + pokemon.showdownId() + " ID: " + this.id + " Size: " + this.size +
-        " Chance: " + this.chance);
-    }
     pokemon.setScaleModifier(this.size);
     pokemon.getPersistentData().putString(CobbleUtilsTags.SIZE_TAG, this.id);
   }

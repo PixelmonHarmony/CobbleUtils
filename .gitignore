@@ -19,6 +19,8 @@ bin
 /.architectury-transformer/
 /net.kyori
 .github
+.github/
+/.github/
 
 # idea
 out

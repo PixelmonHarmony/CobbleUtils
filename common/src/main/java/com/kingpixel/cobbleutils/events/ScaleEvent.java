@@ -93,9 +93,6 @@ public class ScaleEvent {
   }
 
   private static void applyScale(Pokemon pokemon, String id, float size) {
-    if (CobbleUtils.config.isDebug()) {
-      CobbleUtils.LOGGER.info("Change Scale Pokemon: " + pokemon.showdownId() + " Size: " + size + " ID: " + id);
-    }
     pokemon.getPersistentData().putString(SIZE_TAG, id);
     pokemon.setScaleModifier(size);
   }

@@ -94,19 +94,19 @@ public class ShopTransactions {
     }
   }
 
-  public static synchronized void updateTransaction(UUID player, ShopMenu shopMenu) {
-    loadTransactions(shopMenu).thenRun(() -> {
-      List<Shop.Product> currentProducts = shopMenu.getAllProducts();
+  public static synchronized void updateTransaction(UUID player, ShopConfigMenu shopConfigMenu) {
+    loadTransactions(shopConfigMenu).thenRun(() -> {
+      List<Shop.Product> currentProducts = shopConfigMenu.getAllProducts();
 
       transactions.computeIfPresent(player, (uuid, productMap) -> {
-        productMap.keySet().removeIf(productId -> shopMenu.getProductById(productId) == null);
+        productMap.keySet().removeIf(productId -> shopConfigMenu.getProductById(productId) == null);
         return productMap.isEmpty() ? null : productMap;
       });
 
       // Escribe el archivo de manera segura usando un lock para evitar concurrencia
       writeLock.lock();
       try {
-        Utils.writeFileAsync(shopMenu.getLogg(), player + ".json", Utils.newWithoutSpacingGson().toJson(transactions.get(player)))
+        Utils.writeFileAsync(shopConfigMenu.getLogg(), player + ".json", Utils.newWithoutSpacingGson().toJson(transactions.get(player)))
           .exceptionally(ex -> {
             ex.printStackTrace(); // Manejo de excepciones
             return null;
@@ -120,13 +120,13 @@ public class ShopTransactions {
     });
   }
 
-  public static CompletableFuture<Void> loadTransactions(ShopMenu shopMenu) {
+  public static CompletableFuture<Void> loadTransactions(ShopConfigMenu shopConfigMenu) {
     if (firstTime) {
       return CompletableFuture.completedFuture(null);
     }
 
     return CompletableFuture.runAsync(() -> {
-      File folder = Utils.getAbsolutePath(shopMenu.getLogg());
+      File folder = Utils.getAbsolutePath(shopConfigMenu.getLogg());
       File[] files = folder.listFiles((dir, name) -> name.endsWith(".json"));
       if (files == null) return;
 
@@ -134,7 +134,8 @@ public class ShopTransactions {
         try {
           String data = Utils.readFileSync(file);
           Gson gson = Utils.newWithoutSpacingGson();
-          Type type = new TypeToken<Map<String, TransactionSummary>>() {}.getType();
+          Type type = new TypeToken<Map<String, TransactionSummary>>() {
+          }.getType();
           Map<String, TransactionSummary> map = gson.fromJson(data, type);
 
           if (map == null) {
@@ -144,7 +145,7 @@ public class ShopTransactions {
 
           Map<String, TransactionSummary> processedMap = new HashMap<>();
           map.forEach((productId, summary) -> {
-            Shop.Product product = shopMenu.getProductById(productId);
+            Shop.Product product = shopConfigMenu.getProductById(productId);
             if (product != null) {
               processedMap.put(productId, summary);
             }

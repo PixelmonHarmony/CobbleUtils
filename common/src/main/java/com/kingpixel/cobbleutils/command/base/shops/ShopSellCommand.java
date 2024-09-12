@@ -1,7 +1,7 @@
 package com.kingpixel.cobbleutils.command.base.shops;
 
 import com.kingpixel.cobbleutils.CobbleUtils;
-import com.kingpixel.cobbleutils.features.shops.ShopMenu;
+import com.kingpixel.cobbleutils.features.shops.ShopConfigMenu;
 import com.kingpixel.cobbleutils.features.shops.ShopSell;
 import com.kingpixel.cobbleutils.util.LuckPermsUtil;
 import com.mojang.brigadier.Command;
@@ -34,8 +34,8 @@ public class ShopSellCommand implements Command<ServerCommandSource> {
                 return 0;
               }
               ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
-              ShopMenu shopMenu = CobbleUtils.shopConfig.getShop();
-              ShopSell.sellProducts(player, shopMenu);
+              ShopConfigMenu shopConfigMenu = CobbleUtils.shopConfig.getShop();
+              ShopSell.sellProducts(player, shopConfigMenu);
               return 1;
             })
         ).then(
@@ -45,8 +45,8 @@ public class ShopSellCommand implements Command<ServerCommandSource> {
                 return 0;
               }
               ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
-              ShopMenu shopMenu = CobbleUtils.shopConfig.getShop();
-              ShopSell.sellProductHand(player, shopMenu);
+              ShopConfigMenu shopConfigMenu = CobbleUtils.shopConfig.getShop();
+              ShopSell.sellProductHand(player, shopConfigMenu);
               return 1;
             })
         ).then(

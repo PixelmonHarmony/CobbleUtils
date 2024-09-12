@@ -399,6 +399,9 @@ public class EggData {
     male.getMoveSet().getMoves().forEach(move -> moves.add(move.getName()));
     female.getMoveSet().getMoves().forEach(move -> moves.add(move.getName()));
 
+    male.getBenchedMoves().forEach(move -> moves.add(move.getMoveTemplate().getName()));
+    female.getBenchedMoves().forEach(move -> moves.add(move.getMoveTemplate().getName()));
+    
     List<String> names = new ArrayList<>();
     female.getForm().getMoves().getEggMoves().forEach(eggmove -> {
       if (moves.contains(eggmove.getName())) {
