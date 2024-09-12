@@ -29,19 +29,20 @@ public class WebSocketClient extends org.java_websocket.client.WebSocketClient {
   private static final int RETRY_DELAY_MS = 2000;
 
   public static WebSocketClient getInstance() {
-    if (INSTANCE == null) {
+    if (INSTANCE == null || !INSTANCE.isOpen()) {
       synchronized (WebSocketClient.class) {
-        if (INSTANCE == null) {
-          // Attempt to initialize the instance
+        if (INSTANCE == null || !INSTANCE.isOpen()) {
           boolean success = init();
           if (!success) {
             LOGGER.log(Level.SEVERE, "Failed to initialize WebSocket client.");
+            EconomyUtil.economyType = null;
+            LuckPermsUtil.PERMISSION_TYPE = null;
             return null;
           }
         }
       }
     }
-    return INSTANCE;
+    return null;
   }
 
   private WebSocketClient(String serverUri) throws URISyntaxException {
@@ -103,7 +104,7 @@ public class WebSocketClient extends org.java_websocket.client.WebSocketClient {
   @Override
   public void onClose(int code, String reason, boolean remote) {
     LOGGER.log(Level.INFO, "Connection closed. Reason: " + reason);
-    // Nullify INSTANCE on close if needed, but this depends on your use case
+    // Set INSTANCE to null when the connection is closed
     INSTANCE = null;
   }
 
@@ -138,15 +139,17 @@ public class WebSocketClient extends org.java_websocket.client.WebSocketClient {
       try {
         WebSocketClient client = new WebSocketClient("ws://localhost:49154");
         client.connectBlocking();  // Blocks until the connection is open
-        INSTANCE = client;
-        return true;
+        if (client.isOpen()) {
+          INSTANCE = client;
+          return true;
+        }
       } catch (URISyntaxException | InterruptedException e) {
         LOGGER.log(Level.SEVERE, "Error initializing WebSocket client (Attempt " + (attempt + 1) + "): " + e.getMessage(), e);
-        attempt++;
-        try {
-          Thread.sleep(RETRY_DELAY_MS);  // Wait before retrying
-        } catch (InterruptedException ignored) {
-        }
+      }
+      attempt++;
+      try {
+        Thread.sleep(RETRY_DELAY_MS);  // Wait before retrying
+      } catch (InterruptedException ignored) {
       }
     }
     return false;

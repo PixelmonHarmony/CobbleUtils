@@ -58,6 +58,7 @@ public class PlotBreedingManagerUI {
         open(player, plotBreeding);
       }, Gender.MALE));
     });
+
     // Female
     GooeyButton female = createButton(pokemonfemale, action -> {
       if (pokemonfemale == null) {

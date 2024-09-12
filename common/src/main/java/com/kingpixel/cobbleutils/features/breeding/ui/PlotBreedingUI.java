@@ -44,6 +44,7 @@ public class PlotBreedingUI {
       } else {
         itemStack = CobbleUtils.breedconfig.getPlotThereAreEggs().getItemStack(amount);
       }
+
       GooeyButton button = GooeyButton.builder()
         .display(itemStack)
         .title(AdventureTranslator.toNative(CobbleUtils.breedconfig.getPlotItem().getDisplayname()))

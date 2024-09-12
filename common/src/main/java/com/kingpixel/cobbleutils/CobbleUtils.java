@@ -36,7 +36,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import java.util.List;
 import java.util.concurrent.*;
 
-public class CobbleUtils {
+public class CobbleUtils extends ShopExtend {
   public static final String MOD_ID = "cobbleutils";
   public static final String PATH = "/config/cobbleutils";
   public static final String PATH_LANG = PATH + "/lang/";
@@ -47,6 +47,8 @@ public class CobbleUtils {
   public static final String PATH_REWARDS_DATA = PATH + "/rewards/";
   public static final String PATH_BREED = PATH + "/breed/";
   public static final String PATH_BREED_DATA = PATH_BREED + "data/";
+  public static final String PATH_SHOP = CobbleUtils.PATH + "/shop/";
+  public static final String PATH_SHOPS = PATH_SHOP + "shops/";
   public static final UtilsLogger LOGGER = new UtilsLogger();
   public static final String MOD_NAME = "CobbleUtils";
   public static MinecraftServer server;
@@ -108,7 +110,7 @@ public class CobbleUtils {
     poolMoney.init();
     partyConfig.init();
     partyLang.init();
-    shopConfig.init();
+    shopConfig.init(PATH_SHOP, MOD_ID, PATH_SHOPS);
     DatabaseClientFactory.createDatabaseClient(config.getDatabase().getType(),
       config.getDatabase().getDatabase(),
       config.getDatabase().getUrl(),

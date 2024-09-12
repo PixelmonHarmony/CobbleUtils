@@ -9,10 +9,12 @@ import lombok.Setter;
 @Getter
 @Setter
 public class UserParty {
+
   private String partyName;
   private boolean HasParty;
 
   public UserParty(String partyName, boolean HasParty) {
+
     this.partyName = partyName;
     this.HasParty = HasParty;
   }

@@ -40,49 +40,7 @@ dependencies {
 
     "common"(project(":common", "namedElements")) { isTransitive = false }
     "shadowCommon"(project(":common", "transformProductionFabric")) { isTransitive = false }
-    /*
-        implementation("net.kyori:adventure-text-serializer-gson:${property("kyori_version")}")
-        implementation("net.kyori:adventure-api:${property("kyori_version")}")
-        //implementation("net.kyori:adventure-key:${property("kyori_version")}")
-        implementation("net.kyori:adventure-text-serializer-plain:${property("kyori_version")}")
-        implementation("net.kyori:adventure-text-serializer-legacy:${property("kyori_version")}")
-        implementation("net.kyori:adventure-text-minimessage:${property("kyori_version")}")
-        implementation("net.kyori:examination-api:1.3.0")
-        implementation("net.kyori:examination-string:1.3.0")
-        implementation("net.kyori:adventure-nbt:${property("kyori_version")}")
-        implementation("net.kyori:adventure-text-serializer-json:${property("kyori_version")}")
-        implementation("net.kyori:adventure-text-logger-slf4j:${property("kyori_version")}")
-        implementation("net.kyori:adventure-platform-api:4.3.0")
-        implementation("net.kyori:adventure-text-serializer-ansi:${property("kyori_version")}")
-        implementation("net.kyori:adventure-text-serializer-gson:${property("kyori_version")}")
-        // implementation("org.mongodb:mongodb-driver-reactivestreams:5.1.2")*/
 
-    api("net.kyori:adventure-api:${property("kyori_version")}")
-    api("net.kyori:adventure-nbt:${property("kyori_version")}")
-    api("net.kyori:adventure-text-serializer-plain:${property("kyori_version")}")
-    api("net.kyori:adventure-text-serializer-legacy:${property("kyori_version")}")
-    api("net.kyori:adventure-text-serializer-gson:${property("kyori_version")}")
-    api("net.kyori:adventure-text-minimessage:${property("kyori_version")}")
-    api("net.kyori:adventure-text-logger-slf4j:${property("kyori_version")}")
-    api("net.kyori:adventure-platform-api:4.3.0")
-    api("net.kyori:event-api:5.0.0-SNAPSHOT")
-    /*
-        shadowCommon("net.kyori:adventure-text-serializer-gson:${property("kyori_version")}")
-        shadowCommon("net.kyori:adventure-api:${property("kyori_version")}")
-        //shadowCommon("net.kyori:adventure-key:${property("kyori_version")}")
-        shadowCommon("net.kyori:adventure-text-serializer-plain:${property("kyori_version")}")
-        shadowCommon("net.kyori:adventure-text-serializer-legacy:${property("kyori_version")}")
-        shadowCommon("net.kyori:adventure-text-minimessage:${property("kyori_version")}")
-        shadowCommon("net.kyori:examination-api:1.3.0")
-        shadowCommon("net.kyori:examination-string:1.3.0")
-        shadowCommon("net.kyori:adventure-nbt:${property("kyori_version")}")
-        shadowCommon("net.kyori:adventure-text-serializer-json:${property("kyori_version")}")
-        shadowCommon("net.kyori:adventure-text-logger-slf4j:${property("kyori_version")}")
-        shadowCommon("net.kyori:adventure-platform-api:4.3.0")
-        shadowCommon("net.kyori:adventure-text-serializer-ansi:${property("kyori_version")}")
-        shadowCommon("net.kyori:adventure-text-serializer-gson:${property("kyori_version")}")
-        //shadowCommon("org.mongodb:mongodb-driver-reactivestreams:5.1.2")
-        */
     shadowCommon("net.kyori:adventure-api:${property("kyori_version")}")
     shadowCommon("net.kyori:adventure-nbt:${property("kyori_version")}")
     shadowCommon("net.kyori:adventure-text-serializer-plain:${property("kyori_version")}")
@@ -115,7 +73,14 @@ tasks.processResources {
 
 
 tasks {
-    base.archivesName.set("${project.property("mod_version")}/${project.property("archives_base_name")}-fabric")
+    base.archivesName.set(
+        "${project.property("mod_version")}/${project.property("archives_base_name")}-fabric" +
+                "-${
+                    project.property(
+                        "mod_version"
+                    )
+                }"
+    )
     processResources {
         inputs.property("version", project.version)
 

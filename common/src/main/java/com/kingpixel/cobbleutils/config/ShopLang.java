@@ -11,7 +11,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Getter
 public class ShopLang {
-  public static String PATH_SHOP_LANG = ShopConfig.PATH_SHOP + "/lang/";
+  public static String PATH_SHOP_LANG = CobbleUtils.PATH_SHOP + "/lang/";
   private String prefix;
   private boolean changeItemError;
   private boolean symbolBeforeAmount;

@@ -102,7 +102,7 @@ public class BreedConfig {
     this.doubleditto = true;
     this.spawnEggWorld = false;
     this.shifttoopen = true;
-    this.destinyknotlikepokemon = true;
+    this.destinyknotlikepokemon = false;
     this.obtainPokeBallFromMother = true;
     this.tickstocheck = 20;
     this.multipliermasuda = 1.5f;

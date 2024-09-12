@@ -31,7 +31,7 @@ public class ArraysPokemons {
     MYTHICAL,
   }
 
-  private static TypePokemon getTypePokemon(Pokemon p) {
+  public static TypePokemon getTypePokemon(Pokemon p) {
     if (p.isLegendary()) {
       return TypePokemon.LEGENDARY;
     } else if (p.isUltraBeast()) {

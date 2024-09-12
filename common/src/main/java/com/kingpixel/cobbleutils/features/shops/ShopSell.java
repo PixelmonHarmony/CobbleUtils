@@ -60,10 +60,10 @@ public class ShopSell {
   /**
    * Sells all products from the player's inventory and updates the player's balance.
    *
-   * @param player   The player who is selling the products.
-   * @param shopMenu
+   * @param player         The player who is selling the products.
+   * @param shopConfigMenu
    */
-  public static void sellProducts(ServerPlayerEntity player, ShopMenu shopMenu) {
+  public static void sellProducts(ServerPlayerEntity player, ShopConfigMenu shopConfigMenu) {
     PlayerInventory inventory = player.getInventory();
     Map<String, BigDecimal> currencyTotals = new HashMap<>();
 
@@ -119,7 +119,7 @@ public class ShopSell {
         .replace("%currencys%", currencyMessage.toString().replaceAll(",\n$", ""))
         .replace("%prefix%", CobbleUtils.shopLang.getPrefix()));
       player.sendMessage(AdventureTranslator.toNative(message.toString()));
-      ShopTransactions.updateTransaction(player.getUuid(), shopMenu);
+      ShopTransactions.updateTransaction(player.getUuid(), shopConfigMenu);
     }
   }
 
@@ -127,10 +127,10 @@ public class ShopSell {
   /**
    * Sells the product currently held in the player's main hand.
    *
-   * @param player   The player who is selling the product.
-   * @param shopMenu
+   * @param player         The player who is selling the product.
+   * @param shopConfigMenu
    */
-  public static void sellProductHand(ServerPlayerEntity player, ShopMenu shopMenu) {
+  public static void sellProductHand(ServerPlayerEntity player, ShopConfigMenu shopConfigMenu) {
     PlayerInventory inventory = player.getInventory();
     ItemStack mainHandStack = inventory.getMainHandStack();
 
@@ -189,7 +189,7 @@ public class ShopSell {
           .replace("%prefix%", CobbleUtils.shopLang.getPrefix())
           .replace("%balance%", EconomyUtil.formatCurrency(totalEarned, currencyUsed, player.getUuid()))
           .replace("%currency%", currencyUsed)));
-      ShopTransactions.updateTransaction(player.getUuid(), shopMenu);
+      ShopTransactions.updateTransaction(player.getUuid(), shopConfigMenu);
     } else {
       player.sendMessage(
         AdventureTranslator.toNative(

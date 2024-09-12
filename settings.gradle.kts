@@ -2,7 +2,7 @@ rootProject.name = "CobbleUtils"
 
 pluginManagement {
     repositories {
-        
+
         mavenCentral()
         maven("https://cursemaven.com")
         maven("https://thedarkcolour.github.io/KotlinForForge/")
@@ -29,5 +29,5 @@ pluginManagement {
         }
     }
 }
-
 include("common", "fabric", "forge")
+//include("common", "fabric", "forge", "spigot")

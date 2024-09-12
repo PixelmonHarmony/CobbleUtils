@@ -29,7 +29,7 @@ public abstract class EconomyUtil {
   private static EconomyService service;
 
   // The economy type
-  private static EconomyType economyType;
+  public static EconomyType economyType;
 
 
   private enum EconomyType {

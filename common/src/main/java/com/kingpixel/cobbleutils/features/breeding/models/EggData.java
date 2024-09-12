@@ -399,6 +399,9 @@ public class EggData {
     male.getMoveSet().getMoves().forEach(move -> moves.add(move.getName()));
     female.getMoveSet().getMoves().forEach(move -> moves.add(move.getName()));
 
+    male.getBenchedMoves().forEach(move -> moves.add(move.getMoveTemplate().getName()));
+    female.getBenchedMoves().forEach(move -> moves.add(move.getMoveTemplate().getName()));
+
     List<String> names = new ArrayList<>();
     female.getForm().getMoves().getEggMoves().forEach(eggmove -> {
       if (moves.contains(eggmove.getName())) {
@@ -422,87 +425,51 @@ public class EggData {
 
       egg.getPersistentData().putString("moves", jsonObject.toString());
     }
-
-    if (CobbleUtils.config.isDebug()) {
-      CobbleUtils.LOGGER.info("-----[Male]-----");
-      infoPokemon(male);
-      CobbleUtils.LOGGER.info("-----[Female]-----");
-      infoPokemon(female);
-      CobbleUtils.LOGGER.info("-----[UsePokemonToEgg]-----");
-      infoPokemon(usePokemonToEgg);
-      CobbleUtils.LOGGER.info("-----[FirstSpecie]-----");
-      infoPokemon(eggSpecie);
-      CobbleUtils.LOGGER.info("-----[Egg]-----");
-      CobbleUtils.LOGGER.info(getInformation(egg));
-      for (int i = 0; i < 10; i++) {
-        CobbleUtils.LOGGER.info("");
-      }
-    }
   }
+
 
   private static void applyInitialIvs(Pokemon egg, Pokemon male, Pokemon female) {
     CobblemonItem maleItem = null;
     CobblemonItem femaleItem = null;
-    CobblemonItem ItemSame = null;
     boolean sameItem = false;
-    if (male.heldItem().getItem() instanceof CobblemonItem cobblemonItem) {
+
+    if (male != null && male.heldItem() != null && male.heldItem().getItem() instanceof CobblemonItem cobblemonItem) {
       maleItem = cobblemonItem;
     }
-    if (female.heldItem().getItem() instanceof CobblemonItem cobblemonItem) {
+    if (female != null && female.heldItem() != null && female.heldItem().getItem() instanceof CobblemonItem cobblemonItem) {
       femaleItem = cobblemonItem;
     }
 
-    if (maleItem != null && femaleItem != null) {
-      ItemSame = maleItem;
-      sameItem = maleItem.equals(femaleItem);
+    if (maleItem != null && femaleItem != null && maleItem.equals(femaleItem)) {
+      sameItem = true;
     }
 
-    List<Pokemon> parents = List.of(male, female);
-    Pokemon select = parents.get(Utils.RANDOM.nextInt(parents.size()));
-    if (ItemSame == DESTINY_KNOT) {
+    if (maleItem == null && femaleItem == null) {
+      logicIvs(male, female, female, null, egg); // Pasa `null` en lugar de `maleItem` ya que puede ser nulo
+    } else if (sameItem && maleItem == DESTINY_KNOT) {
       applyDestinyKnot(male, female, egg);
-    } else if (sameItem) {
-      applyIvsPower(select, egg, ItemSame);
     } else {
-      applyIvs(male, maleItem, female, femaleItem, egg);
+      logicIvs(male, female, male, maleItem, egg);
+      logicIvs(male, female, female, femaleItem, egg);
     }
-
   }
 
-  private static void applyIvs(Pokemon male, CobblemonItem maleItem, Pokemon female, CobblemonItem femaleItem,
-                               Pokemon egg) {
-    if (hasPowerItem(male)) {
-      if (femaleItem != null) {
-        logicIvs(male, female, female, femaleItem, egg);
-      }
-      if (maleItem != null) {
-        logicIvs(male, female, male, maleItem, egg);
-      }
-    } else if (hasPowerItem(female)) {
-      if (maleItem != null) {
-        logicIvs(male, female, male, maleItem, egg);
-      }
-      if (femaleItem != null) {
-        logicIvs(male, female, female, femaleItem, egg);
-      }
-    } else {
-      if (maleItem != null) {
-        logicIvs(male, female, male, maleItem, egg);
-      }
-      if (femaleItem != null) {
-        logicIvs(male, female, female, femaleItem, egg);
-      }
-    }
-
-  }
 
   private static void logicIvs(Pokemon male, Pokemon female, Pokemon select, CobblemonItem item, Pokemon egg) {
-    if (item == DESTINY_KNOT) {
+    if (item == null) {
+      // 2 Random IVs
+      List<Stats> stats = new ArrayList<>(Arrays.stream(Stats.values()).toList());
+      stats.remove(Stats.EVASION);
+      stats.remove(Stats.ACCURACY);
+
+      for (int i = 0; i < 2; i++) {
+        Stats stat = stats.remove(Utils.RANDOM.nextInt(stats.size()));
+        egg.setIV(stat, Utils.RANDOM.nextInt(32));
+      }
+    } else if (item == DESTINY_KNOT) {
       applyDestinyKnot(male, female, egg);
     } else if (isPowerItem(item)) {
       applyIvsPower(select, egg, item);
-    } else {
-      // Todo: Do something ?
     }
   }
 
@@ -545,45 +512,42 @@ public class EggData {
   }
 
   private static void applyDestinyKnot(Pokemon male, Pokemon female, Pokemon egg) {
-    List<Stats> stats = new ArrayList<>(Arrays.stream(Stats.values()).toList());
-    stats.remove(Stats.EVASION);
-    stats.remove(Stats.ACCURACY);
+    List<Stats> stats = Arrays.stream(Stats.values())
+      .filter(stat -> stat != Stats.EVASION && stat != Stats.ACCURACY)
+      .toList();
 
-    Map<Family, Set<Stats>> selectedStats = new HashMap<>();
-    selectedStats.put(Family.MALE, new HashSet<>());
-    selectedStats.put(Family.FEMALE, new HashSet<>());
+    Map<Family, Set<Stats>> selectedStats = Map.of(
+      Family.MALE, new HashSet<>(),
+      Family.FEMALE, new HashSet<>()
+    );
 
-    int attempts = 0;
+    int maxAttempts = 10;
     if (!CobbleUtils.breedconfig.isDestinyknotlikepokemon()) {
       for (int i = 0; i < 5; i++) {
-        List<Pokemon> pokemons = List.of(male, female);
-        Pokemon pokemon;
+        Pokemon selectedParent;
         Family family;
         Stats stat;
+        int attempts = 0;
 
         do {
-          int randomPokemonIndex = Utils.RANDOM.nextInt(pokemons.size());
-          pokemon = pokemons.get(randomPokemonIndex);
-          family = randomPokemonIndex == 0 ? Family.MALE : Family.FEMALE;
+          int randomIndex = Utils.RANDOM.nextInt(stats.size());
+          selectedParent = Utils.RANDOM.nextBoolean() ? male : female;
+          family = selectedParent == male ? Family.MALE : Family.FEMALE;
+          stat = stats.get(randomIndex);
 
-          stat = stats.get(Utils.RANDOM.nextInt(stats.size()));
           attempts++;
-
-          if (attempts > 10) {
-            stat = stats.stream().filter(s ->
-              !(selectedStats.get(Family.MALE).contains(s) && selectedStats.get(Family.FEMALE).contains(s))
-            ).findFirst().orElseThrow();
+          if (attempts > maxAttempts) {
+            stat = stats.stream()
+              .filter(s -> !selectedStats.get(Family.MALE).contains(s) && !selectedStats.get(Family.FEMALE).contains(s))
+              .findFirst()
+              .orElseThrow();
             break;
           }
         } while (selectedStats.get(family).contains(stat) ||
-          (selectedStats.get(Family.MALE).contains(stat) && selectedStats.get(Family.FEMALE).contains(stat)));
+          selectedStats.get(Family.MALE).contains(stat) && selectedStats.get(Family.FEMALE).contains(stat));
 
         selectedStats.get(family).add(stat);
-
-        Integer ivsPokemon = pokemon.getIvs().get(stat);
-        if (ivsPokemon == null) {
-          ivsPokemon = Utils.RANDOM.nextInt(32);
-        }
+        int ivsPokemon = selectedParent.getIvs().getOrDefault(stat);
 
         if (ivsPokemon > egg.getIvs().get(stat)) {
           egg.setIV(stat, ivsPokemon);
@@ -592,15 +556,8 @@ public class EggData {
     } else {
       for (int i = 0; i < 5; i++) {
         Stats stat = stats.remove(Utils.RANDOM.nextInt(stats.size()));
-
-        boolean fromMale = Utils.RANDOM.nextBoolean();
-        Pokemon selectedParent = fromMale ? male : female;
-
-        Integer ivSelectedParent = selectedParent.getIvs().get(stat);
-
-        if (ivSelectedParent == null) {
-          ivSelectedParent = Utils.RANDOM.nextInt(32);
-        }
+        Pokemon selectedParent = Utils.RANDOM.nextBoolean() ? male : female;
+        int ivSelectedParent = selectedParent.getIvs().getOrDefault(stat);
 
         egg.setIV(stat, ivSelectedParent);
       }
