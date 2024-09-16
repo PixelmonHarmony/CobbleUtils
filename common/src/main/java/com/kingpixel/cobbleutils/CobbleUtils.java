@@ -23,6 +23,7 @@ import com.kingpixel.cobbleutils.party.models.UserParty;
 import com.kingpixel.cobbleutils.party.util.PartyPlaceholder;
 import com.kingpixel.cobbleutils.properties.BreedablePropertyType;
 import com.kingpixel.cobbleutils.util.*;
+import com.kingpixel.cobbleutils.util.events.ArraysPokemonEvent;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.CommandRegistrationEvent;
 import dev.architectury.event.events.common.InteractionEvent;
@@ -170,6 +171,7 @@ public class CobbleUtils extends ShopExtend {
     LifecycleEvent.SERVER_STOPPING.register(server -> {
       scheduledTasks.forEach(task -> task.cancel(true));
       scheduledTasks.clear();
+      ArraysPokemonEvent.FINISH_GENERATE_POKEMONS.clear();
     });
 
 

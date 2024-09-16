@@ -37,6 +37,7 @@ public class ShopLang {
   private String messageAddMoney;
   private String messageRemoveMoney;
   private String messageShopWeekly;
+  private String messageNotHavePermission;
   private String notPermission;
   private List<String> loreProduct;
   private ItemModel balance;
@@ -96,6 +97,7 @@ public class ShopLang {
       "",
       "&7Balance: &e%balance% %currency%",
       "");
+    this.messageNotHavePermission = "%prefix% &7You don't have permission to open the shop";
     this.balance = new ItemModel(47, "cobblemon:relic_coin_sack", "&6Balance", List.of(
       "&7You have: &e%balance% %currency%"
     ), 0);
@@ -155,6 +157,7 @@ public class ShopLang {
         this.messageSellHandNoItemPrice = lang.getMessageSellHandNoItemPrice();
         this.messageSellErrorInvalidQuantity = lang.getMessageSellErrorInvalidQuantity();
         this.messageBuySuccess = lang.getMessageBuySuccess();
+        this.messageNotHavePermission = lang.getMessageNotHavePermission();
         this.messageBought = lang.getMessageBought();
         this.messageNotHaveMoney = lang.getMessageNotHaveMoney();
         this.messageAddMoney = lang.getMessageAddMoney();

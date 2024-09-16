@@ -33,7 +33,6 @@ public class BreedConfig {
   private boolean ditto;
   private boolean doubleditto;
   private boolean spawnEggWorld;
-  private boolean destinyknotlikepokemon;
   private boolean obtainPokeBallFromMother;
   private List<String> eggcommand;
   private String titleselectplot;
@@ -102,7 +101,6 @@ public class BreedConfig {
     this.doubleditto = true;
     this.spawnEggWorld = false;
     this.shifttoopen = true;
-    this.destinyknotlikepokemon = false;
     this.obtainPokeBallFromMother = true;
     this.tickstocheck = 20;
     this.multipliermasuda = 1.5f;
@@ -119,8 +117,8 @@ public class BreedConfig {
     this.cooldowninstaBreedInSeconds = 60;
     this.cooldowninstaHatchInSeconds = 60;
     this.plotItem = new ItemModel(0, "minecraft:turtle_egg", "<#82d448>Plot", List.of(
-      "&9male: &6%pokemon1%",
-      "&dfemale: &6%pokemon2%",
+      "&9male: &6%pokemon1% &f(&b%form1%&f) &f(&b%item1%&f)",
+      "&dfemale: &6%pokemon2% &f(&b%form2%&f) &f(&b%item1%&f)",
       "&7Eggs: &6%eggs%",
       "&7Cooldown: &6%cooldown%"
     ), 0);
@@ -196,7 +194,6 @@ public class BreedConfig {
         cooldown = config.getCooldown();
         maxeggperplot = config.getMaxeggperplot();
         tickstocheck = config.getTickstocheck();
-        destinyknotlikepokemon = config.isDestinyknotlikepokemon();
         maxplots = config.getMaxplots();
         notcancreateEgg = config.getNotcancreateEgg();
         autoclaim = config.isAutoclaim();

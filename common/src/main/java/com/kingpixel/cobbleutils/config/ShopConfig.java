@@ -4,13 +4,16 @@ import com.google.gson.Gson;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.features.shops.Shop;
 import com.kingpixel.cobbleutils.features.shops.ShopConfigMenu;
+import com.kingpixel.cobbleutils.features.shops.models.types.ShopTypeDynamic;
+import com.kingpixel.cobbleutils.features.shops.models.types.ShopTypeDynamicWeekly;
+import com.kingpixel.cobbleutils.features.shops.models.types.ShopTypePermanent;
+import com.kingpixel.cobbleutils.features.shops.models.types.ShopTypeWeekly;
 import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -76,15 +79,12 @@ public class ShopConfig {
   }
 
   private static List<Shop> createDefaultShops() {
-    List<Shop> defaultShops = new ArrayList<>();
-    // Create a few default shops with dummy data
-    for (int i = 1; i <= 3; i++) {
-      Shop shop = new Shop();
-      shop.setId("default_shop_" + i);
-      shop.setTitle("Default Shop " + i);
-      defaultShops.add(shop);
-    }
-    return defaultShops;
+    return List.of(
+      new Shop("permanent", "Permanent", new ShopTypePermanent(), (short) 6),
+      new Shop("dynamic", "Dynamic", new ShopTypeDynamic(), (short) 6),
+      new Shop("weekly", "Weekly", new ShopTypeWeekly(), (short) 6),
+      new Shop("dynamicweekly", "DynamicWeekly", new ShopTypeDynamicWeekly(), (short) 6)
+    );
   }
 
   private static void saveShopsToPath(String mod_id, String path, List<Shop> shopList) {

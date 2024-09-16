@@ -14,8 +14,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
-import java.util.Collections;
-import java.util.Set;
+import java.util.List;
 
 /**
  * @author Carlos Varas Alonso - 26/08/2024 2:28
@@ -39,19 +38,18 @@ public class TestCommands {
                 ElementalType elementalType = ElementalTypes.INSTANCE.get(type.toUpperCase());
                 ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
                 Cobblemon.INSTANCE.getStorage().getParty(player).add(ArraysPokemons.getRandomPokemon(elementalType));
-                ArraysPokemons.getRandomPokemons(Collections.singleton(elementalType),
-                  Set.of(ArraysPokemons.TypePokemon.LEGENDARY,
+                ArraysPokemons.getPokemonsByTypesAndExclusions(List.of(elementalType),
+                  List.of(ArraysPokemons.TypePokemon.LEGENDARY,
                     ArraysPokemons.TypePokemon.PARADOX,
                     ArraysPokemons.TypePokemon.ULTRABEAST,
-                    ArraysPokemons.TypePokemon.MYTHICAL)).forEach(pokemon -> {
+                    ArraysPokemons.TypePokemon.MYTHICAL)).forEach(pokemon ->
                   pokemon.sendOut(player.getServerWorld(), player.getPos(), new IllusionEffect(), (pokemonEntity) -> {
                     player.sendMessage(Text.literal(
                         "You have received a " + pokemonEntity.getPokemon().getDisplayName().getString() + "!"
                       )
                     );
                     return Unit.INSTANCE;
-                  });
-                });
+                  }));
                 return 1;
               })
           )

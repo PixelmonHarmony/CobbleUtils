@@ -148,7 +148,8 @@ public abstract class EconomyUtil {
             AdventureTranslator.toNative(
               CobbleUtils.shopLang.getMessageAddMoney()
                 .replace("%prefix%", CobbleUtils.shopLang.getPrefix())
-                .replace("%price%", String.valueOf(amount))
+                .replace("%price%", formatCurrency(amount, account.currency(), account.owner()))
+                .replace("%amount%", formatCurrency(amount, account.currency(), account.owner()))
                 .replace("%balance%", formatCurrency(account.balance(), account.currency(), account.owner()))
                 .replace("%symbol%", getSymbol(account.currency()))
                 .replace("%currency%", getCurrencyName(account.currency()))

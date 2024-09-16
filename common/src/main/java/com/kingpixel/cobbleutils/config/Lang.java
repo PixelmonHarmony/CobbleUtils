@@ -33,6 +33,7 @@ public class Lang {
   private String yes;
   private String no;
   private String none;
+  private String unknown;
   private String nocooldown;
   private String symbolshiny;
   private String pokemonnameformat;
@@ -109,6 +110,7 @@ public class Lang {
     no = "&c✘";
     symbolshiny = " &e⭐";
     nocooldown = "&cNo cooldown";
+    unknown = "&cUnknown";
     AH = "&f(&bAH&f)";
     none = "&cNone";
     coloritem = "<gradient:#cc7435:#e3ab84>";
@@ -243,6 +245,7 @@ public class Lang {
         if (titlemenurewards == null) titlemenurewards = "&eRewards Menu";
         yes = lang.getYes();
         no = lang.getNo();
+        unknown = lang.getUnknown();
         AH = lang.getAH();
         titlepc = lang.getTitlepc();
         messageReload = lang.getMessageReload();

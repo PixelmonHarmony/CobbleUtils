@@ -112,10 +112,16 @@ public class CommandTree {
     }
 
     if (CobbleUtils.config.isShops()) {
-      ShopCommand.register(dispatcher, CommandManager.literal("shop"), CobbleUtils.shopConfig, CobbleUtils.MOD_ID);
+      LiteralArgumentBuilder<ServerCommandSource> shopliteral =
+        CommandManager.literal("shop").requires(source -> LuckPermsUtil.checkPermission(
+          source, 2, List.of("cobbleutils.admin", "cobbleutils.shop",
+            "cobbleutils.user")
+        ));
+      ShopCommand.register(dispatcher, shopliteral, CobbleUtils.shopConfig, CobbleUtils.MOD_ID);
+      ShopTransactionCommand.register(dispatcher, shopliteral);
       ShopSellCommand.register(dispatcher, CommandManager.literal("sell"));
-      ShopTransactionCommand.register(dispatcher, CommandManager.literal("shop"));
     }
+
     if (CobbleUtils.config.isDebug()) {
       LiteralArgumentBuilder<ServerCommandSource> base = CommandManager.literal("cobbleutilstest")
         .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.admin")));

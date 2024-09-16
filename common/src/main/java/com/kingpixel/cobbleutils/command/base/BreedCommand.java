@@ -3,6 +3,7 @@ package com.kingpixel.cobbleutils.command.base;
 import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.storage.NoPokemonStoreException;
 import com.cobblemon.mod.common.command.argument.PartySlotArgumentType;
+import com.cobblemon.mod.common.pokemon.Gender;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.features.breeding.models.EggData;
@@ -93,6 +94,8 @@ public class BreedCommand implements Command<ServerCommandSource> {
       addEggToParty(targetPlayer, egg);
       applyCooldown(targetPlayer);
       return 1;
+    } else {
+      targetPlayer.sendMessage(AdventureBreeding.adventure("Failed to create egg."));
     }
 
     return 0;
@@ -139,11 +142,10 @@ public class BreedCommand implements Command<ServerCommandSource> {
 
   private static Pokemon createEgg(Pokemon male, Pokemon female, ServerPlayerEntity player) {
     try {
-      return EggData.createEgg(
-        male.getSpecies().showdownId().equalsIgnoreCase("ditto") ? male : female,
-        female.getSpecies().showdownId().equalsIgnoreCase("ditto") ? male : female,
-        player
-      );
+      if (male.getGender() == Gender.FEMALE) return null;
+      if (female.getGender() == Gender.MALE) return null;
+
+      return EggData.createEgg(male, female, player);
     } catch (NoPokemonStoreException e) {
       player.sendMessage(AdventureBreeding.adventure("Failed to create egg: no available storage."));
       return null;

@@ -94,10 +94,56 @@ public class PokemonUtils {
   }
 
   private static String replacePlaceholders(String message, Pokemon pokemon, Integer index) {
+    if (message == null || message.isEmpty()) return "";
+    if (!message.contains("%")) return message;
+
     String indexStr = (index == null || index == 0) ? "" : index.toString();
 
     if (pokemon == null) {
-      return message.replace("%pokemon" + indexStr + "%", CobbleUtils.language.getEmpty());
+      return message
+        .replace("%level" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%nature" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%pokemon" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%shiny" + indexStr + "%", "")
+        .replace("%ability" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%ivshp" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%ivsatk" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%ivsdef" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%ivsspa" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%ivsspdef" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%ivsspeed" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%evshp" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%evsatk" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%evsdef" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%evsspa" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%evsspdef" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%evsspeed" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%legendary" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%item" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%size" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%form" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%aspect" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%up" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%down" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%ball" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%gender" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%ivs" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%evs" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%move" + indexStr + "1%", CobbleUtils.language.getUnknown())
+        .replace("%move" + indexStr + "2%", CobbleUtils.language.getUnknown())
+        .replace("%move" + indexStr + "3%", CobbleUtils.language.getUnknown())
+        .replace("%move" + indexStr + "4%", CobbleUtils.language.getUnknown())
+        .replace("%tradeable" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%owner" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%ultrabeast" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%types" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%rarity" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%breedable" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%pokerus" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%friendship" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%ah" + indexStr + "%", "")
+        .replace("%country" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%egggroups" + indexStr + "%", CobbleUtils.language.getUnknown());
     }
 
     Nature nature = pokemon.getNature();
@@ -179,10 +225,8 @@ public class PokemonUtils {
    * @return The string with the replaced placeholders
    */
   public static String replace(String message, Pokemon pokemon) {
-    if (pokemon == null) {
-      return message.replace("%pokemon%", CobbleUtils.language.getEmpty());
-    }
-
+    if (message == null || message.isEmpty()) return "";
+    if (!message.contains("%")) return message;
     if (message.contains("%lorepokemon%")) {
       StringBuilder loreStringBuilder = new StringBuilder();
       CobbleUtils.language.getLorepokemon().forEach(lore -> loreStringBuilder.append(lore).append("\n"));
@@ -233,7 +277,7 @@ public class PokemonUtils {
 
     for (int i = 0; i < pokemons.size(); i++) {
       Pokemon pokemon = pokemons.get(i);
-      message = replacePlaceholders(message, pokemon, i + 1); // i + 1 para obtener índices 1, 2, 3...
+      message = replacePlaceholders(message, pokemon, i + 1);
     }
 
     return message;

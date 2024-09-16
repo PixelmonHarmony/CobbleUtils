@@ -93,7 +93,7 @@ public class PlotSelectPokemonUI {
       Cobblemon.INSTANCE.getStorage().getPC(player.getUuid()).remove(pokemon);
       Cobblemon.INSTANCE.getStorage().getParty(player).remove(pokemon);
     } catch (NoPokemonStoreException e) {
-      throw new RuntimeException(e);
+      e.printStackTrace();
     }
     plotBreeding.add(pokemon, gender);
     Breeding.managerPlotEggs.writeInfo(player);
@@ -145,6 +145,7 @@ public class PlotSelectPokemonUI {
       return false;
     }
 
+
     return otherGender == null
       ? isInWhitelist || isGenderMatching(pokemon, gender) || isDittoBreedingAllowed(pokemon)
       : checkEggCompatibility(pokemon, gender, otherGender, isInWhitelist, notify, player);
@@ -158,8 +159,8 @@ public class PlotSelectPokemonUI {
     return CobbleUtils.breedconfig.isDitto() && pokemon.getSpecies().showdownId().equalsIgnoreCase("ditto");
   }
 
-  private static boolean checkEggCompatibility(Pokemon pokemon, Gender gender, Pokemon otherGender,
-                                               boolean isInWhitelist,
+  private static boolean checkEggCompatibility(Pokemon pokemon, Gender gender,
+                                               Pokemon otherGender, boolean isInWhitelist,
                                                boolean notify, ServerPlayerEntity player) {
     boolean isOtherDitto = otherGender.getSpecies().showdownId().equalsIgnoreCase("ditto");
     boolean areCompatible = EggData.isCompatible(otherGender, pokemon);

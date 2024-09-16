@@ -10,10 +10,12 @@ import lombok.ToString;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @author Carlos Varas Alonso - 09/07/2024 20:19
+ * Model representing a Pokemon object with rarity and expiration date.
+ * Optimized by [Tu Nombre] - 09/07/2024
  */
 @Getter
 @ToString
@@ -28,109 +30,100 @@ public class PokemonObject {
     this.date = date;
   }
 
+  /**
+   * Check if the Pokémon has expired based on its date.
+   *
+   * @return True if expired, false otherwise.
+   */
   private boolean expired() {
-    if (date == null) {
-      return false;
-    } else {
-      new Date().after(date);
-    }
-    return true;
+    return Optional.ofNullable(date).map(d -> new Date().after(d)).orElse(false);
   }
 
   /**
-   * Get the Pokemon id
+   * Get the Pokemon species id.
    *
-   * @return The Pokémon id
+   * @return The Pokémon species showdownId.
    */
   private String getPokemonId() {
     return getPokemon().getSpecies().showdownId();
   }
 
   /**
-   * Get the Pokémon
+   * Get the Pokémon from the stored JsonObject.
    *
-   * @return The Pokémon
+   * @return The Pokémon.
    */
   private Pokemon getPokemon() {
     return Pokemon.Companion.loadFromJSON(pokemon);
   }
 
   /**
-   * Get a new Pokémon
+   * Generate a new Pokémon and update this object's JSON representation.
    */
   private void getNewPokemon() {
     this.pokemon = ArraysPokemons.getRandomPokemonNormalRarity(this.rarity).saveToJSON(new JsonObject());
   }
 
   /**
-   * Get a list of Pokémon
+   * Generic method to generate a list of Pokémon based on the given type and settings.
    *
-   * @param size    The size of the list
-   * @param expired If the Pokémon is expired
-   * @param minutes The minutes of expiration
+   * @param size    The size of the list to generate.
+   * @param expired Whether or not the Pokémon are considered expired.
+   * @param minutes The time in minutes before expiration.
+   * @param type    The type of Pokémon to generate (NORMAL, LEGENDARY, etc.).
    *
-   * @return List of Pokémon
+   * @return A list of PokemonObject.
+   */
+  private static List<PokemonObject> getPokemonListByType(int size, boolean expired, int minutes, ArraysPokemons.TypePokemon... type) {
+    List<Pokemon> pokemons = ArraysPokemons.getRandomPokemon(List.of(type), size);
+    List<PokemonObject> pokemonObjects = new ArrayList<>();
+
+    Date expirationDate = expired ? new Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(minutes)) : null;
+
+    pokemons.forEach(pokemon -> {
+      PokemonObject pokemonObject = new PokemonObject(pokemon.saveToJSON(new JsonObject()), expirationDate);
+      pokemonObjects.add(pokemonObject);
+    });
+
+    return pokemonObjects;
+  }
+
+  /**
+   * Get a list of regular Pokémon (NORMAL type).
+   *
+   * @param size    The size of the list.
+   * @param expired If the Pokémon is expired.
+   * @param minutes The minutes of expiration.
+   *
+   * @return List of Pokémon objects.
    */
   public static List<PokemonObject> getListPokemon(int size, boolean expired, int minutes) {
-    List<Pokemon> p = ArraysPokemons.getRandomListPokemonNormalHalf(size, true);
-    List<PokemonObject> pokemons = new ArrayList<>();
-    p.forEach(pokemon -> {
-      PokemonObject pokemonObject;
-      if (!expired) {
-        pokemonObject = new PokemonObject(pokemon.saveToJSON(new JsonObject()), null);
-      } else {
-        pokemonObject = new PokemonObject(pokemon.saveToJSON(new JsonObject()), new Date(TimeUnit.MINUTES.toMillis(minutes)));
-      }
-      pokemons.add(pokemonObject);
-    });
-    return pokemons;
+    return getPokemonListByType(size, expired, minutes, ArraysPokemons.TypePokemon.NORMAL);
   }
 
   /**
-   * Get a list of Pokemon
+   * Get a list of legendary Pokémon (LEGENDARY and PARADOX types).
    *
-   * @param size    The size of the list
-   * @param expired If the Pokémon is expired
-   * @param minutes The minutes of expiration
+   * @param size    The size of the list.
+   * @param expired If the Pokémon is expired.
+   * @param minutes The minutes of expiration.
    *
-   * @return List of Pokemon legendaries
+   * @return List of legendary Pokémon objects.
    */
   public static List<PokemonObject> getListLegendaries(int size, boolean expired, int minutes) {
-    List<Pokemon> p = ArraysPokemons.getRandomListPokemonLegendary(size);
-    List<PokemonObject> pokemons = new ArrayList<>();
-    p.forEach(pokemon -> {
-      PokemonObject pokemonObject;
-      if (!expired) {
-        pokemonObject = new PokemonObject(pokemon.saveToJSON(new JsonObject()), null);
-      } else {
-        pokemonObject = new PokemonObject(pokemon.saveToJSON(new JsonObject()), new Date(TimeUnit.MINUTES.toMillis(minutes)));
-      }
-      pokemons.add(pokemonObject);
-    });
-    return pokemons;
+    return getPokemonListByType(size, expired, minutes, ArraysPokemons.TypePokemon.LEGENDARY, ArraysPokemons.TypePokemon.PARADOX);
   }
 
   /**
-   * Get a list of Pokemon
+   * Get a list of Ultra Beast Pokémon (ULTRABEAST type).
    *
-   * @param size    The size of the list
-   * @param expired If the Pokémon is expired
-   * @param minutes The minutes of expiration
+   * @param size    The size of the list.
+   * @param expired If the Pokémon is expired.
+   * @param minutes The minutes of expiration.
    *
-   * @return List of Pokemon ultrabeast
+   * @return List of Ultra Beast Pokémon objects.
    */
   public static List<PokemonObject> getListUltraBeast(int size, boolean expired, int minutes) {
-    List<Pokemon> p = ArraysPokemons.getRandomListPokemonUltraBeast(size);
-    List<PokemonObject> pokemons = new ArrayList<>();
-    p.forEach(pokemon -> {
-      PokemonObject pokemonObject;
-      if (!expired) {
-        pokemonObject = new PokemonObject(pokemon.saveToJSON(new JsonObject()), null);
-      } else {
-        pokemonObject = new PokemonObject(pokemon.saveToJSON(new JsonObject()), new Date(TimeUnit.MINUTES.toMillis(minutes)));
-      }
-      pokemons.add(pokemonObject);
-    });
-    return pokemons;
+    return getPokemonListByType(size, expired, minutes, ArraysPokemons.TypePokemon.ULTRABEAST);
   }
 }

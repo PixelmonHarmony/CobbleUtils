@@ -10,6 +10,7 @@ import java.util.List;
  */
 public class ArraysPokemonEvent {
   private List<ArraysPokemonListener> partyCreatedListeners = new ArrayList<>();
+
   public static final ArraysPokemonEvent FINISH_GENERATE_POKEMONS = new ArraysPokemonEvent();
 
   public void register(ArraysPokemonListener listener) {
@@ -18,6 +19,10 @@ public class ArraysPokemonEvent {
 
   public void unregister(ArraysPokemonListener listener) {
     partyCreatedListeners.remove(listener);
+  }
+
+  public void clear() {
+    partyCreatedListeners.clear();
   }
 
   public void emit(List<Species> species) {

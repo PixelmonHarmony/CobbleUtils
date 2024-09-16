@@ -11,14 +11,10 @@ import com.cobblemon.mod.common.api.pokemon.Natures;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.api.pokemon.PokemonPropertyExtractor;
 import com.cobblemon.mod.common.api.pokemon.egg.EggGroup;
-import com.cobblemon.mod.common.api.pokemon.feature.FlagSpeciesFeature;
-import com.cobblemon.mod.common.api.pokemon.feature.StringSpeciesFeature;
 import com.cobblemon.mod.common.api.pokemon.stats.Stats;
 import com.cobblemon.mod.common.api.storage.NoPokemonStoreException;
 import com.cobblemon.mod.common.item.CobblemonItem;
-import com.cobblemon.mod.common.pokemon.FormData;
 import com.cobblemon.mod.common.pokemon.Pokemon;
-import com.cobblemon.mod.common.pokemon.Species;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -39,7 +35,9 @@ import lombok.ToString;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.cobblemon.mod.common.CobblemonItems.*;
@@ -286,8 +284,13 @@ public class EggData {
   public static boolean isCompatible(Pokemon male, Pokemon female) {
     if (male.getForm().getEggGroups().contains(EggGroup.UNDISCOVERED)) return false;
     if (female.getForm().getEggGroups().contains(EggGroup.UNDISCOVERED)) return false;
+    if (isDitto(male) || isDitto(female)) return true;
     return female.getForm().getEggGroups().stream()
       .anyMatch(eggGroup -> male.getForm().getEggGroups().contains(eggGroup));
+  }
+
+  private static boolean isDitto(Pokemon pokemon) {
+    return pokemon.getSpecies().showdownId().equalsIgnoreCase("ditto");
   }
 
   private static void infoPokemon(Pokemon pokemon) {
@@ -408,13 +411,7 @@ public class EggData {
         names.add(eggmove.getName());
       }
     });
-
-    /*if (names.isEmpty()) {
-      List<MoveTemplate> movesegg = female.getForm().getMoves().getEggMoves();
-      if (!movesegg.isEmpty()) {
-        names.add(movesegg.get(Utils.RANDOM.nextInt(movesegg.size())).getName());
-      }
-    }*/
+    
 
     if (!names.isEmpty()) {
       JsonArray jsonArray = new JsonArray();
@@ -445,18 +442,38 @@ public class EggData {
     }
 
     if (maleItem == null && femaleItem == null) {
-      logicIvs(male, female, female, null, egg); // Pasa `null` en lugar de `maleItem` ya que puede ser nulo
+      logicIvs(male, female, female, null, egg);
     } else if (sameItem && maleItem == DESTINY_KNOT) {
       applyDestinyKnot(male, female, egg);
     } else {
-      logicIvs(male, female, male, maleItem, egg);
-      logicIvs(male, female, female, femaleItem, egg);
+      if (maleItem == DESTINY_KNOT) {
+        logicIvs(male, female, female, femaleItem, egg);
+        logicIvs(male, female, male, maleItem, egg);
+      } else if (femaleItem == DESTINY_KNOT) {
+        logicIvs(male, female, male, maleItem, egg);
+        logicIvs(male, female, female, femaleItem, egg);
+      } else {
+        if (isPowerItem(maleItem) && isPowerItem(femaleItem)) {
+          logicIvs(male, female, male, maleItem, egg);
+          logicIvs(male, female, female, femaleItem, egg);
+        } else if (isPowerItem(maleItem)) {
+          logicIvs(male, female, female, femaleItem, egg);
+          logicIvs(male, female, male, maleItem, egg);
+        } else if (isPowerItem(femaleItem)) {
+          logicIvs(male, female, male, maleItem, egg);
+          logicIvs(male, female, female, femaleItem, egg);
+        } else {
+          logicIvs(male, female, null, null, egg);
+        }
+
+      }
     }
+
   }
 
 
-  private static void logicIvs(Pokemon male, Pokemon female, Pokemon select, CobblemonItem item, Pokemon egg) {
-    if (item == null) {
+  private static void logicIvs(Pokemon male, Pokemon female, Pokemon select, CobblemonItem itemPokemon, Pokemon egg) {
+    if (itemPokemon == null) {
       // 2 Random IVs
       List<Stats> stats = new ArrayList<>(Arrays.stream(Stats.values()).toList());
       stats.remove(Stats.EVASION);
@@ -466,14 +483,15 @@ public class EggData {
         Stats stat = stats.remove(Utils.RANDOM.nextInt(stats.size()));
         egg.setIV(stat, Utils.RANDOM.nextInt(32));
       }
-    } else if (item == DESTINY_KNOT) {
+    } else if (itemPokemon == DESTINY_KNOT) {
       applyDestinyKnot(male, female, egg);
-    } else if (isPowerItem(item)) {
-      applyIvsPower(select, egg, item);
+    } else if (isPowerItem(itemPokemon)) {
+      applyIvsPower(select, egg, itemPokemon);
     }
   }
 
   private static boolean isPowerItem(CobblemonItem item) {
+    if (item == null) return false;
     return item == POWER_WEIGHT ||
       item == POWER_BRACER ||
       item == POWER_BELT ||
@@ -493,17 +511,17 @@ public class EggData {
 
   private static void applyIvsPower(Pokemon select, Pokemon egg, CobblemonItem itemSame) {
     if (itemSame.equals(POWER_WEIGHT)) {
-      egg.setIV(Stats.HP, select.getIvs().get(Stats.HP));
+      egg.setIV(Stats.HP, select.getIvs().getOrDefault(Stats.HP));
     } else if (itemSame.equals(POWER_BRACER)) {
-      egg.setIV(Stats.ATTACK, select.getIvs().get(Stats.ATTACK));
+      egg.setIV(Stats.ATTACK, select.getIvs().getOrDefault(Stats.ATTACK));
     } else if (itemSame.equals(POWER_BELT)) {
-      egg.setIV(Stats.DEFENCE, select.getIvs().get(Stats.DEFENCE));
+      egg.setIV(Stats.DEFENCE, select.getIvs().getOrDefault(Stats.DEFENCE));
     } else if (itemSame.equals(POWER_ANKLET)) {
-      egg.setIV(Stats.SPEED, select.getIvs().get(Stats.SPEED));
+      egg.setIV(Stats.SPEED, select.getIvs().getOrDefault(Stats.SPEED));
     } else if (itemSame.equals(POWER_LENS)) {
-      egg.setIV(Stats.SPECIAL_ATTACK, select.getIvs().get(Stats.SPECIAL_ATTACK));
+      egg.setIV(Stats.SPECIAL_ATTACK, select.getIvs().getOrDefault(Stats.SPECIAL_ATTACK));
     } else if (itemSame.equals(POWER_BAND)) {
-      egg.setIV(Stats.SPECIAL_DEFENCE, select.getIvs().get(Stats.SPECIAL_DEFENCE));
+      egg.setIV(Stats.SPECIAL_DEFENCE, select.getIvs().getOrDefault(Stats.SPECIAL_DEFENCE));
     }
   }
 
@@ -512,55 +530,14 @@ public class EggData {
   }
 
   private static void applyDestinyKnot(Pokemon male, Pokemon female, Pokemon egg) {
-    List<Stats> stats = Arrays.stream(Stats.values())
+    List<Stats> stats = new ArrayList<>(Arrays.stream(Stats.values())
       .filter(stat -> stat != Stats.EVASION && stat != Stats.ACCURACY)
-      .toList();
+      .toList());
 
-    Map<Family, Set<Stats>> selectedStats = Map.of(
-      Family.MALE, new HashSet<>(),
-      Family.FEMALE, new HashSet<>()
-    );
-
-    int maxAttempts = 10;
-    if (!CobbleUtils.breedconfig.isDestinyknotlikepokemon()) {
-      for (int i = 0; i < 5; i++) {
-        Pokemon selectedParent;
-        Family family;
-        Stats stat;
-        int attempts = 0;
-
-        do {
-          int randomIndex = Utils.RANDOM.nextInt(stats.size());
-          selectedParent = Utils.RANDOM.nextBoolean() ? male : female;
-          family = selectedParent == male ? Family.MALE : Family.FEMALE;
-          stat = stats.get(randomIndex);
-
-          attempts++;
-          if (attempts > maxAttempts) {
-            stat = stats.stream()
-              .filter(s -> !selectedStats.get(Family.MALE).contains(s) && !selectedStats.get(Family.FEMALE).contains(s))
-              .findFirst()
-              .orElseThrow();
-            break;
-          }
-        } while (selectedStats.get(family).contains(stat) ||
-          selectedStats.get(Family.MALE).contains(stat) && selectedStats.get(Family.FEMALE).contains(stat));
-
-        selectedStats.get(family).add(stat);
-        int ivsPokemon = selectedParent.getIvs().getOrDefault(stat);
-
-        if (ivsPokemon > egg.getIvs().get(stat)) {
-          egg.setIV(stat, ivsPokemon);
-        }
-      }
-    } else {
-      for (int i = 0; i < 5; i++) {
-        Stats stat = stats.remove(Utils.RANDOM.nextInt(stats.size()));
-        Pokemon selectedParent = Utils.RANDOM.nextBoolean() ? male : female;
-        int ivSelectedParent = selectedParent.getIvs().getOrDefault(stat);
-
-        egg.setIV(stat, ivSelectedParent);
-      }
+    for (int i = 0; i < 5; i++) {
+      Stats stat = stats.remove(Utils.RANDOM.nextInt(stats.size()));
+      Pokemon selectedParent = Utils.RANDOM.nextBoolean() ? male : female;
+      egg.setIV(stat, selectedParent.getIvs().getOrDefault(stat));
     }
   }
 
@@ -568,30 +545,17 @@ public class EggData {
   private static void applyAbility(Pokemon male, Pokemon female, Pokemon firstEvolution, Pokemon egg) {
     boolean maleHiddenAbility = PokemonUtils.haveAH(male);
     boolean femaleHiddenAbility = PokemonUtils.haveAH(female);
-    if (CobbleUtils.config.isDebug()) {
-      CobbleUtils.LOGGER.info("Male, Female: " + male.getSpecies().getName() + ", " + female.getSpecies().getName());
-      CobbleUtils.LOGGER.info("Egg: " + firstEvolution.getSpecies().getName());
-    }
     egg.getPersistentData().remove("ability");
     if (maleHiddenAbility || femaleHiddenAbility) {
       if (Utils.RANDOM.nextInt(100) < 70) {
         Ability ability1 = PokemonUtils.getAH(firstEvolution);
-        if (CobbleUtils.config.isDebug()) {
-          CobbleUtils.LOGGER.info("Apply ability egg: " + ability1.getName());
-        }
         egg.getPersistentData().putString("ability", ability1.getName());
       } else {
         Ability randomAbility = PokemonUtils.getRandomAbility(firstEvolution);
-        if (CobbleUtils.config.isDebug()) {
-          CobbleUtils.LOGGER.info("Apply ability egg: " + randomAbility.getName());
-        }
         egg.getPersistentData().putString("ability", randomAbility.getName());
       }
     } else {
       Ability randomAbility = PokemonUtils.getRandomAbility(firstEvolution);
-      if (CobbleUtils.config.isDebug()) {
-        CobbleUtils.LOGGER.info("Apply ability egg: " + randomAbility.getName());
-      }
       egg.getPersistentData().putString("ability", randomAbility.getName());
     }
   }
@@ -616,8 +580,7 @@ public class EggData {
     return s.get();
   }
 
-  private static void applyForm(Pokemon pokemon) {
-    // Suponiendo que `species`, `form`, y `forms` están inicializados aquí
+ /* private static void applyForm(Pokemon pokemon) {
     PokemonProperties pokemonProperties = new PokemonProperties();
     Species species = pokemon.getSpecies();
     FormData form = pokemon.getForm();
@@ -643,7 +606,7 @@ public class EggData {
         );
       }
     }
-  }
+  }*/
 
   @Getter
   public static class EggForm {
@@ -721,10 +684,6 @@ public class EggData {
     }
 
 
-    if (CobbleUtils.config.isDebug()) {
-      CobbleUtils.LOGGER.info("-----[getForm]-----");
-      infoPokemon(pokemon);
-    }
     if (pokemon.getForm().getAspects().isEmpty()) {
       form = "";
     } else {

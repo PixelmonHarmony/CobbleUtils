@@ -25,8 +25,6 @@ import java.util.Set;
 @Setter
 @ToString
 public class ShopSell {
-
-  // Mapa de productos por moneda
   public static Map<String, Set<Shop.Product>> products = new HashMap<>();
 
   public ShopSell() {
@@ -47,9 +45,8 @@ public class ShopSell {
     Set<Shop.Product> productSet = products.computeIfAbsent(currency, k -> new HashSet<>());
 
     for (Shop.Product product : shop.getProducts()) {
-      if (product.getItemchance().getItem().startsWith("pokemon:") || product.getSell().compareTo(BigDecimal.ZERO) <= 0) {
+      if (product.getItemchance().getItem().startsWith("pokemon:") || product.getSell().compareTo(BigDecimal.ZERO) <= 0)
         continue;
-      }
 
       ItemStack productStack = product.getItemchance().getItemStack();
       productSet.removeIf(p -> ItemStack.canCombine(p.getItemchance().getItemStack(), productStack));

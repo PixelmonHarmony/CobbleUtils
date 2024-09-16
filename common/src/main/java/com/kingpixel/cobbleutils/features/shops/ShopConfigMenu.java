@@ -49,6 +49,7 @@ public class ShopConfigMenu {
   public static void addShops(String modId, String pathShops, List<Shop> shopList) {
     ShopMod shopMod = new ShopMod(modId, pathShops);
     shops.put(shopMod, shopList);
+    shopList.forEach(ShopSell::addProduct);
   }
 
   @Getter
@@ -268,12 +269,17 @@ public class ShopConfigMenu {
     }
   }
 
-  public void open(ServerPlayerEntity player, String shopId, ShopConfig shopConfig, String mod_id, boolean b) {
-    Shop shop = shops.values().stream()
+  public static Shop getShop(String shopId) {
+    return shops.values().stream()
       .flatMap(List::stream)
-      .filter(s -> s.getId().equals(shopId))
+      .filter(shop -> shop.getId().equals(shopId))
       .findFirst()
       .orElse(null);
+  }
+
+  public void open(ServerPlayerEntity player, String shopId, ShopConfig shopConfig, String mod_id, boolean b) {
+    Shop shop = getShop(shopId);
+
     if (shop != null) {
       shop.open(player, shopConfig, mod_id, b);
     } else {

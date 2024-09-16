@@ -155,7 +155,6 @@ public class Config {
         bosses = config.getBosses();
         impactorEconomy = config.getImpactorEconomy();
         cooldownpokeshout = config.getCooldownpokeshout();
-
         if (bosses == null)
           bosses = new Boss();
         if (bosses.getBlacklist() == null)

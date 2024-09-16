@@ -125,6 +125,25 @@ public class Shop {
     this.fillItems.add(new FillItems());
   }
 
+  public Shop(String id, String title, ShopType shopType, short rows) {
+    this.active = true;
+    this.id = id;
+    this.title = title;
+    this.rows = rows;
+    this.slotbalance = 47;
+    this.soundopen = "cobblemon:pc.on";
+    this.soundclose = "cobblemon:pc.off";
+    this.currency = "dollars";
+    this.templateType = TemplateType.CHEST;
+    this.rectangle = new Rectangle();
+    this.shopType = shopType;
+    this.display = new ItemModel("cobblemon:poke_ball");
+    this.products = new ArrayList<>();
+    this.products.add(new Product());
+    this.fillItems = new ArrayList<>();
+    this.fillItems.add(new FillItems());
+  }
+
   public Shop(String id, String title, short rows, String currency, ItemModel display) {
     this.active = true;
     this.id = id;
@@ -170,6 +189,21 @@ public class Shop {
     ));*/
     this.products = new ArrayList<>();
     this.products.add(new Product());
+    this.products.add(new Product());
+    this.products.add(new Product());
+    this.products.add(new Product());
+    this.products.add(new Product());
+    this.products.add(new Product());
+    this.products.add(new Product());
+    this.products.add(new Product());
+    this.products.add(new Product());
+    this.products.add(new Product());
+    this.products.add(new Product());
+    this.products.add(new Product());
+    this.products.add(new Product("minecraft:stone", BigDecimal.valueOf(100), BigDecimal.valueOf(25), "cobbleutils.shop" +
+      ".product.fantasy",
+      "minecraft:stone",
+      "&cStone Fantasy", List.of("&cDescription"), 0L));
     this.fillItems = new ArrayList<>();
     this.fillItems.add(new FillItems());
   }
@@ -222,6 +256,17 @@ public class Shop {
       this.sell = sell;
     }
 
+    public Product(String product, BigDecimal buy, BigDecimal sell, String permission, String display, String displayname, List<String> lore, Long CustomModelData) {
+      this.display = display;
+      this.displayname = displayname;
+      this.lore = lore;
+      this.CustomModelData = CustomModelData;
+      this.permission = permission;
+      this.product = product;
+      this.buy = buy;
+      this.sell = sell;
+    }
+
     public ItemChance getItemchance() {
       return new ItemChance(product, 100);
     }
@@ -264,6 +309,15 @@ public class Shop {
   }
 
   public void open(ServerPlayerEntity player, ShopConfig shopConfig, String mod_id, boolean byCommand) {
+    if (!LuckPermsUtil.checkPermission(player, "cobbleutils.shop." + this.getId())) {
+      player.sendMessage(
+        AdventureTranslator.toNative(
+          CobbleUtils.shopLang.getMessageNotHavePermission()
+            .replace("%prefix%", CobbleUtils.shopLang.getPrefix())
+        )
+      );
+      return;
+    }
     try {
       short rows = this.rows;
       if (rows >= 6) {

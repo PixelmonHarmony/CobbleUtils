@@ -1,6 +1,7 @@
 package com.kingpixel.cobbleutils.util;
 
 import com.kingpixel.cobbleutils.CobbleUtils;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
@@ -18,16 +19,22 @@ public abstract class LuckPermsUtil {
   public enum Permission {
     LUCKPERMS,
     SPIGOT,
+    FABRIC_PERMISSIONS_API
   }
 
   private static void setup() {
     if (PERMISSION_TYPE != null) return;
-    if (getLuckPermsApi() != null) {
+    if (haveFabricPermissionsApi()) {
+      PERMISSION_TYPE = Permission.FABRIC_PERMISSIONS_API;
+      CobbleUtils.LOGGER.info("Fabric permissions detected");
+    } else if (getLuckPermsApi() != null) {
       PERMISSION_TYPE = Permission.LUCKPERMS;
       CobbleUtils.LOGGER.info("LuckPerms detected");
     } else if (WebSocketClient.getInstance() != null) {
       PERMISSION_TYPE = Permission.SPIGOT;
       CobbleUtils.LOGGER.info("WebSocket permissions detected");
+    } else {
+      CobbleUtils.LOGGER.error("No permission system detected");
     }
   }
 
@@ -35,19 +42,22 @@ public abstract class LuckPermsUtil {
     try {
       return LuckPermsProvider.get();
     } catch (IllegalStateException | NullPointerException | NoClassDefFoundError e) {
-      if (CobbleUtils.config.isDebug()) {
-        CobbleUtils.LOGGER.error("LuckPerms is not present");
-      }
       return null;
+    }
+  }
+
+  private static boolean haveFabricPermissionsApi() {
+    try {
+      return Permissions.class != null;
+    } catch (NoClassDefFoundError e) {
+      return false;
     }
   }
 
   public static boolean checkPermission(ServerCommandSource source, int level, List<String> permissions) {
     setup();
     ServerPlayerEntity player = source.getPlayer();
-    if (player == null) {
-      return source.hasPermissionLevel(level);
-    }
+    if (player == null) return source.hasPermissionLevel(level);
 
     boolean hasPermission = source.hasPermissionLevel(level);
     if (hasPermission) return true;
@@ -55,29 +65,32 @@ public abstract class LuckPermsUtil {
     return switch (PERMISSION_TYPE) {
       case LUCKPERMS -> checkLuckPermsPermission(player, permissions);
       case SPIGOT -> checkSpigotPermissions(player, permissions);
+      case FABRIC_PERMISSIONS_API -> checkFabricPermissions(source, level, permissions);
       default -> hasPermission;
     };
   }
 
+  private static boolean checkFabricPermissions(ServerCommandSource source, int level, List<String> permissions) {
+    for (String permission : permissions) {
+      if (permission.isEmpty()) return true;
+      if (Permissions.check(source, permission, level)) return true;
+    }
+    return false;
+  }
+
+
   private static boolean checkLuckPermsPermission(ServerPlayerEntity player, List<String> permissions) {
     LuckPerms luckPermsApi = getLuckPermsApi();
-    if (luckPermsApi == null) {
-      return false;
-    }
-
+    if (luckPermsApi == null) return false;
     UserManager userManager = luckPermsApi.getUserManager();
     User user = userManager.getUser(player.getUuid());
 
-    if (user == null) {
-      return false;
-    }
+    if (user == null) return false;
 
     for (String permission : permissions) {
       if (permission == null || permission.isEmpty()) return true;
       addPermission(permission);
-      if (user.getCachedData().getPermissionData().checkPermission(permission).asBoolean()) {
-        return true;
-      }
+      return user.getCachedData().getPermissionData().checkPermission(permission).asBoolean();
     }
     return false;
   }
@@ -85,6 +98,7 @@ public abstract class LuckPermsUtil {
   private static boolean checkSpigotPermissions(ServerPlayerEntity player, List<String> permissions) {
     boolean hasPermission = player.hasPermissionLevel(4);
     for (String permission : permissions) {
+
       if (permission == null || permission.isEmpty()) return true;
       addPermission(permission);
 
@@ -102,12 +116,13 @@ public abstract class LuckPermsUtil {
   public static boolean checkPermission(ServerPlayerEntity player, String permission) {
     setup();
     if (permission == null || permission.isEmpty()) return true;
-
-    if (player != null && player.hasPermissionLevel(4)) return true;
+    if (player == null) return false;
+    if (player.hasPermissionLevel(4)) return true;
 
     return switch (PERMISSION_TYPE) {
       case LUCKPERMS -> checkLuckPermsPermission(player, List.of(permission));
       case SPIGOT -> WebSocketClient.getInstance().checkPermission(player, permission).join();
+      case FABRIC_PERMISSIONS_API -> Permissions.check(player, permission, 4);
       default -> false;
     };
   }

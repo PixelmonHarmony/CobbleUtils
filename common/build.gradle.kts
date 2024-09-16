@@ -39,9 +39,9 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.20")
     implementation("org.projectlombok:lombok:1.18.20")
 
-    // LuckPerms
+    // Permissions
     api("net.luckperms:api:${property("luckperms_version")}")
-
+    modImplementation(files("libs/fabric-permissions-api-0.3.1.jar"))
     // Economy
     api("net.impactdev.impactor.api:economy:${property("impactor_version")}")
 
