@@ -2,7 +2,6 @@ package com.kingpixel.cobbleutils.party.command.base;
 
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.party.models.PartyChat;
-import com.kingpixel.cobbleutils.party.models.UserParty;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
@@ -37,12 +36,10 @@ public class PartyChatCommand implements Command<ServerCommandSource> {
     ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
     String message = StringArgumentType.getString(context, "message");
 
-    UserParty userParty = CobbleUtils.partyManager.getUserParty().get(player.getUuid());
-    if (userParty.isHasParty()) {
+    if (CobbleUtils.partyManager.isPlayerInParty(player)) {
       PartyChat.fromPlayer(player, message).sendToParty();
     } else {
-      player.sendMessage(
-        AdventureTranslator.toNative(CobbleUtils.partyLang.getPartynotInParty()));
+      player.sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartynotInParty()));
       return 0;
     }
     return 1;

@@ -92,8 +92,8 @@ public class ShopLang {
       "&7Buy: &a%buy% %symbol%",
       "&7Sell: &c%sell% %symbol%",
       "",
-      "&7Left click to buy",
-      "&7Right click to sell",
+      "&7Left click to buy %removebuy%",
+      "&7Right click to sell %removesell%",
       "",
       "&7Balance: &e%balance% %currency%",
       "");

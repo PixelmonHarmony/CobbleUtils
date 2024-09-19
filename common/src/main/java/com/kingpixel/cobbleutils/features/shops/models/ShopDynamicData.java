@@ -1,7 +1,5 @@
 package com.kingpixel.cobbleutils.features.shops.models;
 
-import com.kingpixel.cobbleutils.features.shops.Shop;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -12,5 +10,5 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ShopDynamicData {
   public static Map<String, Date> cooldowns = new ConcurrentHashMap<>();
-  public static Map<String, List<Shop.Product>> shopProducts = new ConcurrentHashMap<>();
+  public static Map<String, List<Product>> shopProducts = new ConcurrentHashMap<>();
 }

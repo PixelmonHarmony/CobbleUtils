@@ -1,8 +1,6 @@
 package com.kingpixel.cobbleutils.party.command.base;
 
 import com.kingpixel.cobbleutils.CobbleUtils;
-import com.kingpixel.cobbleutils.Model.PlayerInfo;
-import com.kingpixel.cobbleutils.party.models.UserParty;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
@@ -37,10 +35,9 @@ public class PartyKick implements Command<ServerCommandSource> {
 
     ServerPlayerEntity owner = context.getSource().getPlayerOrThrow();
     ServerPlayerEntity member = EntityArgumentType.getPlayer(context, "player");
-    UserParty userParty = CobbleUtils.partyManager.getUserParty().get(owner.getUuid());
-    if (userParty.isHasParty()) {
-      CobbleUtils.partyManager.kickPlayer(userParty.getPartyName(), PlayerInfo.fromPlayer(owner),
-        PlayerInfo.fromPlayer(member));
+
+    if (CobbleUtils.partyManager.isPlayerInParty(owner)) {
+      CobbleUtils.partyManager.kickPlayer(owner, member);
     } else {
       owner.sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartynotInParty()));
     }

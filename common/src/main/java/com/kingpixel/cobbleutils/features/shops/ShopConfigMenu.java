@@ -8,6 +8,7 @@ import com.google.gson.Gson;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.ItemModel;
 import com.kingpixel.cobbleutils.config.ShopConfig;
+import com.kingpixel.cobbleutils.features.shops.models.Product;
 import com.kingpixel.cobbleutils.features.shops.models.types.*;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.PlayerUtils;
@@ -287,15 +288,15 @@ public class ShopConfigMenu {
     }
   }
 
-  public List<Shop.Product> getAllProducts() {
-    List<Shop.Product> products = new ArrayList<>();
+  public List<Product> getAllProducts() {
+    List<Product> products = new ArrayList<>();
     shops.values().forEach(shopList -> products.addAll(shopList.stream()
       .flatMap(shop -> shop.getProducts().stream())
       .toList()));
     return products;
   }
 
-  public Shop.Product getProductById(String productId) {
+  public Product getProductById(String productId) {
     return shops.values().stream()
       .flatMap(List::stream)
       .map(Shop::getProducts)

@@ -22,7 +22,6 @@ public class CommandsParty {
         LiteralArgumentBuilder<ServerCommandSource> base = CommandManager.literal(literal);
         PartyCreate.register(dispatcher, base);
         PartyInvite.register(dispatcher, base);
-        PartyJoin.register(dispatcher, base);
         PartyLeave.register(dispatcher, base);
         PartyMenu.register(dispatcher, base);
         PartyChatCommand.register(dispatcher, base);

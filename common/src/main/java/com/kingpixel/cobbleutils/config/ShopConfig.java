@@ -80,10 +80,10 @@ public class ShopConfig {
 
   private static List<Shop> createDefaultShops() {
     return List.of(
-      new Shop("permanent", "Permanent", new ShopTypePermanent(), (short) 6),
-      new Shop("dynamic", "Dynamic", new ShopTypeDynamic(), (short) 6),
-      new Shop("weekly", "Weekly", new ShopTypeWeekly(), (short) 6),
-      new Shop("dynamicweekly", "DynamicWeekly", new ShopTypeDynamicWeekly(), (short) 6)
+      new Shop("permanent", "Permanent", new ShopTypePermanent(), (short) 6, List.of()),
+      new Shop("dynamic", "Dynamic", new ShopTypeDynamic(), (short) 6, List.of()),
+      new Shop("weekly", "Weekly", new ShopTypeWeekly(), (short) 6, List.of()),
+      new Shop("dynamicweekly", "DynamicWeekly", new ShopTypeDynamicWeekly(), (short) 6, List.of())
     );
   }
 

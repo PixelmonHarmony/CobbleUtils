@@ -3,6 +3,7 @@ package com.kingpixel.cobbleutils.features.shops;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
+import com.kingpixel.cobbleutils.features.shops.models.Product;
 import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Data;
 import lombok.Getter;
@@ -76,11 +77,11 @@ public class ShopTransactions {
   }
 
 
-  public static synchronized void addTransaction(UUID player, Shop shop, ShopAction action, Shop.Product product, BigDecimal amount, BigDecimal price) {
+  public static synchronized void addTransaction(UUID player, Shop shop, ShopAction action, Product product, BigDecimal amount, BigDecimal price) {
     addTransaction(player, shop.getCurrency(), action, product, amount, price);
   }
 
-  public static synchronized void addTransaction(UUID player, String currency, ShopAction action, Shop.Product product, BigDecimal amount, BigDecimal price) {
+  public static synchronized void addTransaction(UUID player, String currency, ShopAction action, Product product, BigDecimal amount, BigDecimal price) {
     transactions.computeIfAbsent(player, k -> new HashMap<>())
       .computeIfAbsent(product.getProduct(), k -> new TransactionSummary())
       .setCurrency(currency);
@@ -96,7 +97,7 @@ public class ShopTransactions {
 
   public static synchronized void updateTransaction(UUID player, ShopConfigMenu shopConfigMenu) {
     loadTransactions(shopConfigMenu).thenRun(() -> {
-      List<Shop.Product> currentProducts = shopConfigMenu.getAllProducts();
+      List<Product> currentProducts = shopConfigMenu.getAllProducts();
 
       transactions.computeIfPresent(player, (uuid, productMap) -> {
         productMap.keySet().removeIf(productId -> shopConfigMenu.getProductById(productId) == null);
@@ -145,7 +146,7 @@ public class ShopTransactions {
 
           Map<String, TransactionSummary> processedMap = new HashMap<>();
           map.forEach((productId, summary) -> {
-            Shop.Product product = shopConfigMenu.getProductById(productId);
+            Product product = shopConfigMenu.getProductById(productId);
             if (product != null) {
               processedMap.put(productId, summary);
             }

@@ -3,7 +3,6 @@ package com.kingpixel.cobbleutils;
 import com.cobblemon.mod.common.api.Priority;
 import com.cobblemon.mod.common.api.properties.CustomPokemonProperty;
 import com.cobblemon.mod.common.platform.events.PlatformEvents;
-import com.kingpixel.cobbleutils.Model.PlayerInfo;
 import com.kingpixel.cobbleutils.Model.RewardsData;
 import com.kingpixel.cobbleutils.command.CommandTree;
 import com.kingpixel.cobbleutils.config.*;
@@ -19,7 +18,6 @@ import com.kingpixel.cobbleutils.managers.RewardsManager;
 import com.kingpixel.cobbleutils.party.command.CommandsParty;
 import com.kingpixel.cobbleutils.party.config.PartyConfig;
 import com.kingpixel.cobbleutils.party.config.PartyLang;
-import com.kingpixel.cobbleutils.party.models.UserParty;
 import com.kingpixel.cobbleutils.party.util.PartyPlaceholder;
 import com.kingpixel.cobbleutils.properties.BreedablePropertyType;
 import com.kingpixel.cobbleutils.util.*;
@@ -178,8 +176,10 @@ public class CobbleUtils extends ShopExtend {
     LifecycleEvent.SERVER_LEVEL_LOAD.register(level -> server = level.getServer());
 
     PlayerEvent.PLAYER_JOIN.register(player -> {
+      // Fix Inventory
       fixInventory(player);
-      partyManager.getUserParty().put(player.getUuid(), new UserParty("", false));
+
+      //Rewards
       RewardsData rewardsData = rewardsManager.getRewardsData().computeIfAbsent(
         player.getUuid(),
         uuid -> new RewardsData(player.getGameProfile().getName(), player.getUuid())
@@ -189,12 +189,8 @@ public class CobbleUtils extends ShopExtend {
 
 
     PlayerEvent.PLAYER_QUIT.register(player -> {
-      UserParty userParty = partyManager.getUserParty().get(player.getUuid());
-      if (userParty == null) return;
-      if (userParty.isHasParty()) {
-        partyManager.leaveParty(partyManager.getUserParty().get(player.getUuid())
-            .getPartyName(),
-          PlayerInfo.fromPlayer(player));
+      if (partyManager.isPlayerInParty(player) && partyConfig.isTemporalParty()) {
+        partyManager.leaveParty(player);
       }
     });
 

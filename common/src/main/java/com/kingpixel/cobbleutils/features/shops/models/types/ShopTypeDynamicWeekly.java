@@ -2,6 +2,7 @@ package com.kingpixel.cobbleutils.features.shops.models.types;
 
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.features.shops.Shop;
+import com.kingpixel.cobbleutils.features.shops.models.Product;
 import com.kingpixel.cobbleutils.features.shops.models.ShopDynamicData;
 import com.kingpixel.cobbleutils.util.PlayerUtils;
 import com.kingpixel.cobbleutils.util.Utils;
@@ -64,9 +65,9 @@ public class ShopTypeDynamicWeekly extends ShopType {
     }
   }
 
-  public List<Shop.Product> replenish(Shop shop) {
-    List<Shop.Product> shopProducts = shop.getProducts();
-    List<Shop.Product> currentProducts = ShopDynamicData.shopProducts.computeIfAbsent(shop.getId(), k -> new ArrayList<>());
+  public List<Product> replenish(Shop shop) {
+    List<Product> shopProducts = shop.getProducts();
+    List<Product> currentProducts = ShopDynamicData.shopProducts.computeIfAbsent(shop.getId(), k -> new ArrayList<>());
 
     currentProducts.clear();
     int size = shopProducts.size();
@@ -98,7 +99,7 @@ public class ShopTypeDynamicWeekly extends ShopType {
     return ShopDynamicData.cooldowns.get(shop.getId());
   }
 
-  public List<Shop.Product> getProducts(Shop shop) {
+  public List<Product> getProducts(Shop shop) {
     // Obtén los productos de la tienda o realiza la reposición si no existen
     return ShopDynamicData.shopProducts.computeIfAbsent(shop.getId(), k -> replenish(shop));
   }

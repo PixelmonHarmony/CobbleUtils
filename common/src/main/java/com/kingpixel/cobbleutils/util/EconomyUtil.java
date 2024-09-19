@@ -3,12 +3,14 @@ package com.kingpixel.cobbleutils.util;
 
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.features.breeding.Breeding;
+import kotlin.UninitializedPropertyAccessException;
 import net.impactdev.impactor.api.economy.EconomyService;
 import net.impactdev.impactor.api.economy.accounts.Account;
 import net.impactdev.impactor.api.economy.currency.Currency;
 import net.impactdev.impactor.api.economy.transactions.EconomyTransaction;
 import net.kyori.adventure.key.Key;
 import net.minecraft.server.network.ServerPlayerEntity;
+import org.blanketeconomy.api.BlanketEconomy;
 import org.intellij.lang.annotations.Subst;
 
 import java.math.BigDecimal;
@@ -35,6 +37,7 @@ public abstract class EconomyUtil {
   private enum EconomyType {
     IMPACTOR,
     VAULT,
+    BLANKECONOMY
   }
 
   public static String getBalance(ServerPlayerEntity player, String currency, int digits) {
@@ -57,6 +60,7 @@ public abstract class EconomyUtil {
     return switch (economyType) {
       case IMPACTOR -> getCurrency(currency).decimals();
       case VAULT -> 2;
+      case BLANKECONOMY -> 2;
       default -> 2;
     };
   }
@@ -67,12 +71,28 @@ public abstract class EconomyUtil {
       economyType = EconomyType.IMPACTOR;
       service = EconomyService.instance();
       CobbleUtils.LOGGER.info("Impactor economy found");
+    } else if (isBlankEconomyPresent()) {
+      economyType = EconomyType.BLANKECONOMY;
+      CobbleUtils.LOGGER.info("BlanketEconomy found");
     } else if (WebSocketClient.getInstance() != null) {
       economyType = EconomyType.VAULT;
       CobbleUtils.LOGGER.info("Vault economy found");
     } else {
       CobbleUtils.LOGGER.error("No economy api found");
       economyType = null;
+    }
+  }
+
+  private static boolean isBlankEconomyPresent() {
+    try {
+      BlanketEconomy.INSTANCE.getAPI();
+      BlanketEconomy.INSTANCE.initialize(CobbleUtils.server);
+      return true;
+    } catch (UninitializedPropertyAccessException e) {
+      BlanketEconomy.INSTANCE.initialize(CobbleUtils.server);
+      return true;
+    } catch (IllegalStateException | NullPointerException | NoClassDefFoundError e) {
+      return false;
     }
   }
 
@@ -162,6 +182,10 @@ public abstract class EconomyUtil {
       case VAULT: {
         return WebSocketClient.getInstance().addMoney(player.getUuid(), currency, amount.doubleValue()).join();
       }
+      case BLANKECONOMY: {
+        BlanketEconomy.INSTANCE.getAPI().addBalance(player.getUuid(), amount, currency);
+        return true;
+      }
       default:
         return false;
     }
@@ -191,6 +215,10 @@ public abstract class EconomyUtil {
         return transaction.successful();
       case VAULT:
         return WebSocketClient.getInstance().removeMoney(player.getUuid(), currency, amount.doubleValue()).join();
+      case BLANKECONOMY:
+        BigDecimal bal = BlanketEconomy.INSTANCE.getAPI().getBalance(player.getUuid(), currency);
+        BlanketEconomy.INSTANCE.getAPI().setBalance(player.getUuid(), bal.subtract(amount), currency);
+        return true;
       default:
         return false;
     }
@@ -284,6 +312,15 @@ public abstract class EconomyUtil {
         return hasEnoughImpactor(getAccount(player.getUuid(), currency.trim()), amount);
       case VAULT:
         if (WebSocketClient.getInstance().hasEnough(player.getUuid(), currency, amount.doubleValue()).join()) {
+          sendMessage(player, amount, CobbleUtils.shopLang.getMessageBought());
+          return true;
+        }
+        sendMessage(player, amount, CobbleUtils.shopLang.getMessageNotHaveMoney());
+        return false;
+      case BLANKECONOMY:
+        BigDecimal bal = getBalance(player, currency);
+        if (bal.compareTo(amount) >= 0) {
+          BlanketEconomy.INSTANCE.getAPI().setBalance(player.getUuid(), bal.subtract(amount), currency);
           sendMessage(player, amount, CobbleUtils.shopLang.getMessageBought());
           return true;
         }
@@ -422,6 +459,7 @@ public abstract class EconomyUtil {
           yield c.symbol().insertion() == null ? "$" : c.symbol().insertion();
         }
         case VAULT -> "$";
+        case BLANKECONOMY -> "$";
         default -> "$";
       };
     } catch (NoSuchMethodError | Exception ignored) {
@@ -450,6 +488,7 @@ public abstract class EconomyUtil {
       return switch (economyType) {
         case IMPACTOR -> currency.plural().insertion() == null ? "$" : currency.plural().insertion();
         case VAULT -> "$";
+        case BLANKECONOMY -> "$";
         default -> "$";
       };
     } catch (NoSuchMethodError | Exception | NoClassDefFoundError ignored) {
@@ -474,6 +513,7 @@ public abstract class EconomyUtil {
         double balance = WebSocketClient.getInstance().getBalance(player.getUuid(), currency).join();
         yield BigDecimal.valueOf(balance);
       }
+      case BLANKECONOMY -> BlanketEconomy.INSTANCE.getAPI().getBalance(player.getUuid(), currency);
       default -> BigDecimal.ZERO;
     };
   }

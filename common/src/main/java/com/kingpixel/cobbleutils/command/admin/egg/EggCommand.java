@@ -41,6 +41,9 @@ public class EggCommand implements Command<ServerCommandSource> {
                 .create();
               Species species = pokemon.getSpecies();
               Pokemon egg = PokemonProperties.Companion.parse("egg type_egg=" + pokemon.showdownId()).create();
+
+              egg.setShiny(pokemon.getShiny());
+
               egg.createPokemonProperties(List.of(
                 PokemonPropertyExtractor.IVS,
                 PokemonPropertyExtractor.GENDER)).apply(egg);

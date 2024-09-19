@@ -92,6 +92,7 @@ public class ManagerPlotEggs {
   }
 
   public void checking(ServerPlayerEntity player) {
+    if (!CobbleUtils.breedconfig.isActive()) return;
     eggs.computeIfAbsent(player.getUuid(), k -> new ArrayList<>())
       .forEach(plotBreeding -> plotBreeding.checking(player));
   }

@@ -11,12 +11,10 @@ import ca.landonjw.gooeylibs2.api.page.LinkedPage;
 import ca.landonjw.gooeylibs2.api.page.Page;
 import ca.landonjw.gooeylibs2.api.template.types.ChestTemplate;
 import com.kingpixel.cobbleutils.CobbleUtils;
-import com.kingpixel.cobbleutils.Model.PlayerInfo;
-import com.kingpixel.cobbleutils.party.models.PartyData;
-import com.kingpixel.cobbleutils.party.models.UserParty;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.Utils;
 import net.minecraft.item.Items;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
 import java.util.ArrayList;
@@ -27,24 +25,26 @@ import java.util.Objects;
  * @author Carlos Varas Alonso - 28/06/2024 6:11
  */
 public class PartyMembersUI {
-  public static Page getPartyMembers(UserParty userParty) {
+  public static Page getPartyMembers(ServerPlayerEntity player) {
     ChestTemplate template = ChestTemplate.builder(2).build();
     List<Button> buttons = new ArrayList<>();
-    PartyData partyData = CobbleUtils.partyManager.getParties().get(userParty.getPartyName());
-    partyData.getMembers().forEach((playerInfo) -> {
-      GooeyButton invite = GooeyButton.builder()
-        .display(Utils.parseItemId("minecraft:emerald"))
-        .title(playerInfo.getName())
-        .onClick(action -> {
-          if (partyData.getOwner().equals(PlayerInfo.fromPlayer(action.getPlayer()))) {
-            CobbleUtils.partyManager.kickPlayer(userParty.getPartyName(), PlayerInfo.fromPlayer(action.getPlayer()),
-              playerInfo);
-            UIManager.openUIForcefully(action.getPlayer(), getPartyMembers(userParty));
-          }
-        })
-        .build();
-      buttons.add(invite);
-    });
+
+    CobbleUtils.partyManager.getMembers(player)
+      .forEach((playerInfo) -> {
+        ;
+        GooeyButton invite = GooeyButton.builder()
+          .display(Utils.parseItemId("minecraft:emerald"))
+          .title(playerInfo.getName())
+          .onClick(action -> {
+            if (action.getPlayer().getUuid().equals(playerInfo.getPlayeruuid())) return;
+            if (CobbleUtils.partyManager.isOwner(action.getPlayer())) {
+              CobbleUtils.partyManager.kickPlayer(action.getPlayer(), CobbleUtils.server.getPlayerManager().getPlayer(playerInfo.getPlayeruuid()));
+              UIManager.openUIForcefully(action.getPlayer(), getPartyMembers(action.getPlayer()));
+            }
+          })
+          .build();
+        buttons.add(invite);
+      });
 
     buttons.removeIf(Objects::isNull);
 

@@ -4,10 +4,7 @@ import com.google.gson.Gson;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.PlayerInfo;
 import com.kingpixel.cobbleutils.util.Utils;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -17,10 +14,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * @author Carlos Varas Alonso - 28/06/2024 2:38
  */
-@Getter
-@Setter
-@ToString
-@EqualsAndHashCode
+@Data
 public class PartyData {
   private UUID id;
   private String name;

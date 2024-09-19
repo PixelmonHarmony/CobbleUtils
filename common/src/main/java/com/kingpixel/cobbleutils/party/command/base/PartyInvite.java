@@ -1,7 +1,6 @@
 package com.kingpixel.cobbleutils.party.command.base;
 
 import com.kingpixel.cobbleutils.CobbleUtils;
-import com.kingpixel.cobbleutils.party.models.UserParty;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
@@ -35,9 +34,7 @@ public class PartyInvite implements Command<ServerCommandSource> {
     }
     ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
     ServerPlayerEntity invite = EntityArgumentType.getPlayer(context, "player");
-    UserParty ownerdata = CobbleUtils.partyManager.getUserParty().get(player.getUuid());
-    UserParty inviteData = CobbleUtils.partyManager.getUserParty().get(invite.getUuid());
-    CobbleUtils.partyManager.invitePlayer(player.getUuid(), invite.getUuid(), ownerdata, inviteData);
+    CobbleUtils.partyManager.sendInvite(player, invite);
     return 1;
   }
 

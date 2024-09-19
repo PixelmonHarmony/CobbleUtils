@@ -1,5 +1,6 @@
 package com.kingpixel.cobbleutils.party.ui;
 
+import ca.landonjw.gooeylibs2.api.UIManager;
 import ca.landonjw.gooeylibs2.api.button.Button;
 import ca.landonjw.gooeylibs2.api.button.GooeyButton;
 import ca.landonjw.gooeylibs2.api.button.PlaceholderButton;
@@ -10,7 +11,6 @@ import ca.landonjw.gooeylibs2.api.page.LinkedPage;
 import ca.landonjw.gooeylibs2.api.page.Page;
 import ca.landonjw.gooeylibs2.api.template.types.ChestTemplate;
 import com.kingpixel.cobbleutils.CobbleUtils;
-import com.kingpixel.cobbleutils.Model.PlayerInfo;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.Utils;
 import net.minecraft.item.Items;
@@ -29,17 +29,16 @@ public class PartyInvitesUI {
     ChestTemplate template = ChestTemplate.builder(2).build();
     List<Button> buttons = new ArrayList<>();
 
-    CobbleUtils.partyManager.getParties().forEach((uuid, party) -> {
-      if (party.getInvites().contains(player.getUuid())) {
-        GooeyButton invite = GooeyButton.builder()
-          .display(Utils.parseItemId("minecraft:emerald"))
-          .title(party.getName())
-          .onClick(action -> {
-            CobbleUtils.partyManager.joinParty(party.getName(), PlayerInfo.fromPlayer(player));
-          })
-          .build();
-        buttons.add(invite);
-      }
+    CobbleUtils.partyManager.getInvites(player).forEach((partyData) -> {
+      GooeyButton invite = GooeyButton.builder()
+        .display(Utils.parseItemId("minecraft:emerald"))
+        .title(partyData.getName())
+        .onClick(action -> {
+          CobbleUtils.partyManager.acceptInvite(player, partyData.getId());
+          UIManager.openUIForcefully(player, getPartyInvites(player));
+        })
+        .build();
+      buttons.add(invite);
     });
 
     buttons.removeIf(Objects::isNull);

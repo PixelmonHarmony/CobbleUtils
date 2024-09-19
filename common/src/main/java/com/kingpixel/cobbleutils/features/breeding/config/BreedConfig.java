@@ -44,6 +44,8 @@ public class BreedConfig {
   private String nameRandomEgg;
   private float multipliermasuda;
   private float multiplierShiny;
+  private double percentageTransmitAh;
+  private int numberIvsDestinyKnot;
   private int checkEggToBreedInSeconds;
   private int tickstocheck;
   private int cooldown;
@@ -102,6 +104,7 @@ public class BreedConfig {
     this.spawnEggWorld = false;
     this.shifttoopen = true;
     this.obtainPokeBallFromMother = true;
+    this.numberIvsDestinyKnot = 5;
     this.tickstocheck = 20;
     this.multipliermasuda = 1.5f;
     this.multiplierShiny = 1.5f;
@@ -154,7 +157,7 @@ public class BreedConfig {
     this.femaleSelectItem = new ItemModel(0, "minecraft:pink_wool", "Female", List.of(""), 0);
     this.incenses = Incense.defaultIncenses();
     this.blacklistForm = List.of("halloween");
-
+    this.percentageTransmitAh = 70;
     this.eggForms = List.of(
       new EggData.EggForm("galarian",
         List.of("perrserker", "sirfetchd", "mrrime", "cursola", "runerigus", "obstagoon")),
@@ -193,6 +196,7 @@ public class BreedConfig {
         doubleditto = config.isDoubleditto();
         cooldown = config.getCooldown();
         maxeggperplot = config.getMaxeggperplot();
+        numberIvsDestinyKnot = config.getNumberIvsDestinyKnot();
         tickstocheck = config.getTickstocheck();
         maxplots = config.getMaxplots();
         notcancreateEgg = config.getNotcancreateEgg();
@@ -205,6 +209,7 @@ public class BreedConfig {
         obtainPokeBallFromMother = config.isObtainPokeBallFromMother();
         femaleSlots = config.getFemaleSlots();
         maleSlots = config.getMaleSlots();
+        percentageTransmitAh = config.getPercentageTransmitAh();
         eggSlots = config.getEggSlots();
         blacklisted = config.getBlacklisted();
         percentagespawnegg = config.getPercentagespawnegg();

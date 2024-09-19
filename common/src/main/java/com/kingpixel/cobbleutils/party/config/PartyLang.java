@@ -5,6 +5,7 @@ import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Getter;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @Getter
@@ -38,6 +39,7 @@ public class PartyLang {
   private String partyNotInvites;
   private String partyChat;
   private String partyChatNotValidMessage;
+  private List<String> partyLoreMember;
 
 
   /**
@@ -73,6 +75,7 @@ public class PartyLang {
     partyChat = "%partyprefix% %partyname% %player%: %message%";
     partyNotInvites = "%partyprefix% You don't have any invites!";
     partyChatNotValidMessage = "%partyprefix% Your message contains invalid characters!";
+    partyLoreMember = List.of("§6Leader: %leader%", "§6Members: %members%");
   }
 
   /**
@@ -112,6 +115,7 @@ public class PartyLang {
         this.partyChat = lang.getPartyChat();
         this.partyNotInvites = lang.getPartyNotInvites();
         this.partyChatNotValidMessage = lang.getPartyChatNotValidMessage();
+        this.partyLoreMember = lang.getPartyLoreMember();
         String data = gson.toJson(this);
         CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(CobbleUtils.PATH_PARTY_LANG, CobbleUtils.config.getLang() +
             ".json",

@@ -1,6 +1,7 @@
 package com.kingpixel.cobbleutils.features.shops;
 
 import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.features.shops.models.Product;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.EconomyUtil;
 import com.kingpixel.cobbleutils.util.LuckPermsUtil;
@@ -25,12 +26,12 @@ import java.util.Set;
 @Setter
 @ToString
 public class ShopSell {
-  public static Map<String, Set<Shop.Product>> products = new HashMap<>();
+  public static Map<String, Set<Product>> products = new HashMap<>();
 
   public ShopSell() {
   }
 
-  public ShopSell(Map<String, Set<Shop.Product>> products) {
+  public ShopSell(Map<String, Set<Product>> products) {
     ShopSell.products.clear();
     ShopSell.products.putAll(products);
   }
@@ -42,9 +43,9 @@ public class ShopSell {
    */
   public static void addProduct(Shop shop) {
     String currency = shop.getCurrency();
-    Set<Shop.Product> productSet = products.computeIfAbsent(currency, k -> new HashSet<>());
+    Set<Product> productSet = products.computeIfAbsent(currency, k -> new HashSet<>());
 
-    for (Shop.Product product : shop.getProducts()) {
+    for (Product product : shop.getProducts()) {
       if (product.getItemchance().getItem().startsWith("pokemon:") || product.getSell().compareTo(BigDecimal.ZERO) <= 0)
         continue;
 
@@ -68,7 +69,7 @@ public class ShopSell {
       BigDecimal currencyTotal = BigDecimal.ZERO;
       int decimals = EconomyUtil.getDecimals(currency);
 
-      for (Shop.Product product : productSet) {
+      for (Product product : productSet) {
         if (!LuckPermsUtil.checkPermission(player, product.getPermission())) continue;
 
         BigDecimal sellPrice = product.getSell().setScale(decimals, RoundingMode.HALF_UP);
@@ -144,13 +145,13 @@ public class ShopSell {
     boolean sold = false;
     String currencyUsed = null;
     BigDecimal totalEarned = BigDecimal.ZERO;
-    Shop.Product productSold = null;
-    for (Map.Entry<String, Set<Shop.Product>> entry : products.entrySet()) {
+    Product productSold = null;
+    for (Map.Entry<String, Set<Product>> entry : products.entrySet()) {
       String currency = entry.getKey();
-      Set<Shop.Product> productSet = entry.getValue();
+      Set<Product> productSet = entry.getValue();
       int decimals = EconomyUtil.getDecimals(currency);
 
-      for (Shop.Product product : productSet) {
+      for (Product product : productSet) {
         if (!LuckPermsUtil.checkPermission(player, product.getPermission())) continue;
 
         BigDecimal sellPrice = product.getSell().setScale(decimals, RoundingMode.HALF_UP);

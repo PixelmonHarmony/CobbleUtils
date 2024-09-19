@@ -44,6 +44,7 @@ dependencies {
     modImplementation(files("libs/fabric-permissions-api-0.3.1.jar"))
     // Economy
     api("net.impactdev.impactor.api:economy:${property("impactor_version")}")
+    api(files("libs/BlanketEconomy-1.1.jar"))
 
     // Websocket
     implementation("org.java-websocket:Java-WebSocket:1.5.7")

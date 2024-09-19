@@ -16,12 +16,17 @@ import java.util.UUID;
 @ToString
 @EqualsAndHashCode
 public class PlayerInfo {
+  private UUID playeruuid;
   private String name;
-  private UUID uuid;
 
-  public PlayerInfo(String name, UUID uuid) {
+  public PlayerInfo(String name, UUID playeruuid) {
+    this.playeruuid = playeruuid;
     this.name = name;
-    this.uuid = uuid;
+  }
+
+  public PlayerInfo(UUID partyId, UUID playeruuid, String name) {
+    this.playeruuid = playeruuid;
+    this.name = name;
   }
 
   public static PlayerInfo fromPlayer(ServerPlayerEntity player) {

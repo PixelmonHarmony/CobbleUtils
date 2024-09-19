@@ -1,8 +1,6 @@
 package com.kingpixel.cobbleutils.party.command.base;
 
 import com.kingpixel.cobbleutils.CobbleUtils;
-import com.kingpixel.cobbleutils.Model.PlayerInfo;
-import com.kingpixel.cobbleutils.party.models.UserParty;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
@@ -33,9 +31,8 @@ public class PartyLeave implements Command<ServerCommandSource> {
     }
 
     ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
-    UserParty userParty = CobbleUtils.partyManager.getUserParty().get(player.getUuid());
-    if (userParty.isHasParty()) {
-      CobbleUtils.partyManager.leaveParty(userParty.getPartyName(), PlayerInfo.fromPlayer(player));
+    if (CobbleUtils.partyManager.isPlayerInParty(player)) {
+      CobbleUtils.partyManager.leaveParty(player);
     } else {
       player.sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartynotInParty()));
     }

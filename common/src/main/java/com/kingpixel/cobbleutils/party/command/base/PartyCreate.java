@@ -1,7 +1,7 @@
 package com.kingpixel.cobbleutils.party.command.base;
 
 import com.kingpixel.cobbleutils.CobbleUtils;
-import com.kingpixel.cobbleutils.Model.PlayerInfo;
+import com.kingpixel.cobbleutils.party.models.PartyCreateResult;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
@@ -35,7 +35,19 @@ public class PartyCreate implements Command<ServerCommandSource> {
     }
     ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
     String name = StringArgumentType.getString(context, "name");
-    CobbleUtils.partyManager.createParty(name, new PlayerInfo(player.getGameProfile().getName(), player.getUuid()));
+    PartyCreateResult partyCreateResult = CobbleUtils.partyManager.createParty(player, name);
+    switch (partyCreateResult) {
+      case SUCCESS:
+        player.sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyCreated()
+          .replace("%partyname%", name)));
+        break;
+      case ALREADY_IN_PARTY:
+        player.sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyAlreadyInParty()));
+        break;
+      default:
+        player.sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyAlreadyExists()));
+        break;
+    }
     return 1;
   }
 
