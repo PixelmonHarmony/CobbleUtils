@@ -17,12 +17,15 @@ import java.util.List;
 @Data
 @ToString
 public class Product {
+  // Optional
   private String permission;
   private String color;
   private String display;
   private String displayname;
   private List<String> lore;
   private Long CustomModelData;
+  private Integer discount;
+  // Always have date
   private String product;
   private BigDecimal buy;
   private BigDecimal sell;
@@ -34,6 +37,7 @@ public class Product {
     this.lore = null;
     this.CustomModelData = null;
     this.permission = null;
+    this.discount = null;
     this.product = "minecraft:stone";
     this.buy = BigDecimal.ZERO;
     this.sell = BigDecimal.ZERO;
@@ -46,6 +50,7 @@ public class Product {
     this.lore = null;
     this.CustomModelData = null;
     this.permission = null;
+    this.discount = null;
     this.product = product;
     this.buy = buy;
     this.sell = sell;
@@ -57,6 +62,7 @@ public class Product {
     this.displayname = null;
     this.lore = null;
     this.CustomModelData = null;
+    this.discount = null;
     this.permission = permission;
     this.product = product;
     this.buy = buy;
@@ -67,6 +73,7 @@ public class Product {
     this.display = display;
     this.displayname = displayname;
     this.color = null;
+    this.discount = null;
     this.lore = lore;
     this.CustomModelData = CustomModelData;
     this.permission = permission;

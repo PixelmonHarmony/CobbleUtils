@@ -11,7 +11,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Getter
 public class ShopLang {
-  public static String PATH_SHOP_LANG = CobbleUtils.PATH_SHOP + "/lang/";
+  public static String PATH_SHOP_LANG = CobbleUtils.PATH_SHOP + "lang/";
   private String prefix;
   private boolean changeItemError;
   private boolean symbolBeforeAmount;
@@ -88,9 +88,9 @@ public class ShopLang {
     this.messageRemoveMoney = "%prefix% &7You removed %amount% %currency% from your balance";
     this.loreProduct = List.of(
       "",
-      "&7Amount: %amount%x%amountproduct%",
-      "&7Buy: &a%buy% %symbol%",
-      "&7Sell: &c%sell% %symbol%",
+      "&7Amount: %amount%x%amountproduct%=%total%",
+      "&7Buy: &a%buy% %discount%",
+      "&7Sell: &c%sell%",
       "",
       "&7Left click to buy %removebuy%",
       "&7Right click to sell %removesell%",

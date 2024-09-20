@@ -43,6 +43,7 @@ dependencies {
 
     implementation("thedarkcolour:kotlinforforge:4.4.0")
 
+
     shadowCommon("net.kyori:adventure-api:${property("kyori_version")}")
     shadowCommon("net.kyori:adventure-nbt:${property("kyori_version")}")
     shadowCommon("net.kyori:adventure-text-serializer-plain:${property("kyori_version")}")

@@ -30,7 +30,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -48,6 +47,7 @@ public class Shop {
   private String currency;
   private short rows;
   private short slotbalance;
+  private int globalDiscount;
   private String soundopen;
   private String soundclose;
   private String colorItem;
@@ -115,6 +115,7 @@ public class Shop {
     this.rectangle = new Rectangle();
     this.shopType = new ShopTypePermanent();
     this.colorItem = "<#6bd68f>";
+    this.globalDiscount = 0;
    /* money = new ItemModel("cobblemon:relic_coin_sack");
     money.setSlot(47);
     money.setDisplayname("Balance");
@@ -141,6 +142,7 @@ public class Shop {
     this.rectangle = new Rectangle();
     this.shopType = shopType;
     this.colorItem = "<#6bd68f>";
+    this.globalDiscount = 0;
     this.display = new ItemModel("cobblemon:poke_ball");
     display.setLore(lore);
     this.products = new ArrayList<>();
@@ -178,6 +180,7 @@ public class Shop {
     this.shopType = new ShopTypePermanent();
     this.display = display;
     this.slotbalance = 47;
+    this.globalDiscount = 0;
     /*money = new ItemModel("cobblemon:relic_coin_sack");
     money.setSlot(47);
     money.setDisplayname("Balance");
@@ -203,6 +206,7 @@ public class Shop {
     this.shopType = shopType;
     this.colorItem = "<#6bd68f>";
     this.display = display;
+    this.globalDiscount = 0;
     /*money = new ItemModel("cobblemon:relic_coin_sack");
     money.setSlot(47);
     money.setDisplayname("Balance");
@@ -318,7 +322,7 @@ public class Shop {
           .display(itemStack)
           .title(AdventureTranslator.toNative(getTitleItem(product)))
           .lore(Text.class, AdventureTranslator.toNativeL(getLoreProduct(
-            buy, sell, product, player, symbol, typeError
+            buy, sell, product, player, symbol, typeError, BigDecimal.ONE
           )))
           .onClick(action -> {
             if (typeError == TypeError.NONE) {
@@ -424,8 +428,10 @@ public class Shop {
   }
 
   private List<String> getLoreProduct(BigDecimal buy, BigDecimal sell, Product product, ServerPlayerEntity player,
-                                      String symbol, TypeError typeError) {
+                                      String symbol, TypeError typeError, BigDecimal amount) {
     List<String> lore = new ArrayList<>(CobbleUtils.shopLang.getLoreProduct());
+
+
     if (buy.compareTo(BigDecimal.ZERO) <= 0) {
       lore.removeIf(s -> s.contains("%buy%"));
       lore.removeIf(s -> s.contains("%removebuy%"));
@@ -436,16 +442,31 @@ public class Shop {
       lore.removeIf(s -> s.contains("%removesell%"));
     }
 
-    lore.replaceAll(s -> s.replace("%buy%", EconomyUtil.formatCurrency(buy, currency, player.getUuid()))
-      .replace("%sell%", EconomyUtil.formatCurrency(sell, currency, player.getUuid()))
+    int discount = getDiscount(product);
+
+    String priceWithoutDiscount = EconomyUtil.formatCurrency(calculatePrice(product, TypeMenu.BUY, amount, false),
+      currency,
+      player.getUuid());
+
+    String priceDiscount = EconomyUtil.formatCurrency(calculatePrice(product, TypeMenu.BUY, amount, true), currency, player.getUuid());
+
+    haveDiscount(product);
+
+    lore.replaceAll(s -> s
+      .replace("%buy%", haveDiscount(product) ? "&m" + priceWithoutDiscount + "&r &e" + priceDiscount :
+        priceWithoutDiscount)
+      .replace("%sell%", EconomyUtil.formatCurrency(calculatePrice(product, TypeMenu.SELL, amount, false), currency,
+        player.getUuid()))
       .replace("%currency%", getCurrency())
       .replace("%symbol%", symbol)
       .replace("%amount%", "1")
       .replace("%amountproduct%", String.valueOf(product.getItemchance().getItemStack().getCount()))
-      .replace("%total%", String.valueOf(product.getItemchance().getItemStack().getCount()))
+      .replace("%total%", String.valueOf((amount.compareTo(BigDecimal.ZERO) == 0) ? 1 : amount))
       .replace("%balance%", EconomyUtil.getBalance(player, getCurrency(), EconomyUtil.getDecimals(getCurrency())))
       .replace("%removebuy%", "")
       .replace("%removesell%", "")
+      .replace("%discount%", (discount > 0) ? discount + "%" : "")
+
     );
 
     if (typeError == TypeError.PERMISSION) {
@@ -466,34 +487,73 @@ public class Shop {
     return lore;
   }
 
+  private boolean haveDiscount(Product product) {
+    return ((product.getDiscount() != null && product.getDiscount() > 0) || globalDiscount > 0);
+  }
+
+  private int getDiscount(Product product) {
+    int discount = product.getDiscount() != null && product.getDiscount() > 0 ? product.getDiscount() : this.globalDiscount;
+    return discount;
+  }
+
   private enum TypeMenu {
     BUY, SELL, STACK
   }
 
   private enum TypeError {
-    INVALID_PRICE, ZERO, PERMISSION, NONE
+    INVALID_PRICE, ZERO, PERMISSION, BAD_DISCOUNT, INVALID_PRICE_WITH_DISCOUNT, NONE
   }
 
   private TypeError getTypeError(Product product, ServerPlayerEntity player) {
+    BigDecimal globalDiscount = BigDecimal.valueOf(this.globalDiscount);
     if (product.getBuy().compareTo(BigDecimal.ZERO) <= 0 && product.getSell().compareTo(BigDecimal.ZERO) <= 0) {
       return TypeError.ZERO;
     } else if (!LuckPermsUtil.checkPermission(player, product.getPermission())) {
       return TypeError.PERMISSION;
     } else if (product.getBuy().compareTo(BigDecimal.ZERO) > 0 && product.getSell().compareTo(product.getBuy()) > 0) {
       return TypeError.INVALID_PRICE;
+    } else if (product.getDiscount() != null && (product.getDiscount() > 100) || globalDiscount.compareTo(BigDecimal.valueOf(100)) > 0) {
+      return TypeError.BAD_DISCOUNT;
     } else {
-      return TypeError.NONE;
+      if (product.getBuy().compareTo(BigDecimal.ZERO) == 0) return TypeError.NONE;
+
+
+      BigDecimal applicableDiscount = product.getDiscount() != null && product.getDiscount() > 0 ?
+        BigDecimal.valueOf(product.getDiscount()) :
+        globalDiscount;
+
+
+      BigDecimal discountedBuyPrice = product.getBuy().multiply(BigDecimal.ONE.subtract(applicableDiscount.divide(BigDecimal.valueOf(100))));
+
+      if (product.getSell().compareTo(discountedBuyPrice) > 0) {
+        return TypeError.INVALID_PRICE_WITH_DISCOUNT;
+      }
     }
+
+    return TypeError.NONE;
   }
 
 
   private void sendError(ServerPlayerEntity player, TypeError typeError) {
-    if (Objects.requireNonNull(typeError) == TypeError.INVALID_PRICE) {
-      player.sendMessage(Text.literal("Buy price is higher than sell price contact the server administrator"));
-    } else if (Objects.requireNonNull(typeError) == TypeError.ZERO) {
-      player.sendMessage(Text.literal("Buy and sell price is zero contact the server administrator"));
-    } else if (Objects.requireNonNull(typeError) == TypeError.PERMISSION) {
-      player.sendMessage(Text.literal("You don't have permission to buy or sell this product"));
+    switch (typeError) {
+      case INVALID_PRICE:
+        player.sendMessage(Text.literal("Buy price is higher than sell price contact the server administrator"));
+        break;
+      case ZERO:
+        player.sendMessage(Text.literal("Buy and sell price is zero contact the server administrator"));
+        break;
+      case PERMISSION:
+        player.sendMessage(Text.literal("You don't have permission to buy or sell this product"));
+        break;
+      case BAD_DISCOUNT:
+        player.sendMessage(Text.literal("Discount is not valid contact the server administrator"));
+        break;
+      case INVALID_PRICE_WITH_DISCOUNT:
+        player.sendMessage(Text.literal("Sell price is higher than buy price with discount contact the server administrator"));
+        break;
+      default:
+        player.sendMessage(Text.literal("Error in this product contact the server administrator"));
+        break;
     }
   }
 
@@ -508,7 +568,8 @@ public class Shop {
       .build();
 
     int maxStack = product.getItemchance().getItemStack().getMaxCount();
-    BigDecimal price = calculatePrice(product, typeMenu, (amount == 0 ? 1 : amount)).setScale(EconomyUtil.getDecimals(getCurrency()), RoundingMode.HALF_UP);
+    BigDecimal price =
+      calculatePrice(product, typeMenu, BigDecimal.valueOf(amount), true).setScale(EconomyUtil.getDecimals(getCurrency()), RoundingMode.HALF_UP);
     String title = generateTitle(product, typeMenu);
     String symbol = EconomyUtil.getSymbol(getCurrency());
 
@@ -538,16 +599,11 @@ public class Shop {
     ItemModel confirm = CobbleUtils.shopLang.getConfirm();
     template.set(confirm.getSlot(), confirm.getButton(action -> {
 
-      int finalamount = amount;
-      if (finalamount == 0) {
-        finalamount = 1;
-      }
-      BigDecimal finalprice = calculatePrice(product, typeMenu, finalamount).setScale(EconomyUtil.getDecimals(getCurrency()),
-        RoundingMode.HALF_UP);
+      int finalamount = (amount == 0) ? 1 : amount;
       if (typeMenu == TypeMenu.BUY) {
-        if (buyProduct(player, product, finalamount, finalprice)) {
+        if (buyProduct(player, product, finalamount, price)) {
           ShopTransactions.addTransaction(player.getUuid(), this, ShopTransactions.ShopAction.BUY, product,
-            BigDecimal.valueOf(finalamount), finalprice);
+            BigDecimal.valueOf(finalamount), price);
           open(player, shopConfig, mod_id, false);
           ShopTransactions.updateTransaction(player.getUuid(), shopConfig.getShop());
         }
@@ -555,7 +611,7 @@ public class Shop {
       if (typeMenu == TypeMenu.SELL) {
         if (sellProduct(player, product, finalamount)) {
           ShopTransactions.addTransaction(player.getUuid(), this, ShopTransactions.ShopAction.SELL, product,
-            BigDecimal.valueOf(finalamount), finalprice);
+            BigDecimal.valueOf(finalamount), price);
           open(player, shopConfig, mod_id, false);
           ShopTransactions.updateTransaction(player.getUuid(), shopConfig.getShop());
         }
@@ -698,9 +754,25 @@ public class Shop {
   }
 
 
-  private BigDecimal calculatePrice(Product product, TypeMenu typeMenu, int amount) {
+  private BigDecimal calculatePrice(Product product, TypeMenu typeMenu, BigDecimal amount, boolean showDiscount) {
+
+    // Verificamos si hay un descuento y si es un tipo de menú de compra (BUY)
+    BigDecimal finalAmount = (amount.compareTo(BigDecimal.ZERO) <= 0) ? BigDecimal.ONE : amount;
+    if (showDiscount) {
+      int discount = getDiscount(product);
+      if (discount > 0 && discount <= 100 && typeMenu == TypeMenu.BUY) {
+        // Calcular el precio por artículo (multiplicando por la cantidad)
+        BigDecimal pricePerItem = product.getBuy();
+        // Calcular el monto del descuento
+        BigDecimal discountAmount = pricePerItem.multiply(BigDecimal.valueOf(discount)).divide(BigDecimal.valueOf(100));
+        // Calcular el precio final con el descuento aplicado y la cantidad
+        return pricePerItem.subtract(discountAmount).multiply(finalAmount);
+      }
+    }
+
+    // Si no hay descuento o no es una compra, usamos el precio según el tipo de menú
     BigDecimal pricePerItem = (typeMenu == TypeMenu.BUY) ? product.getBuy() : product.getSell();
-    return pricePerItem.multiply(BigDecimal.valueOf(amount));
+    return pricePerItem.multiply(finalAmount);
   }
 
 
@@ -769,9 +841,10 @@ public class Shop {
       .display(viewProduct)
       .title(AdventureTranslator.toNative(getTitleItem(product)))
       .lore(Text.class, AdventureTranslator.toNativeL(getLoreProduct(
-        buy,
-        sell,
-        product, player, symbol, TypeError.NONE
+        buy, sell,
+        product, player,
+        symbol, TypeError.NONE,
+        BigDecimal.valueOf(amount)
       )))
       .onClick(action -> {
         TypeError typeError = getTypeError(product, player);

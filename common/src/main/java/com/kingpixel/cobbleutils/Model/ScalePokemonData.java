@@ -127,6 +127,10 @@ public class ScalePokemonData {
   }
 
   private static ScalePokemonData transformDefaultSizes() {
+    if (!CobbleUtils.config.isRandomsize()) return new ScalePokemonData("default", "default",
+      List.of(
+        new SizeChanceWithoutItem("Normal", 1, 100)
+      ));
     return new ScalePokemonData("default", "default", SizeChanceWithoutItem.transform(CobbleUtils.config.getPokemonsizes()));
   }
 
@@ -134,6 +138,7 @@ public class ScalePokemonData {
    * Obtiene un tamaño de Pokémon basado en las probabilidades configuradas.
    */
   public SizeChanceWithoutItem getRandomPokemonSize() {
+    if (sizes == null || sizes.isEmpty() || !CobbleUtils.config.isRandomsize()) return new SizeChanceWithoutItem();
     int totalWeight = sizes.stream().mapToInt(SizeChanceWithoutItem::getChance).sum();
     return getSizeChanceWithoutItem(sizes, totalWeight);
   }

@@ -44,7 +44,9 @@ public class BreedConfig {
   private String nameRandomEgg;
   private float multipliermasuda;
   private float multiplierShiny;
-  private double percentageTransmitAh;
+  private boolean haveMaxNumberIvsForRandom;
+  private SuccessItems successItems;
+  private int maxIvsRandom;
   private int numberIvsDestinyKnot;
   private int checkEggToBreedInSeconds;
   private int tickstocheck;
@@ -119,6 +121,9 @@ public class BreedConfig {
     this.percentagespawnegg = 5;
     this.cooldowninstaBreedInSeconds = 60;
     this.cooldowninstaHatchInSeconds = 60;
+    this.maxIvsRandom = 25;
+    this.haveMaxNumberIvsForRandom = false;
+    this.successItems = new SuccessItems();
     this.plotItem = new ItemModel(0, "minecraft:turtle_egg", "<#82d448>Plot", List.of(
       "&9male: &6%pokemon1% &f(&b%form1%&f) &f(&b%item1%&f)",
       "&dfemale: &6%pokemon2% &f(&b%form2%&f) &f(&b%item1%&f)",
@@ -157,7 +162,7 @@ public class BreedConfig {
     this.femaleSelectItem = new ItemModel(0, "minecraft:pink_wool", "Female", List.of(""), 0);
     this.incenses = Incense.defaultIncenses();
     this.blacklistForm = List.of("halloween");
-    this.percentageTransmitAh = 70;
+
     this.eggForms = List.of(
       new EggData.EggForm("galarian",
         List.of("perrserker", "sirfetchd", "mrrime", "cursola", "runerigus", "obstagoon")),
@@ -180,6 +185,22 @@ public class BreedConfig {
         new PokemonChance("volbeat", 50)
       ))
     );
+
+  }
+
+  @Data
+  public static class SuccessItems {
+    private double percentageTransmitAH;
+    private double percentageDestinyKnot;
+    private double percentagePowerItem;
+    private double percentageEverStone;
+
+    public SuccessItems() {
+      this.percentageTransmitAH = 70.0;
+      this.percentageDestinyKnot = 100.0;
+      this.percentagePowerItem = 100.0;
+      this.percentageEverStone = 100.0;
+    }
 
   }
 
@@ -209,7 +230,6 @@ public class BreedConfig {
         obtainPokeBallFromMother = config.isObtainPokeBallFromMother();
         femaleSlots = config.getFemaleSlots();
         maleSlots = config.getMaleSlots();
-        percentageTransmitAh = config.getPercentageTransmitAh();
         eggSlots = config.getEggSlots();
         blacklisted = config.getBlacklisted();
         percentagespawnegg = config.getPercentagespawnegg();
@@ -246,10 +266,9 @@ public class BreedConfig {
         eggForms = config.getEggForms();
         eggSpecialForms = config.getEggSpecialForms();
         pokemonRareMechanics = config.getPokemonRareMechanics();
-
-
-        //nationalities = config.getNationalities();
-
+        maxIvsRandom = config.getMaxIvsRandom();
+        haveMaxNumberIvsForRandom = config.isHaveMaxNumberIvsForRandom();
+        successItems = config.getSuccessItems();
 
         String data = gson.toJson(this);
         CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(CobbleUtils.PATH_BREED, "config.json",

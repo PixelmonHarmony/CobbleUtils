@@ -20,11 +20,11 @@ import java.util.stream.Collectors;
 @Getter
 @Data
 public class ArraysPokemons {
-  private static List<Species> pokemons = new ArrayList<>();
-  private static List<Species> legendarys = new ArrayList<>();
-  private static List<Species> ultraBeasts = new ArrayList<>();
-  private static Map<ElementalType, List<Pokemon>> pokemonsByType = new HashMap<>();
-  private static List<Species> all = new ArrayList<>();
+  public static List<Species> pokemons = new ArrayList<>();
+  public static List<Species> legendarys = new ArrayList<>();
+  public static List<Species> ultraBeasts = new ArrayList<>();
+  public static Map<ElementalType, List<Pokemon>> pokemonsByType = new HashMap<>();
+  public static List<Species> all = new ArrayList<>();
 
   public static List<Pokemon> getRandomPokemon(TypePokemon typePokemon, int size) {
     List<Species> speciesList;
@@ -89,6 +89,7 @@ public class ArraysPokemons {
    */
   public static void init() {
     Collection<Species> species = PokemonSpecies.INSTANCE.getSpecies();
+    all = new ArrayList<>(species);
     Set<String> pokeBlacklist = CobbleUtils.config.getBlacklist().stream()
       .map(PokemonData::getPokename).collect(Collectors.toSet());
 

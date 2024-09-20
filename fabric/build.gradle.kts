@@ -40,6 +40,7 @@ dependencies {
 
     "common"(project(":common", "namedElements")) { isTransitive = false }
     "shadowCommon"(project(":common", "transformProductionFabric")) { isTransitive = false }
+    
 
     shadowCommon("net.kyori:adventure-api:${property("kyori_version")}")
     shadowCommon("net.kyori:adventure-nbt:${property("kyori_version")}")

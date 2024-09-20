@@ -29,7 +29,7 @@ import static com.kingpixel.cobbleutils.features.shops.ShopTransactions.loadTran
 @ToString
 public class ShopConfig {
   private ShopConfigMenu shop;
-  private static final Map<ShopConfigMenu.ShopMod, List<Shop>> shops = new ConcurrentHashMap<>();
+  public static final Map<ShopConfigMenu.ShopMod, List<Shop>> shops = new ConcurrentHashMap<>();
 
   public ShopConfig() {
     shop = new ShopConfigMenu();
@@ -40,11 +40,9 @@ public class ShopConfig {
       el -> {
         Gson gson = Utils.newGson();
         ShopConfig config = gson.fromJson(el, ShopConfig.class);
-        ShopConfigMenu existingShopMenu = config.getShop();
-        if (existingShopMenu != null) {
-          this.shop = existingShopMenu;
-          addShopsFromPath(mod_id, pathShops);
-        }
+        this.shop = config.getShop();
+        CobbleUtils.LOGGER.info("shopconfig.json loaded successfully from " + pathShop);
+        addShopsFromPath(mod_id, pathShops);
       });
 
     if (!futureRead.join()) {
@@ -63,28 +61,39 @@ public class ShopConfig {
 
   public static List<Shop> addShopsFromPath(String mod_id, String path) {
     List<Shop> shopList = ShopConfigMenu.getShops(path);
-    if (shopList == null || shopList.isEmpty()) {
-      // If no shops are found, create default shops
-      CobbleUtils.LOGGER.info("No shops found. Creating default shops.");
-      shopList = createDefaultShops();
-      saveShopsToPath(mod_id, path, shopList);
-    }
+
+    String default_path = path + "defaults/";
+    // If no shops are found, create default shops
+    CobbleUtils.LOGGER.info("No shops found. Creating default shops.");
+
+    List<Shop> defaultShops = createDefaultShops();
+
+    saveShopsToPath(mod_id, default_path, defaultShops);
+
+
     ShopConfigMenu.ShopMod shopMod = new ShopConfigMenu.ShopMod(mod_id, path);
+
     if (CobbleUtils.config.isDebug()) {
       CobbleUtils.LOGGER.info("Adding to map: " + shopMod);
     }
+
     shops.put(shopMod, shopList);
+
     saveShops();
     return shopList;
   }
 
   private static List<Shop> createDefaultShops() {
-    return List.of(
+    List<Shop> shopArrayList = List.of(
       new Shop("permanent", "Permanent", new ShopTypePermanent(), (short) 6, List.of()),
       new Shop("dynamic", "Dynamic", new ShopTypeDynamic(), (short) 6, List.of()),
       new Shop("weekly", "Weekly", new ShopTypeWeekly(), (short) 6, List.of()),
       new Shop("dynamicweekly", "DynamicWeekly", new ShopTypeDynamicWeekly(), (short) 6, List.of())
     );
+    for (int i = 0; i < shopArrayList.size(); i++) {
+      shopArrayList.get(i).getDisplay().setSlot(i);
+    }
+    return shopArrayList;
   }
 
   private static void saveShopsToPath(String mod_id, String path, List<Shop> shopList) {
@@ -128,7 +137,9 @@ public class ShopConfig {
 
   public void init(String pathShop, String mod_id, String pathShops) {
     createConfigIfNotExists(mod_id, pathShops, pathShop);
+
     List<Shop> shopList = addShopsFromPath(mod_id, pathShops);
+
     loadTransactions(shop);
     ShopConfigMenu.addShops(mod_id, pathShops, shopList);
   }

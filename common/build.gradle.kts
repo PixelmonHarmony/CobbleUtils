@@ -42,28 +42,15 @@ dependencies {
     // Permissions
     api("net.luckperms:api:${property("luckperms_version")}")
     modImplementation(files("libs/fabric-permissions-api-0.3.1.jar"))
+
     // Economy
-    api("net.impactdev.impactor.api:economy:${property("impactor_version")}")
+    implementation("net.impactdev.impactor.api:economy:${property("impactor_version")}")
     api(files("libs/BlanketEconomy-1.1.jar"))
 
     // Websocket
     implementation("org.java-websocket:Java-WebSocket:1.5.7")
-    // Kyori Adventure
 
-    /*api("net.kyori:adventure-text-serializer-gson:${property("kyori_version")}")
-    api("net.kyori:adventure-api:${property("kyori_version")}")
-    api("net.kyori:adventure-key:${property("kyori_version")}")
-    api("net.kyori:adventure-text-serializer-plain:${property("kyori_version")}")
-    api("net.kyori:adventure-text-serializer-legacy:${property("kyori_version")}")
-    api("net.kyori:adventure-text-minimessage:${property("kyori_version")}")
-    api("net.kyori:examination-api:1.3.0")
-    api("net.kyori:examination-string:1.3.0")
-    api("net.kyori:adventure-nbt:${property("kyori_version")}")
-    api("net.kyori:adventure-text-serializer-json:${property("kyori_version")}")
-    api("net.kyori:adventure-text-logger-slf4j:${property("kyori_version")}")
-    api("net.kyori:adventure-platform-api:4.3.0")
-    api("net.kyori:adventure-text-serializer-ansi:${property("kyori_version")}")
-    api("net.kyori:adventure-text-serializer-gson:${property("kyori_version")}")*/
+    // Kyori Adventure
     api("net.kyori:adventure-api:${property("kyori_version")}")
     api("net.kyori:adventure-nbt:${property("kyori_version")}")
     api("net.kyori:adventure-text-serializer-plain:${property("kyori_version")}")

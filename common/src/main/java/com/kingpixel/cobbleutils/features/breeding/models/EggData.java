@@ -332,23 +332,24 @@ public class EggData {
       && female.heldItem().getItem() == EVERSTONE);
 
     // Nature (Done)
-    if (isDoubleEverStone) {
-      List<Pokemon> parents = List.of(male, female);
-      egg.setNature(parents.get(Utils.RANDOM.nextInt(parents.size())).getNature());
-    } else if (male.heldItem().getItem() == EVERSTONE) {
-      egg.setNature(male.getNature());
-    } else if (female.heldItem().getItem() == EVERSTONE) {
-      egg.setNature(female.getNature());
+    if (Utils.RANDOM.nextDouble(100) < CobbleUtils.breedconfig.getSuccessItems().getPercentageEverStone()) {
+      if (isDoubleEverStone) {
+        List<Pokemon> parents = List.of(male, female);
+        egg.setNature(parents.get(Utils.RANDOM.nextInt(parents.size())).getNature());
+      } else if (male.heldItem().getItem() == EVERSTONE) {
+        egg.setNature(male.getNature());
+      } else if (female.heldItem().getItem() == EVERSTONE) {
+        egg.setNature(female.getNature());
+      } else {
+        egg.setNature(Natures.INSTANCE.getRandomNature());
+      }
     } else {
       egg.setNature(Natures.INSTANCE.getRandomNature());
     }
 
     // Ability
     applyAbility(male, female, firstEvolution, egg);
-
-    // FriendShip
-    egg.setFriendship(255, true);
-
+    
     // Shiny Rate
     float shinyrate = Cobblemon.INSTANCE.getConfig().getShinyRate();
     float multiplier = CobbleUtils.breedconfig.getMultiplierShiny();
@@ -447,6 +448,9 @@ public class EggData {
       sameItem = true;
     }
 
+    // Put Limit Ivs for randoms Ivs
+    applyMaxIvs(egg);
+
     if (maleItem == null && femaleItem == null) {
       logicIvs(male, female, female, null, egg);
     } else if (sameItem && maleItem == DESTINY_KNOT) {
@@ -485,7 +489,11 @@ public class EggData {
 
       for (int i = 0; i < 2; i++) {
         Stats stat = stats.remove(Utils.RANDOM.nextInt(stats.size()));
-        egg.setIV(stat, Utils.RANDOM.nextInt(32));
+        if (CobbleUtils.breedconfig.isHaveMaxNumberIvsForRandom()) {
+          egg.setIV(stat, Utils.RANDOM.nextInt(CobbleUtils.breedconfig.getMaxIvsRandom() + 1));
+        } else {
+          egg.setIV(stat, Utils.RANDOM.nextInt(32));
+        }
       }
     } else if (itemPokemon == DESTINY_KNOT) {
       applyDestinyKnot(male, female, egg);
@@ -505,6 +513,7 @@ public class EggData {
   }
 
   private static void applyIvsPower(Pokemon select, Pokemon egg, CobblemonItem itemSame) {
+    if (Utils.RANDOM.nextDouble(100) >= CobbleUtils.breedconfig.getSuccessItems().getPercentagePowerItem()) return;
     if (itemSame.equals(POWER_WEIGHT)) {
       egg.setIV(Stats.HP, select.getIvs().getOrDefault(Stats.HP));
     } else if (itemSame.equals(POWER_BRACER)) {
@@ -525,6 +534,8 @@ public class EggData {
   }
 
   private static void applyDestinyKnot(Pokemon male, Pokemon female, Pokemon egg) {
+    if (Utils.RANDOM.nextDouble(100) >= CobbleUtils.breedconfig.getSuccessItems().getPercentageDestinyKnot()) return;
+
     List<Stats> stats = new ArrayList<>(Arrays.stream(Stats.values())
       .filter(stat -> stat != Stats.EVASION && stat != Stats.ACCURACY)
       .toList());
@@ -544,12 +555,13 @@ public class EggData {
     if (isDitto(male) && isDitto(female)) {
       Ability randomAbility = PokemonUtils.getRandomAbility(firstEvolution);
       egg.getPersistentData().putString("ability", randomAbility.getName());
+      return;
     }
     if ((maleHiddenAbility || femaleHiddenAbility) &&
       (male.showdownId().equalsIgnoreCase(female.showdownId()) ||
         (isDitto(male) && femaleHiddenAbility) ||
         (isDitto(female) && maleHiddenAbility))) {
-      if (Utils.RANDOM.nextDouble(100) < CobbleUtils.breedconfig.getPercentageTransmitAh()) {
+      if (Utils.RANDOM.nextDouble(100) < CobbleUtils.breedconfig.getSuccessItems().getPercentageTransmitAH()) {
         Ability ability1 = PokemonUtils.getAH(firstEvolution);
         egg.getPersistentData().putString("ability", ability1.getName());
       } else {
@@ -608,12 +620,22 @@ public class EggData {
   @Getter
   @Setter
   public static class PokemonRareMecanic {
-    private List<PokemonChance> pokemons = new ArrayList<>();
+    private List<PokemonChance> pokemons;
 
     public PokemonRareMecanic(List<PokemonChance> pokemons) {
       this.pokemons = pokemons;
     }
+  }
 
+  public static void applyMaxIvs(Pokemon pokemon) {
+    for (Stats stat : Stats.values()) {
+      if (CobbleUtils.breedconfig.isHaveMaxNumberIvsForRandom()) {
+        if (pokemon.getIvs().getOrDefault(stat) > CobbleUtils.breedconfig.getMaxIvsRandom())
+          pokemon.setIV(stat, Utils.RANDOM.nextInt(0, CobbleUtils.breedconfig.getMaxIvsRandom() + 1));
+      } else {
+        pokemon.setIV(stat, Utils.RANDOM.nextInt(0, 32));
+      }
+    }
   }
 
 

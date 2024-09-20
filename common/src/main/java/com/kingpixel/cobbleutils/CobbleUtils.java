@@ -135,6 +135,7 @@ public class CobbleUtils extends ShopExtend {
     LOGGER.info("§e| §6Pokerus: " + isActive(CobbleUtils.config.getPokerus().isActive()));
     LOGGER.info("§e| §6Breeding: " + isActive(CobbleUtils.breedconfig.isActive()));
     LOGGER.info("§e| §6Bosses: " + isActive(CobbleUtils.config.getBosses().isActive()));
+    LOGGER.info("§e| §6Supported economies: Impactor, BlanketEconomy, and Vault");
     LOGGER.info("§e+-------------------------------+");
   }
 

@@ -3,6 +3,7 @@ package com.kingpixel.cobbleutils.properties;
 import com.cobblemon.mod.common.api.properties.CustomPokemonProperty;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.pokemon.Pokemon;
+import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.ScalePokemonData;
 import com.kingpixel.cobbleutils.Model.SizeChanceWithoutItem;
 import org.jetbrains.annotations.NotNull;
@@ -20,8 +21,12 @@ public class SizeProperty implements CustomPokemonProperty {
   }
 
   @Override public void apply(@NotNull PokemonEntity pokemonEntity) {
-    SizeChanceWithoutItem sizeChanceWithoutItem = ScalePokemonData.getSize(pokemonEntity.getPokemon(), this.value);
-    sizeChanceWithoutItem.apply(pokemonEntity.getPokemon());
+    if (CobbleUtils.config.isRandomsize()) {
+      SizeChanceWithoutItem sizeChanceWithoutItem = ScalePokemonData.getSize(pokemonEntity.getPokemon(), this.value);
+      sizeChanceWithoutItem.apply(pokemonEntity.getPokemon());
+    } else {
+      pokemonEntity.getPokemon().setScaleModifier(1.0f);
+    }
   }
 
   @NotNull @Override public String asString() {
@@ -29,8 +34,12 @@ public class SizeProperty implements CustomPokemonProperty {
   }
 
   @Override public void apply(@NotNull Pokemon pokemon) {
-    SizeChanceWithoutItem sizeChanceWithoutItem = ScalePokemonData.getSize(pokemon, this.value);
-    sizeChanceWithoutItem.apply(pokemon);
+    if (CobbleUtils.config.isRandomsize()) {
+      SizeChanceWithoutItem sizeChanceWithoutItem = ScalePokemonData.getSize(pokemon, this.value);
+      sizeChanceWithoutItem.apply(pokemon);
+    } else {
+      pokemon.setScaleModifier(1.0f);
+    }
   }
 
   @Override public boolean matches(@NotNull Pokemon pokemon) {

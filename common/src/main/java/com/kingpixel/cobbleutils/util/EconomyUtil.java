@@ -456,13 +456,17 @@ public abstract class EconomyUtil {
 
         case IMPACTOR -> {
           Currency c = getCurrency(currency);
-          yield c.symbol().insertion() == null ? "$" : c.symbol().insertion();
+          yield c.symbol() == null ? "$" : AdventureTranslator.toNative(c.symbol().asComponent()).getString();
         }
         case VAULT -> "$";
         case BLANKECONOMY -> "$";
         default -> "$";
       };
-    } catch (NoSuchMethodError | Exception ignored) {
+    } catch (NoSuchMethodError | Exception e) {
+      if (CobbleUtils.config.isDebug()) {
+        CobbleUtils.LOGGER.error("Error getting currency symbol");
+        e.printStackTrace();
+      }
       return "$";
     }
   }
@@ -476,8 +480,12 @@ public abstract class EconomyUtil {
    */
   public static String getSymbol(Currency currency) {
     try {
-      return currency.symbol().insertion() == null ? "$" : currency.symbol().insertion();
-    } catch (NoSuchMethodError | Exception | NoClassDefFoundError ignored) {
+      return currency.symbol() == null ? "$" : AdventureTranslator.toNative(currency.symbol().asComponent()).getString();
+    } catch (NoSuchMethodError | Exception | NoClassDefFoundError e) {
+      if (CobbleUtils.config.isDebug()) {
+        CobbleUtils.LOGGER.error("Error getting currency symbol");
+        e.printStackTrace();
+      }
       return "$";
     }
   }
