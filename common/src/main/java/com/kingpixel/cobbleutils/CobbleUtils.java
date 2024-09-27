@@ -13,6 +13,7 @@ import com.kingpixel.cobbleutils.events.ItemRightClickEvents;
 import com.kingpixel.cobbleutils.events.features.FeaturesRegister;
 import com.kingpixel.cobbleutils.features.Features;
 import com.kingpixel.cobbleutils.features.breeding.config.BreedConfig;
+import com.kingpixel.cobbleutils.features.shops.ShopTransactions;
 import com.kingpixel.cobbleutils.managers.PartyManager;
 import com.kingpixel.cobbleutils.managers.RewardsManager;
 import com.kingpixel.cobbleutils.party.command.CommandsParty;
@@ -190,8 +191,17 @@ public class CobbleUtils extends ShopExtend {
 
 
     PlayerEvent.PLAYER_QUIT.register(player -> {
-      if (partyManager.isPlayerInParty(player) && partyConfig.isTemporalParty()) {
+      // leave party
+      if (config.isParty() && partyManager.isPlayerInParty(player) && partyConfig.isTemporalParty()) {
         partyManager.leaveParty(player);
+      }
+      // Remove shop transactions data
+      if (config.isShops()) {
+        ShopTransactions.transactions.remove(player.getUuid());
+      }
+      // Remove unnecesary data from rewards
+      if (config.isRewards()) {
+        rewardsManager.getRewardsData().remove(player.getUuid());
       }
     });
 

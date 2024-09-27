@@ -143,7 +143,9 @@ public class PokemonUtils {
         .replace("%friendship" + indexStr + "%", CobbleUtils.language.getUnknown())
         .replace("%ah" + indexStr + "%", "")
         .replace("%country" + indexStr + "%", CobbleUtils.language.getUnknown())
-        .replace("%egggroups" + indexStr + "%", CobbleUtils.language.getUnknown());
+        .replace("%egggroups" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%dex " + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%labels" + indexStr + "%", CobbleUtils.language.getUnknown());
     }
 
     Nature nature = pokemon.getNature();
@@ -212,7 +214,9 @@ public class PokemonUtils {
       .replace("%country" + indexStr + "%", pokemon.getPersistentData().getString(CobbleUtilsTags.COUNTRY_TAG).isEmpty()
         ? CobbleUtils.language.getNone()
         : pokemon.getPersistentData().getString(CobbleUtilsTags.COUNTRY_TAG))
-      .replace("%egggroups" + indexStr + "%", eggGroups(pokemon));
+      .replace("%egggroups" + indexStr + "%", eggGroups(pokemon))
+      .replace("%dex" + indexStr + "%", String.valueOf(pokemon.getSpecies().getNationalPokedexNumber()))
+      .replace("%labels" + indexStr + "%", pokemon.getForm().getLabels().toString());
   }
 
 

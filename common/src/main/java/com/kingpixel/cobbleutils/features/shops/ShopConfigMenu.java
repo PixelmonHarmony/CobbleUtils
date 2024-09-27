@@ -148,6 +148,8 @@ public class ShopConfigMenu {
 
       getShopsMod(mod_id).forEach(shop -> {
         ItemModel itemModelShop = shop.getDisplay();
+        if (itemModelShop.getSlot() < 0) return;
+
         List<String> lore = new ArrayList<>(itemModelShop.getLore());
         switch (shop.getShopType().getTypeShop()) {
           case DYNAMIC:

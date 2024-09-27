@@ -44,11 +44,13 @@ dependencies {
     modImplementation(files("libs/fabric-permissions-api-0.3.1.jar"))
 
     // Economy
+    // Economy Impactor
     implementation("net.impactdev.impactor.api:economy:${property("impactor_version")}")
-    api(files("libs/BlanketEconomy-1.1.jar"))
-
-    // Websocket
-    implementation("org.java-websocket:Java-WebSocket:1.5.7")
+    // Economy Blanket
+    api(files("libs/BlanketEconomy-1.3.jar"))
+    // Economy Vault
+    api("org.spigotmc:spigot-api:1.20.1-R0.1-SNAPSHOT")
+    api("com.github.MilkBowl:VaultAPI:1.7")
 
     // Kyori Adventure
     api("net.kyori:adventure-api:${property("kyori_version")}")

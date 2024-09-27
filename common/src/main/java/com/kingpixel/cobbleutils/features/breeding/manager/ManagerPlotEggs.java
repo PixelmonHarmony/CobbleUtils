@@ -8,7 +8,6 @@ import com.kingpixel.cobbleutils.features.breeding.models.PlotBreeding;
 import com.kingpixel.cobbleutils.util.RewardsUtils;
 import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Data;
-import lombok.Getter;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.io.File;
@@ -22,7 +21,6 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Author: Carlos Varas Alonso - 02/08/2024 14:09
  */
-@Getter
 @Data
 public class ManagerPlotEggs {
   private Map<UUID, List<PlotBreeding>> eggs = new HashMap<>();

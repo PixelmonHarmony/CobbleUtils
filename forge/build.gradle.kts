@@ -28,8 +28,6 @@ loom {
 }
 
 dependencies {
-    //minecraft("net.minecraft:minecraft:${property("minecraft_version")}")
-    //mappings(loom.officialMojangMappings())
     minecraft("com.mojang:minecraft:${property("minecraft_version")}")
     mappings("net.fabricmc:yarn:${property("yarn_mappings")}:v2")
 
@@ -53,8 +51,10 @@ dependencies {
     shadowCommon("net.kyori:adventure-text-logger-slf4j:${property("kyori_version")}")
     shadowCommon("net.kyori:adventure-platform-api:4.3.0")
     shadowCommon("net.kyori:event-api:5.0.0-SNAPSHOT")
+
     shadowCommon("org.mongodb:mongodb-driver-sync:${property("mongodb_version")}")
-    shadowCommon("org.java-websocket:Java-WebSocket:1.5.7")
+
+    shadowCommon("com.github.MilkBowl:VaultAPI:1.7")
 }
 
 tasks.processResources {
@@ -98,6 +98,16 @@ tasks {
         exclude("org/intellij/**/*")
         exclude("org/jetbrains/**/*")
         exclude("generations/gg/generations/core/generationscore/forge/datagen/**")
+
+        // Vault
+        exclude("org/bukkit/**/*")
+        exclude("org/apache/**/*")
+        exclude("org/yaml/**/*")
+        exclude("org/junit/**/*")
+        exclude("org/java_websocket/**/*")
+        exclude("org/hamcrest/**/*")
+        exclude("org/json/**/*")
+        exclude("com/google/**/*")
 
         relocate("com.mongodb", "com.kingpixel.cobbleutils.mongodb")
         relocate("org.bson", "com.kingpixel.cobbleutils.bson")

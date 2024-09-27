@@ -6,18 +6,21 @@ import lombok.Data;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.Date;
+import java.util.UUID;
 
 /**
  * @author Carlos Varas Alonso - 28/06/2024 2:51
  */
 @Data
 public class PartyChat {
+  private UUID partyId;
   private String partyname;
   private String playername;
   private String message;
   private Date date;
 
-  public PartyChat(String partyname, String playername, String message) {
+  public PartyChat(UUID partyId, String partyname, String playername, String message) {
+    this.partyId = partyId;
     this.partyname = partyname;
     this.playername = playername;
     this.message = message;
@@ -25,18 +28,20 @@ public class PartyChat {
   }
 
   public static PartyChat fromPlayer(ServerPlayerEntity player, String message) {
-    return new PartyChat(CobbleUtils.partyManager.getParty(player).getName(),
+    PartyData partyData = CobbleUtils.partyManager.getParty(player);
+    return new PartyChat(partyData.getId(), partyData.getName(),
       player.getGameProfile().getName(),
       message);
   }
 
   public void sendToParty() {
-    CobbleUtils.partyManager.getParties().get(partyname).getMembers()
-      .forEach((playerInfo) -> CobbleUtils.server.getPlayerManager().getPlayer(playerInfo.getPlayeruuid()).sendMessage(
-        AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyChat()
-          .replace("%partyname%", partyname)
-          .replace("%player%", playername)
-          .replace("%message%", message)
-          .replace("%date%", date.toString()))));
+    CobbleUtils.partyManager.getParties().get(partyId).getMembers()
+      .forEach((playerInfo) ->
+        CobbleUtils.server.getPlayerManager().getPlayer(playerInfo.getPlayeruuid()).sendMessage(
+          AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyChat()
+            .replace("%partyname%", partyname)
+            .replace("%player%", playername)
+            .replace("%message%", message)
+            .replace("%date%", date.toString()))));
   }
 }

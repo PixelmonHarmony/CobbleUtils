@@ -1,8 +1,0 @@
-name: CobbleUtilsSpigot
-version: '${version}'
-main: com.kingpixel.cobbleutils.CobbleUtilsSpigot
-api-version: '1.19'
-load: STARTUP
-authors: [ Zonary123 ]
-depend:
-  - LuckPerms

@@ -17,7 +17,6 @@ import com.kingpixel.cobbleutils.util.PlayerUtils;
 import com.kingpixel.cobbleutils.util.PokemonUtils;
 import com.kingpixel.cobbleutils.util.RewardsUtils;
 import dev.architectury.event.EventResult;
-import dev.architectury.event.events.common.ChunkEvent;
 import dev.architectury.event.events.common.InteractionEvent;
 import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.event.events.common.PlayerEvent;
@@ -99,7 +98,14 @@ public class Breeding {
       countryPlayer(player);
     });
 
-    PlayerEvent.PLAYER_QUIT.register(player -> managerPlotEggs.writeInfo(player));
+    PlayerEvent.PLAYER_QUIT.register(player -> {
+      // Remove country data
+      playerCountry.remove(player.getUuid());
+
+      // Remove unnecesarly data
+      managerPlotEggs.writeInfo(player).join();
+      managerPlotEggs.getEggs().remove(player.getUuid());
+    });
 
     LifecycleEvent.SERVER_STOPPING.register(instance -> {
       for (ScheduledFuture<?> task : scheduledTasks) {
@@ -108,11 +114,6 @@ public class Breeding {
       scheduledTasks.clear();
       CobbleUtils.LOGGER.info("Writing info breeding");
       managerPlotEggs.getEggs().forEach((key, value) -> managerPlotEggs.writeInfo(key));
-    });
-
-    ChunkEvent.LOAD_DATA.register((chunk, level, nbtCompound) -> {
-      if (!CobbleUtils.breedconfig.isSpawnEggWorld()) return;
-      //PokemonEntity entity = EggData.spawnEgg(chunk, level);
     });
 
 

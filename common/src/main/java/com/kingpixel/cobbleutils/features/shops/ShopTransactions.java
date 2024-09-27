@@ -8,6 +8,7 @@ import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Data;
 import lombok.Getter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.lang.reflect.Type;
@@ -20,7 +21,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
-@Getter
+@Slf4j @Getter
 @ToString
 @Data
 public class ShopTransactions {
@@ -100,23 +101,45 @@ public class ShopTransactions {
       List<Product> currentProducts = shopConfigMenu.getAllProducts();
 
       transactions.computeIfPresent(player, (uuid, productMap) -> {
+        // Remover productos que ya no existen en la configuración del menú
         productMap.keySet().removeIf(productId -> shopConfigMenu.getProductById(productId) == null);
         return productMap.isEmpty() ? null : productMap;
       });
 
-      // Escribe el archivo de manera segura usando un lock para evitar concurrencia
+      Map<String, TransactionSummary> playerTransactions = transactions.get(player);
+      if (playerTransactions == null || playerTransactions.isEmpty()) {
+        // Si no hay transacciones, no escribimos nada
+        return;
+      }
+
+      // Usar el lock solo durante el proceso de escritura
       writeLock.lock();
       try {
-        Utils.writeFileAsync(shopConfigMenu.getLogg(), player + ".json", Utils.newWithoutSpacingGson().toJson(transactions.get(player)))
-          .exceptionally(ex -> {
-            ex.printStackTrace(); // Manejo de excepciones
-            return null;
-          });
+        String jsonData = Utils.newWithoutSpacingGson().toJson(playerTransactions);
+        File logFile = Utils.getAbsolutePath(shopConfigMenu.getLogg() + "/" + player + ".json");
+
+        if (!logFile.exists()) {
+          logFile.mkdir();
+          logFile.mkdirs();
+          logFile.createNewFile();
+        }
+
+        Utils.writeFileAsync(logFile, jsonData).exceptionally(ex -> {
+          // Usar un sistema de logging más robusto
+          System.err.println("Error al escribir el archivo JSON: " + ex.getMessage());
+          ex.printStackTrace(); // Opcional: imprimir la traza de la excepción
+          return null;
+        });
+      } catch (Exception e) {
+        System.err.println("Error durante la escritura de transacciones para el jugador: " + player);
+        e.printStackTrace(); // O usar un logger aquí
       } finally {
-        writeLock.unlock();
+        writeLock.unlock(); // Liberar el lock
       }
     }).exceptionally(ex -> {
-      ex.printStackTrace(); // Manejo de excepciones durante la carga
+      // Manejo de excepciones durante la carga de transacciones
+      System.err.println("Error al cargar transacciones para el jugador: " + player);
+      ex.printStackTrace(); // O usar un logger aquí
       return null;
     });
   }
@@ -144,6 +167,7 @@ public class ShopTransactions {
             continue;
           }
 
+          // Filtrar los productos que ya no existen en la configuración del menú
           Map<String, TransactionSummary> processedMap = new HashMap<>();
           map.forEach((productId, summary) -> {
             Product product = shopConfigMenu.getProductById(productId);
@@ -152,7 +176,9 @@ public class ShopTransactions {
             }
           });
 
-          transactions.put(UUID.fromString(file.getName().replace(".json", "")), processedMap);
+          if (!processedMap.isEmpty()) {
+            transactions.put(UUID.fromString(file.getName().replace(".json", "")), processedMap);
+          }
         } catch (JsonSyntaxException e) {
           System.err.println("Error de sintaxis JSON en el archivo " + file.getName() + ": " + e.getMessage());
         } catch (Exception e) {
@@ -163,6 +189,7 @@ public class ShopTransactions {
       firstTime = true;
     });
   }
+
 
   public enum ShopAction {
     BUY,

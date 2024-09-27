@@ -177,6 +177,15 @@ public abstract class Utils {
     return Files.readString(Path.of(file.getPath()));
   }
 
+  public static CompletableFuture<Void> writeFileAsync(File file, String content) {
+    return CompletableFuture.runAsync(() -> {
+      try (FileWriter writer = new FileWriter(file)) {
+        writer.write(content);
+      } catch (IOException e) {
+        throw new RuntimeException("Error al escribir el archivo: " + file.getPath(), e);
+      }
+    });
+  }
 
   public static void broadcastMessage(String message) {
     MinecraftServer server = CobbleUtils.server;

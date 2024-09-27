@@ -1,6 +1,7 @@
 package com.kingpixel.cobbleutils.managers;
 
 import com.kingpixel.cobbleutils.Model.PlayerInfo;
+import com.kingpixel.cobbleutils.party.event.DeletePartyEvent;
 import com.kingpixel.cobbleutils.party.models.PartyCreateResult;
 import com.kingpixel.cobbleutils.party.models.PartyData;
 import com.kingpixel.cobbleutils.party.models.UserParty;
@@ -12,115 +13,111 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * @author Carlos Varas Alonso - 28/06/2024 2:28
- */
 @Data
 public class PartyManager {
-  // Map<PartyUUID, PartyData> / Info from the party
-  private Map<UUID, PartyData> parties;
-  // Map<UserUUID, PartyName> / Info from the user
-  private Map<UUID, UserParty> userParty;
-
-  public PartyManager() {
-    this.parties = new HashMap<>();
-    this.userParty = new HashMap<>();
-  }
-
+  private Map<UUID, PartyData> parties = new ConcurrentHashMap<>();
+  private Map<UUID, UserParty> userParty = new ConcurrentHashMap<>();
 
   public PartyData getParty(ServerPlayerEntity player) {
-    UserParty infoUser = userParty.getOrDefault(player.getUuid(), null);
-    return infoUser != null ? parties.get(infoUser.getPartyId()) : null;
+    UserParty userPartyData = userParty.get(player.getUuid());
+    return userPartyData != null ? parties.get(userPartyData.getPartyId()) : null;
   }
 
   public boolean isPlayerInParty(ServerPlayerEntity player) {
-    return getParty(player) != null;
+    return userParty.containsKey(player.getUuid());
   }
 
-
   public PartyCreateResult createParty(ServerPlayerEntity player, String partyName) {
-    PartyData partyData = getParty(player);
-    if (partyData != null) return PartyCreateResult.ALREADY_IN_PARTY;
-    partyData = new PartyData(partyName, PlayerInfo.fromPlayer(player));
-    parties.put(partyData.getId(), partyData);
-    userParty.put(player.getUuid(), new UserParty(partyData.getId()));
+    if (isPlayerInParty(player)) return PartyCreateResult.ALREADY_IN_PARTY;
+
+    PartyData newParty = new PartyData(partyName, PlayerInfo.fromPlayer(player));
+    newParty.init();
+    UUID partyId = newParty.getId();
+    this.parties.put(partyId, newParty);
+    this.userParty.put(player.getUuid(), new UserParty(partyId));
+
     return PartyCreateResult.SUCCESS;
   }
 
   public void sendInvite(ServerPlayerEntity player, ServerPlayerEntity invite) {
-    PartyData partyData = getParty(player);
-    if (partyData == null || !playerCanInvite(player)) return;
-    partyData.getInvites().add(invite.getUuid());
+    PartyData party = getParty(player);
+    if (party != null && isOwner(player)) {
+      party.getInvites().add(invite.getUuid());
+    }
   }
 
   public boolean leaveParty(ServerPlayerEntity player) {
-    PartyData partyData = getParty(player);
-    if (partyData == null) return false;
-    partyData.getMembers().removeIf(playerInfo -> playerInfo.getPlayeruuid().equals(player.getUuid()));
+    PartyData party = getParty(player);
+    if (party == null) return false;
+
+    party.getMembers().removeIf(member -> member.getPlayeruuid().equals(player.getUuid()));
     userParty.remove(player.getUuid());
+    removeParty(party);
     return true;
   }
 
   public boolean kickPlayer(ServerPlayerEntity player, ServerPlayerEntity target) {
-    PartyData partyData = getParty(player);
-    if (partyData == null) return false;
-    if (!partyData.getOwner().getPlayeruuid().equals(player.getUuid())) return false;
-    partyData.getMembers().removeIf(playerInfo -> playerInfo.getPlayeruuid().equals(target.getUuid()));
+    PartyData party = getParty(player);
+    if (party == null || !isOwner(player) || player.getUuid().equals(target.getUuid())) return false;
+    party.getMembers().removeIf(member -> member.getPlayeruuid().equals(target.getUuid()));
     userParty.remove(target.getUuid());
+    removeParty(party);
     return true;
   }
 
+  public void removeParty(PartyData partyData) {
+    if (partyData.getMembers().isEmpty()) {
+      DeletePartyEvent.DELETE_PARTY_EVENT.emit(partyData);
+      parties.remove(partyData.getId());
+    }
+  }
+
   public ArrayList<PlayerInfo> getMembers(ServerPlayerEntity player) {
-    PartyData partyData = getParty(player);
-    if (partyData == null) return new ArrayList<>();
-    return new ArrayList<>(partyData.getMembers());
+    PartyData party = getParty(player);
+    return party != null ? new ArrayList<>(party.getMembers()) : new ArrayList<>();
   }
 
   public boolean acceptInvite(ServerPlayerEntity player, UUID partyId) {
-    PartyData partyData = parties.get(partyId);
-    if (partyData == null) return false;
-    if (!partyData.getInvites().remove(player.getUuid())) return false;
-    partyData.getMembers().add(PlayerInfo.fromPlayer(player));
-    userParty.put(player.getUuid(), new UserParty(partyData.getId()));
-    parties.entrySet().stream()
-      .filter(entry -> entry.getValue().getInvites().contains(player.getUuid()))
-      .forEach(entry -> entry.getValue().getInvites().remove(player.getUuid()));
+    PartyData party = parties.get(partyId);
+    if (party == null || !party.getInvites().remove(player.getUuid())) return false;
+
+    party.getMembers().add(PlayerInfo.fromPlayer(player));
+    userParty.put(player.getUuid(), new UserParty(partyId));
+
+    // Limpiar otras invitaciones del jugador
+    parties.values().forEach(p -> p.getInvites().remove(player.getUuid()));
+
     return true;
   }
 
   public boolean playerCanInvite(ServerPlayerEntity player) {
-    PartyData partyData = getParty(player);
-    if (partyData == null) return false;
-    return partyData.getOwner().getPlayeruuid().equals(player.getUuid());
+    return isOwner(player);
   }
 
-  public CompletableFuture<Suggestions> suggestParties(CommandContext<ServerCommandSource> serverCommandSourceCommandContext, SuggestionsBuilder suggestionsBuilder) {
-    parties.values().forEach(partyData -> {
-      if (partyData.getInvites().contains(serverCommandSourceCommandContext.getSource().getPlayer().getUuid())) {
-        suggestionsBuilder.suggest(partyData.getName());
-      }
-    });
-    return suggestionsBuilder.buildFuture();
+  public CompletableFuture<Suggestions> suggestParties(CommandContext<ServerCommandSource> context, SuggestionsBuilder builder) {
+    UUID playerId = context.getSource().getPlayer().getUuid();
+    parties.values().stream()
+      .filter(party -> party.getInvites().contains(playerId))
+      .forEach(party -> builder.suggest(party.getName()));
+    return builder.buildFuture();
   }
 
   public boolean isOwner(ServerPlayerEntity player) {
-    PartyData partyData = getParty(player);
-    if (partyData == null) return false;
-    return partyData.getOwner().getPlayeruuid().equals(player.getUuid());
+    PartyData party = getParty(player);
+    return party != null && party.getOwner().getPlayeruuid().equals(player.getUuid());
   }
 
   public ArrayList<PartyData> getInvites(ServerPlayerEntity player) {
     ArrayList<PartyData> invites = new ArrayList<>();
-    parties.values().forEach(partyData -> {
-      if (partyData.getInvites().contains(player.getUuid())) {
-        invites.add(partyData);
-      }
-    });
+    UUID playerId = player.getUuid();
+    parties.values().stream()
+      .filter(party -> party.getInvites().contains(playerId))
+      .forEach(invites::add);
     return invites;
   }
 }

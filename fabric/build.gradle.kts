@@ -40,7 +40,17 @@ dependencies {
 
     "common"(project(":common", "namedElements")) { isTransitive = false }
     "shadowCommon"(project(":common", "transformProductionFabric")) { isTransitive = false }
-    
+
+    modImplementation("net.kyori:adventure-api:${property("kyori_version")}")
+    modImplementation("net.kyori:adventure-nbt:${property("kyori_version")}")
+    modImplementation("net.kyori:adventure-text-serializer-plain:${property("kyori_version")}")
+    modImplementation("net.kyori:adventure-text-serializer-legacy:${property("kyori_version")}")
+    modImplementation("net.kyori:adventure-text-serializer-gson:${property("kyori_version")}")
+    modImplementation("net.kyori:adventure-text-minimessage:${property("kyori_version")}")
+    modImplementation("net.kyori:adventure-text-logger-slf4j:${property("kyori_version")}")
+    modImplementation("net.kyori:adventure-platform-api:4.3.0")
+    modImplementation("net.kyori:event-api:5.0.0-SNAPSHOT")
+
 
     shadowCommon("net.kyori:adventure-api:${property("kyori_version")}")
     shadowCommon("net.kyori:adventure-nbt:${property("kyori_version")}")
@@ -51,8 +61,10 @@ dependencies {
     shadowCommon("net.kyori:adventure-text-logger-slf4j:${property("kyori_version")}")
     shadowCommon("net.kyori:adventure-platform-api:4.3.0")
     shadowCommon("net.kyori:event-api:5.0.0-SNAPSHOT")
+
     shadowCommon("org.mongodb:mongodb-driver-sync:${property("mongodb_version")}")
-    shadowCommon("org.java-websocket:Java-WebSocket:1.5.7")
+
+    shadowCommon("com.github.MilkBowl:VaultAPI:1.7")
 }
 
 tasks.processResources {
@@ -97,9 +109,16 @@ tasks {
         exclude("com/google/gson/**/*")
         exclude("org/intellij/**/*")
         exclude("org/jetbrains/**/*")
-        // No excluimos el "net/kyori/adventure/key/**" para que siga incluido en el JAR, pero sin relocalizar.
+        // Vault
+        exclude("org/bukkit/**/*")
+        exclude("org/apache/**/*")
+        exclude("org/yaml/**/*")
+        exclude("org/junit/**/*")
+        exclude("org/java_websocket/**/*")
+        exclude("org/hamcrest/**/*")
+        exclude("org/json/**/*")
+        exclude("com/google/**/*")
 
-        //relocate("org.reactivestreams", "com.kingpixel.cobbleutils.reactivestreams")
         relocate("com.mongodb", "com.kingpixel.cobbleutils.mongodb")
         relocate("org.bson", "com.kingpixel.cobbleutils.bson")
         relocate("net.kyori", "com.kingpixel.cobbleutils.kyori") {

@@ -61,6 +61,7 @@ public class Lang {
   private String soundclose;
   private String soundConfirm;
   private String soundCancel;
+
   // Time
   private String days;
   private String day;
@@ -71,10 +72,17 @@ public class Lang {
   private String seconds;
   private String second;
 
+  // Pokemon Colors
   private Map<String, String> gender;
   private Map<String, String> forms;
   private Map<String, String> movecolor;
   private Map<String, String> types;
+
+  // Economy
+  private String defaultSymbol;
+  private Map<String, String> impactorSymbols;
+
+  // Display
   private ItemModel itemMoney;
   private ItemModel itemPc;
   private ItemModel itemNoPokemon;
@@ -221,6 +229,13 @@ public class Lang {
     itemCancel = new ItemModel("minecraft:red_stained_glass_pane", "<gradient:#E05858:#F09E9E>Cancel", List.of(), 0);
     this.messageCooldown = "%prefix% <gradient:#e33636:#f08181>You need to wait %cooldown% <gradient:#e33636:#f08181>to use this command" +
       ".</gradient>";
+    this.defaultSymbol = "&e$";
+    this.impactorSymbols = Map.of(
+      "dollars", "&e$",
+      "impactor:dollars", "&e$",
+      "tokens", "&bT",
+      "impactor:tokens", "&bT"
+    );
   }
 
   /**
@@ -304,6 +319,8 @@ public class Lang {
         messageNotHaveMoney = lang.getMessageNotHaveMoney();
         messageBought = lang.getMessageBought();
         messageCooldown = lang.getMessageCooldown();
+        defaultSymbol = lang.getDefaultSymbol();
+        impactorSymbols = lang.getImpactorSymbols();
 
         String data = gson.toJson(this);
         CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(CobbleUtils.PATH_LANG, CobbleUtils.config.getLang() +

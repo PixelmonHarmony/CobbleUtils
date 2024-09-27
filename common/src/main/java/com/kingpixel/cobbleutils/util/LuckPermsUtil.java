@@ -30,9 +30,6 @@ public abstract class LuckPermsUtil {
     } else if (getLuckPermsApi() != null) {
       PERMISSION_TYPE = Permission.LUCKPERMS;
       CobbleUtils.LOGGER.info("LuckPerms detected");
-    } else if (WebSocketClient.getInstance() != null) {
-      PERMISSION_TYPE = Permission.SPIGOT;
-      CobbleUtils.LOGGER.info("WebSocket permissions detected");
     } else {
       CobbleUtils.LOGGER.error("No permission system detected");
     }
@@ -64,7 +61,7 @@ public abstract class LuckPermsUtil {
 
     return switch (PERMISSION_TYPE) {
       case LUCKPERMS -> checkLuckPermsPermission(player, permissions);
-      case SPIGOT -> checkSpigotPermissions(player, permissions);
+      case SPIGOT -> false;//checkSpigotPermissions(player, permissions);
       case FABRIC_PERMISSIONS_API -> checkFabricPermissions(source, level, permissions);
       default -> hasPermission;
     };
@@ -95,7 +92,7 @@ public abstract class LuckPermsUtil {
     return false;
   }
 
-  private static boolean checkSpigotPermissions(ServerPlayerEntity player, List<String> permissions) {
+  /*private static boolean checkSpigotPermissions(ServerPlayerEntity player, List<String> permissions) {
     boolean hasPermission = player.hasPermissionLevel(4);
     for (String permission : permissions) {
 
@@ -107,7 +104,7 @@ public abstract class LuckPermsUtil {
 
     }
     return hasPermission;
-  }
+  }*/
 
   public static boolean checkPermission(ServerCommandSource source, int level, String permission) {
     return checkPermission(source, level, List.of(permission));
@@ -121,7 +118,8 @@ public abstract class LuckPermsUtil {
 
     return switch (PERMISSION_TYPE) {
       case LUCKPERMS -> checkLuckPermsPermission(player, List.of(permission));
-      case SPIGOT -> WebSocketClient.getInstance().checkPermission(player, permission).join();
+      case SPIGOT -> false; //WebSocketClient.getInstance().checkPermission(player, permission)
+      // .join();
       case FABRIC_PERMISSIONS_API -> Permissions.check(player, permission, 4);
       default -> false;
     };
@@ -138,7 +136,7 @@ public abstract class LuckPermsUtil {
         }
         break;
       case SPIGOT:
-        WebSocketClient.getInstance().addPermission(permission);
+        //WebSocketClient.getInstance().addPermission(permission);
         break;
       default:
         break;

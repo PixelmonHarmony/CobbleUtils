@@ -326,16 +326,35 @@ public class Shop {
           )))
           .onClick(action -> {
             if (typeError == TypeError.NONE) {
-              if (action.getClickType() == ButtonClick.LEFT_CLICK || action.getClickType() == ButtonClick.SHIFT_LEFT_CLICK) {
-                if (buy.compareTo(BigDecimal.ZERO) > 0) {
-                  SoundUtil.playSound(getSoundopen(), player);
-                  openBuySellMenu(player, shopConfig, product, TypeMenu.BUY, defaultamount, mod_id, byCommand);
-                }
-              } else if (action.getClickType() == ButtonClick.RIGHT_CLICK || action.getClickType() == ButtonClick.SHIFT_RIGHT_CLICK) {
-                if (sell.compareTo(BigDecimal.ZERO) > 0) {
-                  SoundUtil.playSound(getSoundopen(), player);
-                  openBuySellMenu(player, shopConfig, product, TypeMenu.SELL, defaultamount, mod_id, byCommand);
-                }
+              switch (getShopAction(product)) {
+                case BUY:
+                  if (buy.compareTo(BigDecimal.ZERO) > 0) {
+                    SoundUtil.playSound(getSoundopen(), player);
+                    openBuySellMenu(player, shopConfig, product, TypeMenu.BUY, defaultamount, mod_id, byCommand);
+                  }
+                  break;
+                case SELL:
+                  if (sell.compareTo(BigDecimal.ZERO) > 0) {
+                    SoundUtil.playSound(getSoundopen(), player);
+                    openBuySellMenu(player, shopConfig, product, TypeMenu.SELL, defaultamount, mod_id, byCommand);
+                  }
+                  break;
+                case BUY_SELL:
+                  if (action.getClickType() == ButtonClick.LEFT_CLICK || action.getClickType() == ButtonClick.SHIFT_LEFT_CLICK) {
+                    if (buy.compareTo(BigDecimal.ZERO) > 0) {
+                      SoundUtil.playSound(getSoundopen(), player);
+                      openBuySellMenu(player, shopConfig, product, TypeMenu.BUY, defaultamount, mod_id, byCommand);
+                    }
+                  } else if (action.getClickType() == ButtonClick.RIGHT_CLICK || action.getClickType() == ButtonClick.SHIFT_RIGHT_CLICK) {
+                    if (sell.compareTo(BigDecimal.ZERO) > 0) {
+                      SoundUtil.playSound(getSoundopen(), player);
+                      openBuySellMenu(player, shopConfig, product, TypeMenu.SELL, defaultamount, mod_id, byCommand);
+                    }
+                  }
+                  break;
+                default:
+                  sendError(player, typeError);
+                  break;
               }
             } else {
               sendError(player, typeError);
@@ -425,6 +444,21 @@ public class Shop {
     } catch (Exception e) {
       e.printStackTrace();
     }
+  }
+
+  public enum ShopAction {
+    BUY, SELL, BUY_SELL
+  }
+
+  public ShopAction getShopAction(Product product) {
+    if (product.getBuy().compareTo(BigDecimal.ZERO) > 0 && product.getSell().compareTo(BigDecimal.ZERO) > 0) {
+      return ShopAction.BUY_SELL;
+    } else if (product.getBuy().compareTo(BigDecimal.ZERO) > 0) {
+      return ShopAction.BUY;
+    } else if (product.getSell().compareTo(BigDecimal.ZERO) > 0) {
+      return ShopAction.SELL;
+    }
+    return null;
   }
 
   private List<String> getLoreProduct(BigDecimal buy, BigDecimal sell, Product product, ServerPlayerEntity player,
