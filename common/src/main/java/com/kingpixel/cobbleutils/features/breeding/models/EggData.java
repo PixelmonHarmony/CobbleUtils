@@ -150,7 +150,6 @@ public class EggData {
 
   public void steps(Pokemon pokemon, int stepsremove) {
     if (!pokemon.getSpecies().showdownId().equalsIgnoreCase("egg")) return;
-    //checkingdata(pokemon);
     if (stepsremove == 0) return;
     this.steps -= stepsremove;
 
@@ -163,24 +162,6 @@ public class EggData {
       EggToPokemon(pokemon);
     }
   }
-
-  /*private void checkingdata(Pokemon pokemon) {
-    Pokemon isempty;
-    if (pokemon.getPersistentData().getString("species").isEmpty()) {
-      isempty = PokemonUtils.getFirstEvolution(ArraysPokemons.getRandomPokemon());
-      pokemon.getPersistentData().putString("species", isempty.getSpecies().showdownId());
-
-      if (pokemon.getPersistentData().getInt("level") == 0) {
-        pokemon.getPersistentData().putInt("level", 1);
-      }
-      if (pokemon.getPersistentData().getString("ability").isEmpty()) {
-        pokemon.getPersistentData().putString("ability", PokemonUtils.getRandomAbility(isempty).getName());
-      }
-      if (pokemon.getPersistentData().getString("size").isEmpty()) {
-        pokemon.getPersistentData().putString("size", ScalePokemonData.getScalePokemonData(isempty).getRandomPokemonSize().getId());
-      }
-    }
-  }*/
 
   private int getMaxStepsPerCycle() {
     if (cycles > 0) {
@@ -277,6 +258,15 @@ public class EggData {
             .replace("%egg%", egg.getPersistentData().getString("species")),
           List.of(male, female, egg))));
 
+    if (!egg.showdownId().equalsIgnoreCase("egg")) {
+      player.sendMessage(
+        AdventureTranslator.toNative(
+          "%prefix% The CobbleUtils datapack is not installed, please notify the administrator about this.",
+          CobbleUtils.breedconfig.getPrefix()
+        )
+      );
+    }
+
     return egg;
   }
 
@@ -291,25 +281,6 @@ public class EggData {
 
   private static boolean isDitto(Pokemon pokemon) {
     return pokemon.getSpecies().showdownId().equalsIgnoreCase("ditto");
-  }
-
-  private static void infoPokemon(Pokemon pokemon) {
-    CobbleUtils.LOGGER.info("Species: " + pokemon.getSpecies().showdownId());
-    CobbleUtils.LOGGER.info("Nature: " + pokemon.getNature().getName());
-    CobbleUtils.LOGGER.info("Ability: " + pokemon.getAbility().getName());
-    CobbleUtils.LOGGER.info("Form: " + pokemon.getForm().getName());
-    CobbleUtils.LOGGER.info("Forms: ");
-    pokemon.getSpecies().getForms().forEach(formData -> {
-      CobbleUtils.LOGGER.info("Form -> " + formData.getName());
-    });
-    CobbleUtils.LOGGER.info("Features: ");
-    pokemon.getFeatures().forEach((feature) -> CobbleUtils.LOGGER.info("Feature -> " + feature.getName()));
-    CobbleUtils.LOGGER.info("Aspects: ");
-    pokemon.getForm().getAspects().forEach((aspect) -> CobbleUtils.LOGGER.info("Aspect -> " + aspect));
-    CobbleUtils.LOGGER.info("Labels: ");
-    pokemon.getForm().getLabels().forEach((label) -> CobbleUtils.LOGGER.info("Label -> " + label));
-    CobbleUtils.LOGGER.info("IVS: ");
-    pokemon.getIvs().forEach((Ivs) -> CobbleUtils.LOGGER.info(Ivs.getKey().getShowdownId() + " -> " + Ivs.getValue()));
   }
 
   private static void mechanicsLogic(Pokemon male, Pokemon female, Pokemon usePokemonToEgg, Pokemon egg) {
@@ -349,7 +320,7 @@ public class EggData {
 
     // Ability
     applyAbility(male, female, firstEvolution, egg);
-    
+
     // Shiny Rate
     float shinyrate = Cobblemon.INSTANCE.getConfig().getShinyRate();
     float multiplier = CobbleUtils.breedconfig.getMultiplierShiny();
@@ -495,7 +466,7 @@ public class EggData {
           egg.setIV(stat, Utils.RANDOM.nextInt(32));
         }
       }
-    } else if (itemPokemon == DESTINY_KNOT) {
+    } else if (itemPokemon.equals(DESTINY_KNOT)) {
       applyDestinyKnot(male, female, egg);
     } else if (isPowerItem(itemPokemon)) {
       applyIvsPower(select, egg, itemPokemon);
@@ -504,12 +475,7 @@ public class EggData {
 
   private static boolean isPowerItem(CobblemonItem item) {
     if (item == null) return false;
-    return item == POWER_WEIGHT ||
-      item == POWER_BRACER ||
-      item == POWER_BELT ||
-      item == POWER_ANKLET ||
-      item == POWER_LENS ||
-      item == POWER_BAND;
+    return item.equals(POWER_WEIGHT) || item.equals(POWER_BRACER) || item.equals(POWER_BELT) || item.equals(POWER_ANKLET) || item.equals(POWER_LENS) || item.equals(POWER_BAND);
   }
 
   private static void applyIvsPower(Pokemon select, Pokemon egg, CobblemonItem itemSame) {
@@ -557,11 +523,8 @@ public class EggData {
       egg.getPersistentData().putString("ability", randomAbility.getName());
       return;
     }
-    if ((maleHiddenAbility || femaleHiddenAbility) &&
-      (male.showdownId().equalsIgnoreCase(female.showdownId()) ||
-        (isDitto(male) && femaleHiddenAbility) ||
-        (isDitto(female) && maleHiddenAbility))) {
-      if (Utils.RANDOM.nextDouble(100) < CobbleUtils.breedconfig.getSuccessItems().getPercentageTransmitAH()) {
+    if ((maleHiddenAbility || femaleHiddenAbility) && (male.showdownId().equalsIgnoreCase(female.showdownId()) || (isDitto(male) && femaleHiddenAbility) || (isDitto(female) && maleHiddenAbility))) {
+      if (Utils.RANDOM.nextDouble(100) <= CobbleUtils.breedconfig.getSuccessItems().getPercentageTransmitAH()) {
         Ability ability1 = PokemonUtils.getAH(firstEvolution);
         egg.getPersistentData().putString("ability", ability1.getName());
       } else {
@@ -589,8 +552,6 @@ public class EggData {
         s.set(incense.getChild(pokemon));
       }
     });
-
-
     return s.get();
   }
 
@@ -702,7 +663,7 @@ public class EggData {
       firstEvolution = PokemonProperties.Companion.parse(lure_species).create();
     }
 
-    egg.getPersistentData().putString("species", firstEvolution.showdownId());
+    egg.getPersistentData().putString("species", firstEvolution.getSpecies().showdownId());
     egg.getPersistentData().putString("nature", pokemon.getNature().getName().getPath());
     egg.getPersistentData().putString("ability", pokemon.getAbility().getTemplate().getName().toLowerCase().trim());
     egg.getPersistentData().putString("form", getForm(female));

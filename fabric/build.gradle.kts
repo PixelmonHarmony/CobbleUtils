@@ -28,9 +28,6 @@ loom {
 }
 
 dependencies {
-    //minecraft("net.minecraft:minecraft:${property("minecraft_version")}")
-    //mappings(loom.officialMojangMappings())
-
     minecraft("com.mojang:minecraft:${property("minecraft_version")}")
     mappings("net.fabricmc:yarn:${property("yarn_mappings")}:v2")
 
@@ -41,29 +38,15 @@ dependencies {
     "common"(project(":common", "namedElements")) { isTransitive = false }
     "shadowCommon"(project(":common", "transformProductionFabric")) { isTransitive = false }
 
-    modImplementation("net.kyori:adventure-api:${property("kyori_version")}")
-    modImplementation("net.kyori:adventure-nbt:${property("kyori_version")}")
-    modImplementation("net.kyori:adventure-text-serializer-plain:${property("kyori_version")}")
-    modImplementation("net.kyori:adventure-text-serializer-legacy:${property("kyori_version")}")
-    modImplementation("net.kyori:adventure-text-serializer-gson:${property("kyori_version")}")
-    modImplementation("net.kyori:adventure-text-minimessage:${property("kyori_version")}")
-    modImplementation("net.kyori:adventure-text-logger-slf4j:${property("kyori_version")}")
-    modImplementation("net.kyori:adventure-platform-api:4.3.0")
-    modImplementation("net.kyori:event-api:5.0.0-SNAPSHOT")
 
-
-    shadowCommon("net.kyori:adventure-api:${property("kyori_version")}")
-    shadowCommon("net.kyori:adventure-nbt:${property("kyori_version")}")
-    shadowCommon("net.kyori:adventure-text-serializer-plain:${property("kyori_version")}")
-    shadowCommon("net.kyori:adventure-text-serializer-legacy:${property("kyori_version")}")
+    // Kyori Adventure
     shadowCommon("net.kyori:adventure-text-serializer-gson:${property("kyori_version")}")
     shadowCommon("net.kyori:adventure-text-minimessage:${property("kyori_version")}")
-    shadowCommon("net.kyori:adventure-text-logger-slf4j:${property("kyori_version")}")
-    shadowCommon("net.kyori:adventure-platform-api:4.3.0")
-    shadowCommon("net.kyori:event-api:5.0.0-SNAPSHOT")
 
+    // Database
     shadowCommon("org.mongodb:mongodb-driver-sync:${property("mongodb_version")}")
 
+    // Economy Vault
     shadowCommon("com.github.MilkBowl:VaultAPI:1.7")
 }
 
@@ -122,9 +105,8 @@ tasks {
         relocate("com.mongodb", "com.kingpixel.cobbleutils.mongodb")
         relocate("org.bson", "com.kingpixel.cobbleutils.bson")
         relocate("net.kyori", "com.kingpixel.cobbleutils.kyori") {
-            exclude("net/kyori/adventure/key/**")
+            exclude("net/kyori/adventure/key/**/*")
         }
-        relocate("org.slf4j", "com.kingpixel.cobbleutils.slf4j")
 
         transformers.add(ServiceFileTransformer())
 

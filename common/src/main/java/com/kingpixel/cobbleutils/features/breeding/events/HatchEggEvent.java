@@ -29,4 +29,8 @@ public class HatchEggEvent {
       listener.HatchEgg(pokemon);
     }
   }
+
+  public void clear() {
+    hatchEggListeners.clear();
+  }
 }

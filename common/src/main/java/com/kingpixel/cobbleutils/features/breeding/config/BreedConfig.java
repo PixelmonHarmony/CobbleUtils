@@ -188,6 +188,10 @@ public class BreedConfig {
 
   }
 
+  public String getPermissionplot(int i) {
+    return "cobbleutils.breeding.plot." + i;
+  }
+
   @Data
   public static class SuccessItems {
     private double percentageTransmitAH;

@@ -29,4 +29,8 @@ public class DeletePartyEvent {
       listener.onDeleteParty(partyData);
     }
   }
+
+  public void clear() {
+    partyDeleteListeners.clear();
+  }
 }

@@ -19,10 +19,11 @@ import com.kingpixel.cobbleutils.managers.RewardsManager;
 import com.kingpixel.cobbleutils.party.command.CommandsParty;
 import com.kingpixel.cobbleutils.party.config.PartyConfig;
 import com.kingpixel.cobbleutils.party.config.PartyLang;
+import com.kingpixel.cobbleutils.party.event.CreatePartyEvent;
+import com.kingpixel.cobbleutils.party.event.DeletePartyEvent;
 import com.kingpixel.cobbleutils.party.util.PartyPlaceholder;
 import com.kingpixel.cobbleutils.properties.BreedablePropertyType;
 import com.kingpixel.cobbleutils.util.*;
-import com.kingpixel.cobbleutils.util.events.ArraysPokemonEvent;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.CommandRegistrationEvent;
 import dev.architectury.event.events.common.InteractionEvent;
@@ -84,7 +85,6 @@ public class CobbleUtils extends ShopExtend {
     sign();
     tasks();
     Features.register();
-    //addAllPermissions();
   }
 
   private static void checks() {
@@ -155,7 +155,6 @@ public class CobbleUtils extends ShopExtend {
 
   private static void events() {
     files();
-
     Utils.removeFiles(PATH_PARTY_DATA);
 
     CommandRegistrationEvent.EVENT.register((dispatcher, registry, selection) -> {
@@ -167,11 +166,25 @@ public class CobbleUtils extends ShopExtend {
       load();
     });
 
-
     LifecycleEvent.SERVER_STOPPING.register(server -> {
       scheduledTasks.forEach(task -> task.cancel(true));
       scheduledTasks.clear();
-      ArraysPokemonEvent.FINISH_GENERATE_POKEMONS.clear();
+      ArraysPokemons.all.clear();
+      CreatePartyEvent.CREATE_PARTY_EVENT.clear();
+      DeletePartyEvent.DELETE_PARTY_EVENT.clear();
+      scheduler.shutdownNow(); // Apaga los hilos activos
+
+      try {
+        // Espera un tiempo para asegurarse que los hilos se cierren correctamente
+        if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {  // Extiende el tiempo a 5 segundos
+          LOGGER.warn("El scheduler no pudo cerrarse a tiempo, forzando la interrupción");
+          scheduler.shutdownNow();
+        }
+      } catch (InterruptedException ex) {
+        LOGGER.error("El apagado del scheduler fue interrumpido" + ex);
+        scheduler.shutdownNow();
+        Thread.currentThread().interrupt();  // Restablecer el estado de interrupción
+      }
     });
 
 
@@ -223,11 +236,9 @@ public class CobbleUtils extends ShopExtend {
     InteractionEvent.RIGHT_CLICK_ITEM.register(ItemRightClickEvents::register);
 
     // ? Add the event for fishing a pokemon
-
     FeaturesRegister.register();
 
     PlayerEvent.DROP_ITEM.register(DropItemEvent::register);
-
 
     // Fix empty nbt
     PlayerEvent.PICKUP_ITEM_PRE.register((player, itemEntity, itemStack) -> {
@@ -246,45 +257,9 @@ public class CobbleUtils extends ShopExtend {
     PartyPlaceholder.register();
   }
 
-
-  public static void addAllPermissions() {
-    String[] permissions = {
-      "cobbleutils.user",
-      "cobbleutils.admin",
-      "cobbleutils.party",
-      "cobbleutils.rewards",
-      "cobbleutils.breed",
-      "cobbleutils.bosses",
-      "cobbleutils.pokerus",
-      "cobbleutils.pokeshoutplus",
-      "cobbleutils.pokeshoutplusall",
-      "cobbleutils.hatch",
-      "cobbleutils.scale",
-      "cobbleutils.endbattle",
-      "cobbleutils.giveitem",
-      "cobbleutils.givepoke",
-      "cobbleutils.givemoney",
-      "cobbleutils.reload",
-      "cobbleutils.shinytoken",
-      "cobbleutils.pokerename",
-      "cobbleutils.breedable",
-      "cobbleutils.egg",
-      "cobbleutils.egginfo",
-      "cobbleutils.breeother",
-      "cobbleutils.breedpokemons",
-      "cobbleutils.breedable",
-      "cobbleutils.boss",
-    };
-
-    for (String permission : permissions) {
-      LuckPermsUtil.addPermission(permission);
-    }
-  }
-
-
   private static void tasks() {
     for (ScheduledFuture<?> task : scheduledTasks) {
-      task.cancel(false);
+      task.cancel(true);
     }
     scheduledTasks.clear();
 

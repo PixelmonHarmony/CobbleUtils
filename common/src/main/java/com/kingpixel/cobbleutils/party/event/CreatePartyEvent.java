@@ -29,4 +29,8 @@ public class CreatePartyEvent {
       listener.onCreateParty(partyData);
     }
   }
+
+  public void clear() {
+    partyCreatedListeners.clear();
+  }
 }

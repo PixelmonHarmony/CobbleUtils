@@ -28,117 +28,34 @@ import java.util.List;
 public class ShopCommand implements Command<ServerCommandSource> {
   public static void register(CommandDispatcher<ServerCommandSource> dispatcher,
                               LiteralArgumentBuilder<ServerCommandSource> base,
-                              ShopConfig shopConfig, String mod_id) {
-    dispatcher.register(
-      base
-        .executes(context -> {
-          if (!context.getSource().isExecutedByPlayer()) {
-            CobbleUtils.LOGGER.error("This command can only be executed by a player");
+                              ShopConfig shopConfig, String mod_id, boolean api) {
+    if (!api) {
+      dispatcher.register(
+        base
+          .executes(context -> {
+            if (!context.getSource().isExecutedByPlayer()) {
+              CobbleUtils.LOGGER.error("This command can only be executed by a player");
+              return 0;
+            }
+            ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
+            if (CobbleUtils.config.isDebug()) {
+              CobbleUtils.LOGGER.info("Opening shop config menu");
+              CobbleUtils.LOGGER.info("ShopConfig: " + shopConfig);
+            }
+            ShopConfigMenu.open(player, shopConfig, mod_id, false);
             return 0;
-          }
-          ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
-          if (CobbleUtils.config.isDebug()) {
-            CobbleUtils.LOGGER.info("Opening shop config menu");
-            CobbleUtils.LOGGER.info("ShopConfig: " + shopConfig);
-          }
-          ShopConfigMenu.open(player, shopConfig, mod_id, false);
-          return 0;
-        })
-        .then(
-          CommandManager.literal("shops")
-            .requires(
-              source -> LuckPermsUtil.checkPermission(
-                source, 2, List.of(mod_id + ".admin", mod_id + ".shop.shops")
-              )
-            )
-            .then(
-              CommandManager.argument("shop", StringArgumentType.string())
-                .suggests((context, builder) -> {
-                  ShopConfigMenu.getShopsMod(mod_id).forEach(shop -> {
-                    if (context.getSource().isExecutedByPlayer()) {
-                      if (LuckPermsUtil.checkPermission(
-                        context.getSource(), 2, List.of(mod_id + ".admin", mod_id + ".shop." + shop.getId())
-                      )) {
-                        builder.suggest(shop.getId());
-                      }
-                    } else {
-                      builder.suggest(shop.getId());
-                    }
-                  });
-                  return builder.buildFuture();
-                })
-                .executes(context -> {
-                  if (!context.getSource().isExecutedByPlayer()) {
-                    CobbleUtils.LOGGER.error("This command can only be executed by a player");
-                    return 0;
-                  }
-                  ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
-                  String shop = StringArgumentType.getString(context, "shop");
-                  if (LuckPermsUtil.checkPermission(player, mod_id + ".shop." + shop)) {
-                    shopConfig.getShop().open(player, shop, shopConfig, mod_id, false);
-                    return 1;
-                  } else {
-                    player.sendMessage(
-                      AdventureTranslator.toNative(
-                        CobbleUtils.shopLang.getMessageNotHavePermission()
-                          .replace("%prefix%", CobbleUtils.language.getPrefixShop())
-                      )
-                    );
-                  }
-                  return 0;
-                })
-                .then(
-                  CommandManager.argument("player", EntityArgumentType.player())
-                    .requires(source -> LuckPermsUtil.checkPermission(
-                      source, 2, List.of(mod_id + ".admin", mod_id + ".shopother")
-                    ))
-                    .executes(context -> {
-                      ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
-                      String shop = StringArgumentType.getString(context, "shop");
-                      if (LuckPermsUtil.checkPermission(player, mod_id + ".shop." + shop)) {
-                        shopConfig.getShop().open(player, shop, shopConfig, mod_id, true);
-                        return 1;
-                      } else {
-                        player.sendMessage(
-                          AdventureTranslator.toNative(
-                            CobbleUtils.shopLang.getMessageNotHavePermission()
-                              .replace("%prefix%", CobbleUtils.language.getPrefixShop())
-                          )
-                        );
-                      }
-                      return 1;
-                    })
+          })
+          .then(
+            CommandManager.literal("shops")
+              .requires(
+                source -> LuckPermsUtil.checkPermission(
+                  source, 2, List.of(mod_id + ".admin", mod_id + ".shop.shops")
                 )
-            )
-        ).then(
-          CommandManager.literal("reload")
-            .requires(source -> LuckPermsUtil.checkPermission(
-              source, 2, List.of(mod_id + ".admin", mod_id + ".shopreload")
-            ))
-            .executes(context -> {
-              CobbleUtils.load();
-              if (!context.getSource().isExecutedByPlayer()) {
-                CobbleUtils.LOGGER.info("Reloaded");
-              } else {
-                context.getSource().getPlayer().sendMessage(
-                  AdventureTranslator.toNative(
-                    CobbleUtils.language.getMessageReload()
-                      .replace("%prefix%", CobbleUtils.language.getPrefixShop())
-                  )
-                );
-              }
-              return 1;
-            })
-        ).then(
-          CommandManager.literal("resetDynamics")
-            .requires(source -> LuckPermsUtil.checkPermission(
-              source, 2, List.of(mod_id + ".admin", mod_id + ".shopresetdynamics"))
-            )
-            .then(
-              CommandManager.argument("shop", StringArgumentType.string())
-                .suggests((context, builder) -> {
-                  ShopConfigMenu.getShopsMod(mod_id).forEach(shop -> {
-                    if (shop.getShopType().getTypeShop() == ShopType.TypeShop.DYNAMIC || shop.getShopType().getTypeShop() == ShopType.TypeShop.DYNAMIC_WEEKLY) {
+              )
+              .then(
+                CommandManager.argument("shop", StringArgumentType.string())
+                  .suggests((context, builder) -> {
+                    ShopConfigMenu.getShopsMod(mod_id).forEach(shop -> {
                       if (context.getSource().isExecutedByPlayer()) {
                         if (LuckPermsUtil.checkPermission(
                           context.getSource(), 2, List.of(mod_id + ".admin", mod_id + ".shop." + shop.getId())
@@ -148,24 +65,250 @@ public class ShopCommand implements Command<ServerCommandSource> {
                       } else {
                         builder.suggest(shop.getId());
                       }
+                    });
+                    return builder.buildFuture();
+                  })
+                  .executes(context -> {
+                    if (!context.getSource().isExecutedByPlayer()) {
+                      CobbleUtils.LOGGER.error("This command can only be executed by a player");
+                      return 0;
                     }
-                  });
-                  return builder.buildFuture();
-                })
-                .executes(context -> {
-                  String s = StringArgumentType.getString(context, "shop");
-                  Shop shop = ShopConfigMenu.getShop(s);
-                  if (shop.getShopType() instanceof ShopTypeDynamic shopTypeDynamic) {
-                    shopTypeDynamic.replenish(shop);
-                  } else if (shop.getShopType() instanceof ShopTypeDynamicWeekly shopTypeDynamicWeekly) {
-                    shopTypeDynamicWeekly.replenish(shop);
-                  }
-                  return 0;
-                })
-            )
+                    ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
+                    String shop = StringArgumentType.getString(context, "shop");
+                    if (LuckPermsUtil.checkPermission(player, mod_id + ".shop." + shop)) {
+                      shopConfig.getShop().open(player, shop, shopConfig, mod_id, false);
+                      return 1;
+                    } else {
+                      player.sendMessage(
+                        AdventureTranslator.toNative(
+                          CobbleUtils.shopLang.getMessageNotHavePermission()
+                            .replace("%prefix%", CobbleUtils.language.getPrefixShop())
+                        )
+                      );
+                    }
+                    return 0;
+                  })
+                  .then(
+                    CommandManager.argument("player", EntityArgumentType.player())
+                      .requires(source -> LuckPermsUtil.checkPermission(
+                        source, 2, List.of(mod_id + ".admin", mod_id + ".shopother")
+                      ))
+                      .executes(context -> {
+                        ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
+                        String shop = StringArgumentType.getString(context, "shop");
+                        if (LuckPermsUtil.checkPermission(player, mod_id + ".shop." + shop)) {
+                          shopConfig.getShop().open(player, shop, shopConfig, mod_id, true);
+                          return 1;
+                        } else {
+                          player.sendMessage(
+                            AdventureTranslator.toNative(
+                              CobbleUtils.shopLang.getMessageNotHavePermission()
+                                .replace("%prefix%", CobbleUtils.language.getPrefixShop())
+                            )
+                          );
+                        }
+                        return 1;
+                      })
+                  )
+              )
+          ).then(
+            CommandManager.literal("reload")
+              .requires(source -> LuckPermsUtil.checkPermission(
+                source, 2, List.of(mod_id + ".admin", mod_id + ".shopreload")
+              ))
+              .executes(context -> {
+                CobbleUtils.load();
+                if (!context.getSource().isExecutedByPlayer()) {
+                  CobbleUtils.LOGGER.info("Reloaded");
+                } else {
+                  context.getSource().getPlayer().sendMessage(
+                    AdventureTranslator.toNative(
+                      CobbleUtils.language.getMessageReload()
+                        .replace("%prefix%", CobbleUtils.language.getPrefixShop())
+                    )
+                  );
+                }
+                return 1;
+              })
+          ).then(
+            CommandManager.literal("resetDynamics")
+              .requires(source -> LuckPermsUtil.checkPermission(
+                source, 2, List.of(mod_id + ".admin", mod_id + ".shopresetdynamics"))
+              )
+              .then(
+                CommandManager.argument("shop", StringArgumentType.string())
+                  .suggests((context, builder) -> {
+                    ShopConfigMenu.getShopsMod(mod_id).forEach(shop -> {
+                      if (shop.getShopType().getTypeShop() == ShopType.TypeShop.DYNAMIC || shop.getShopType().getTypeShop() == ShopType.TypeShop.DYNAMIC_WEEKLY) {
+                        if (context.getSource().isExecutedByPlayer()) {
+                          if (LuckPermsUtil.checkPermission(
+                            context.getSource(), 2, List.of(mod_id + ".admin", mod_id + ".shop." + shop.getId())
+                          )) {
+                            builder.suggest(shop.getId());
+                          }
+                        } else {
+                          builder.suggest(shop.getId());
+                        }
+                      }
+                    });
+                    return builder.buildFuture();
+                  })
+                  .executes(context -> {
+                    String s = StringArgumentType.getString(context, "shop");
+                    Shop shop = ShopConfigMenu.getShop(s);
+                    if (shop.getShopType() instanceof ShopTypeDynamic shopTypeDynamic) {
+                      shopTypeDynamic.replenish(shop);
+                    } else if (shop.getShopType() instanceof ShopTypeDynamicWeekly shopTypeDynamicWeekly) {
+                      shopTypeDynamicWeekly.replenish(shop);
+                    }
+                    return 0;
+                  })
+              )
 
-        )
-    );
+          )
+      );
+    } else {
+      dispatcher.register(
+        base
+          .then(
+            CommandManager.literal("shop")
+              .executes(context -> {
+                if (!context.getSource().isExecutedByPlayer()) {
+                  CobbleUtils.LOGGER.error("This command can only be executed by a player");
+                  return 0;
+                }
+                ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
+                if (CobbleUtils.config.isDebug()) {
+                  CobbleUtils.LOGGER.info("Opening shop config menu");
+                  CobbleUtils.LOGGER.info("ShopConfig: " + shopConfig);
+                }
+                ShopConfigMenu.open(player, shopConfig, mod_id, false);
+                return 0;
+              }).then(
+                CommandManager.literal("shops")
+                  .requires(
+                    source -> LuckPermsUtil.checkPermission(
+                      source, 2, List.of(mod_id + ".admin", mod_id + ".shop.shops")
+                    )
+                  )
+                  .then(
+                    CommandManager.argument("shop", StringArgumentType.string())
+                      .suggests((context, builder) -> {
+                        ShopConfigMenu.getShopsMod(mod_id).forEach(shop -> {
+                          if (context.getSource().isExecutedByPlayer()) {
+                            if (LuckPermsUtil.checkPermission(
+                              context.getSource(), 2, List.of(mod_id + ".admin", mod_id + ".shop." + shop.getId())
+                            )) {
+                              builder.suggest(shop.getId());
+                            }
+                          } else {
+                            builder.suggest(shop.getId());
+                          }
+                        });
+                        return builder.buildFuture();
+                      })
+                      .executes(context -> {
+                        if (!context.getSource().isExecutedByPlayer()) {
+                          CobbleUtils.LOGGER.error("This command can only be executed by a player");
+                          return 0;
+                        }
+                        ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
+                        String shop = StringArgumentType.getString(context, "shop");
+                        if (LuckPermsUtil.checkPermission(player, mod_id + ".shop." + shop)) {
+                          shopConfig.getShop().open(player, shop, shopConfig, mod_id, false);
+                          return 1;
+                        } else {
+                          player.sendMessage(
+                            AdventureTranslator.toNative(
+                              CobbleUtils.shopLang.getMessageNotHavePermission()
+                                .replace("%prefix%", CobbleUtils.language.getPrefixShop())
+                            )
+                          );
+                        }
+                        return 0;
+                      })
+                      .then(
+                        CommandManager.argument("player", EntityArgumentType.player())
+                          .requires(source -> LuckPermsUtil.checkPermission(
+                            source, 2, List.of(mod_id + ".admin", mod_id + ".shopother")
+                          ))
+                          .executes(context -> {
+                            ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
+                            String shop = StringArgumentType.getString(context, "shop");
+                            if (LuckPermsUtil.checkPermission(player, mod_id + ".shop." + shop)) {
+                              shopConfig.getShop().open(player, shop, shopConfig, mod_id, true);
+                              return 1;
+                            } else {
+                              player.sendMessage(
+                                AdventureTranslator.toNative(
+                                  CobbleUtils.shopLang.getMessageNotHavePermission()
+                                    .replace("%prefix%", CobbleUtils.language.getPrefixShop())
+                                )
+                              );
+                            }
+                            return 1;
+                          })
+                      )
+                  )
+              ).then(
+                CommandManager.literal("reload")
+                  .requires(source -> LuckPermsUtil.checkPermission(
+                    source, 2, List.of(mod_id + ".admin", mod_id + ".shopreload")
+                  ))
+                  .executes(context -> {
+                    CobbleUtils.load();
+                    if (!context.getSource().isExecutedByPlayer()) {
+                      CobbleUtils.LOGGER.info("Reloaded");
+                    } else {
+                      context.getSource().getPlayer().sendMessage(
+                        AdventureTranslator.toNative(
+                          CobbleUtils.language.getMessageReload()
+                            .replace("%prefix%", CobbleUtils.language.getPrefixShop())
+                        )
+                      );
+                    }
+                    return 1;
+                  })
+              ).then(
+                CommandManager.literal("resetDynamics")
+                  .requires(source -> LuckPermsUtil.checkPermission(
+                    source, 2, List.of(mod_id + ".admin", mod_id + ".shopresetdynamics"))
+                  )
+                  .then(
+                    CommandManager.argument("shop", StringArgumentType.string())
+                      .suggests((context, builder) -> {
+                        ShopConfigMenu.getShopsMod(mod_id).forEach(shop -> {
+                          if (shop.getShopType().getTypeShop() == ShopType.TypeShop.DYNAMIC || shop.getShopType().getTypeShop() == ShopType.TypeShop.DYNAMIC_WEEKLY) {
+                            if (context.getSource().isExecutedByPlayer()) {
+                              if (LuckPermsUtil.checkPermission(
+                                context.getSource(), 2, List.of(mod_id + ".admin", mod_id + ".shop." + shop.getId())
+                              )) {
+                                builder.suggest(shop.getId());
+                              }
+                            } else {
+                              builder.suggest(shop.getId());
+                            }
+                          }
+                        });
+                        return builder.buildFuture();
+                      })
+                      .executes(context -> {
+                        String s = StringArgumentType.getString(context, "shop");
+                        Shop shop = ShopConfigMenu.getShop(s);
+                        if (shop.getShopType() instanceof ShopTypeDynamic shopTypeDynamic) {
+                          shopTypeDynamic.replenish(shop);
+                        } else if (shop.getShopType() instanceof ShopTypeDynamicWeekly shopTypeDynamicWeekly) {
+                          shopTypeDynamicWeekly.replenish(shop);
+                        }
+                        return 0;
+                      })
+                  )
+
+              )
+          )
+
+      );
+    }
   }
 
   @Override public int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {

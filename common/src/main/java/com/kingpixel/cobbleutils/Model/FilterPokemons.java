@@ -1,73 +1,160 @@
 package com.kingpixel.cobbleutils.Model;
 
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
+import com.cobblemon.mod.common.api.pokemon.PokemonPropertyExtractor;
 import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
 import com.cobblemon.mod.common.api.types.ElementalType;
 import com.cobblemon.mod.common.api.types.ElementalTypes;
 import com.cobblemon.mod.common.pokemon.FormData;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.util.PokemonUtils;
 import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Data;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Carlos Varas Alonso - 23/09/2024 11:54
  */
 @Data
 public class FilterPokemons {
+  // Cache <ModId, <Id, List<Pokemon>>>
+  private static final Map<String, Map<String, List<Pokemon>>> cache = new HashMap<>();
+
+  // Order
+  private Set<orderFilter> order;
+
+  private enum orderFilter {
+    POKEMON,
+    TYPE,
+    LABEL,
+    FORM,
+    RARITY
+  }
+
+  // Pokemons
   private Set<String> whitelistPokemons;
   private Set<String> blacklistPokemons;
+  // Types
   private Set<ElementalType> whitelistTypes;
   private Set<ElementalType> blacklistTypes;
+  // Labels
   private Set<String> whitelistLabels;
   private Set<String> blacklistLabels;
+  // Forms
   private Set<String> whitelistForms;
   private Set<String> blacklistForms;
-  private float spawnrate;
+  // Rarity
+  private Set<String> whitelistRarity;
+  private Set<String> blacklistRarity;
+  // Also implemented
+  private boolean alsoImplemented;
+
 
   public FilterPokemons() {
+    // Order
+    order = new HashSet<>(Arrays.stream(orderFilter.values()).toList());
+
+    // Pokemons
     whitelistPokemons = new HashSet<>();
     blacklistPokemons = new HashSet<>();
+
+    // Types
     whitelistTypes = new HashSet<>(ElementalTypes.INSTANCE.all());
     blacklistTypes = new HashSet<>();
-    whitelistLabels = Set.of(
+
+    // Labels
+    whitelistLabels = new HashSet<>();
+    blacklistLabels = Set.of(
+      "mega",
+      "gmax",
       "fakemon",
-      "legendary"
+      "custom"
     );
-    blacklistLabels = new HashSet<>();
+
+    // Forms
     whitelistForms = new HashSet<>();
     blacklistForms = new HashSet<>();
-    spawnrate = 0f;
+
+    // Rarities
+    whitelistRarity = new HashSet<>(CobbleUtils.config.getRarity().keySet());
+    blacklistRarity = Set.of("Unknown");
+
+    alsoImplemented = true;
+  }
+
+  public static void removeCache(String modid) {
+    cache.remove(modid);
+  }
+
+  /**
+   * Gets the cache of the pokemons
+   *
+   * @param modId the mod id
+   * @param id    the id
+   *
+   * @return the list of pokemons
+   */
+  private List<Pokemon> getCachePokemons(String modId, String id) {
+    List<Pokemon> allowedPokemons;
+    if (cache.containsKey(modId) && cache.get(modId).containsKey(id)) {
+      allowedPokemons = cache.get(modId).get(id);
+    } else {
+      allowedPokemons = getAllowedPokemons();
+      cache.putIfAbsent(modId, new HashMap<>());
+      cache.get(modId).put(id, allowedPokemons);
+    }
+    return allowedPokemons;
+  }
+
+  /**
+   * Gets a pokemon with properties
+   *
+   * @param pokemon the pokemon
+   *
+   * @return the pokemon
+   */
+  private Pokemon getPokemon(Pokemon pokemon) {
+    pokemon.createPokemonProperties(List.of(
+      PokemonPropertyExtractor.NATURE,
+      PokemonPropertyExtractor.IVS,
+      PokemonPropertyExtractor.GENDER
+    )).apply(pokemon);
+    return pokemon;
   }
 
   /**
    * Generates a random pokemon
    *
+   * @param modId the mod id
+   * @param id    the id
+   *
    * @return the pokemon
    */
-  public Pokemon generateRandomPokemon() {
-    List<Pokemon> allowedPokemons = getAllowedPokemons();
-    return allowedPokemons.get(Utils.RANDOM.nextInt(allowedPokemons.size()));
+  public Pokemon generateRandomPokemon(String modId, String id) {
+    List<Pokemon> allowedPokemons = getCachePokemons(modId, id);
+    return getPokemon(allowedPokemons.get(Utils.RANDOM.nextInt(allowedPokemons.size())));
   }
+
 
   /**
    * Generates a list of random pokemons
    *
-   * @param size the size of the list
+   * @param modId the mod id
+   * @param id    the id
+   * @param size  the size of the list
    *
    * @return the list of pokemons
    */
-  public List<Pokemon> generateRandomPokemons(int size) {
-    List<Pokemon> allowedPokemons = getAllowedPokemons();
+  public List<Pokemon> generateRandomPokemons(String modId, String id, int size) {
+    List<Pokemon> allowedPokemons = getCachePokemons(modId, id);
+
     List<Pokemon> pokemons = new ArrayList<>();
     for (int i = 0; i < size; i++) {
-      pokemons.add(allowedPokemons.get(Utils.RANDOM.nextInt(allowedPokemons.size())));
+      pokemons.add(getPokemon(allowedPokemons.get(Utils.RANDOM.nextInt(allowedPokemons.size()))));
     }
+    allowedPokemons.clear();
     return pokemons;
   }
 
@@ -101,9 +188,6 @@ public class FilterPokemons {
           if (aspects.isEmpty()) {
             p = pokemon.create(1);
           } else {
-            if (CobbleUtils.config.isDebug()) {
-              CobbleUtils.LOGGER.info("Pokemon: " + pokemon.getName() + " - " + form.getName() + " - " + aspect);
-            }
             p = PokemonProperties.Companion.parse(pokemon.showdownId() + " " + aspect).create();
           }
 
@@ -125,28 +209,54 @@ public class FilterPokemons {
    * @return true if the pokemon is allowed
    */
   private boolean isAllowed(Pokemon pokemon) {
-    if (whitelistPokemons.contains("*") || whitelistPokemons.contains(pokemon.showdownId())) return true;
+    if (alsoImplemented && !pokemon.getSpecies().getImplemented()) return false;
 
-    if (blacklistPokemons.contains(pokemon.showdownId()) || blacklistPokemons.contains("*")) return false;
+    // Precalcular tipos
+    ElementalType primaryType = pokemon.getPrimaryType();
+    ElementalType secondaryType = pokemon.getSecondaryType();
+    String showdownId = pokemon.showdownId();
+    String rarity = PokemonUtils.getRarityS(pokemon);
+    boolean allowed = false;
 
-    if (whitelistTypes.contains(pokemon.getPrimaryType()) || whitelistTypes.contains(pokemon.getSecondaryType()))
-      return true;
+    for (orderFilter filter : order) {
+      switch (filter) {
+        case POKEMON:
+          if (blacklistPokemons.contains(showdownId) || blacklistPokemons.contains("*")) {
+            return false;
+          }
+          allowed |= whitelistPokemons.contains("*") || whitelistPokemons.contains(showdownId);
+          break;
 
-    if (blacklistTypes.contains(pokemon.getPrimaryType()) || blacklistTypes.contains(pokemon.getSecondaryType()))
-      return false;
+        case TYPE:
+          if (blacklistTypes.contains(primaryType) || blacklistTypes.contains(secondaryType)) {
+            return false;
+          }
+          allowed |= whitelistTypes.contains(primaryType) || whitelistTypes.contains(secondaryType);
+          break;
 
-    if (whitelistLabels.contains("*") || whitelistLabels.stream().anyMatch(label -> pokemon.getForm().getLabels().contains(label)))
-      return true;
+        case LABEL:
+          boolean hasBlacklistedLabel = blacklistLabels.stream().anyMatch(label -> pokemon.getForm().getLabels().contains(label));
+          if (hasBlacklistedLabel || blacklistLabels.contains("*")) {
+            return false;
+          }
+          allowed |= whitelistLabels.contains("*") || whitelistLabels.stream().anyMatch(label -> pokemon.getForm().getLabels().contains(label));
+          break;
 
-    if (blacklistLabels.stream().anyMatch(label -> pokemon.getForm().getLabels().contains(label)) || blacklistLabels.contains("*"))
-      return false;
+        case FORM:
+          if (blacklistForms.contains(pokemon.getForm().formOnlyShowdownId()) || blacklistForms.contains("*")) {
+            return false;
+          }
+          allowed |= whitelistForms.contains("*") || whitelistForms.contains(pokemon.getForm().formOnlyShowdownId());
+          break;
 
-    if (whitelistForms.contains("*") || whitelistForms.contains(pokemon.getForm().formOnlyShowdownId())) return true;
-
-    if (blacklistForms.contains(pokemon.getForm().formOnlyShowdownId()) || blacklistForms.contains("*")) return false;
-
-    return false;
+        case RARITY:
+          if (blacklistRarity.contains(rarity) || blacklistRarity.contains("*")) {
+            return false;
+          }
+          allowed |= whitelistRarity.contains("*") || whitelistRarity.contains(rarity);
+          break;
+      }
+    }
+    return allowed;
   }
-
-
 }

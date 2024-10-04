@@ -6,6 +6,7 @@ import com.cobblemon.mod.common.api.battles.model.PokemonBattle;
 import com.cobblemon.mod.common.api.storage.NoPokemonStoreException;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.Model.ItemChance;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.ParseResults;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -56,19 +57,16 @@ public class CobbleUtilities {
    * @param amount The amount of items to give
    */
   public static void giveRandomItem(ServerPlayerEntity player, String type, int amount) {
-    String item = CobbleUtils.poolItems.getRandomItem(type);
+    ItemChance item = CobbleUtils.poolItems.getRandomItem(type);
     if (item == null) {
       player.sendMessage(AdventureTranslator.toNative("Invalid type."));
       return;
     }
-    ItemStack itemStack = Utils.parseItemId(item, amount);
-    CobbleUtils.server.execute(() -> {
-      if (!player.getInventory().insertStack(itemStack)) {
-        player.dropItem(itemStack, true);
-      }
-    });
+
+    ItemChance.giveReward(player, item, amount);
+
     String message = CobbleUtils.language.getMessagerandomitem()
-      .replace("%item%", getNameItem(item))
+      .replace("%item%", item.getTitle())
       .replace("%amount%", String.valueOf(amount))
       .replace("%type%", type);
 

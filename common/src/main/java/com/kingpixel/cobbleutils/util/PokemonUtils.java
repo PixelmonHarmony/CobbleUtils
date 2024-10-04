@@ -19,10 +19,7 @@ import com.kingpixel.cobbleutils.features.breeding.models.EggData;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -169,9 +166,7 @@ public class PokemonUtils {
       .replace("%nature" + indexStr + "%", getNatureTranslate(nature))
       .replace("%pokemon" + indexStr + "%", isEgg(pokemon) ? pokemon.getPersistentData().getString("species") : pokemon.getSpecies().getName())
       .replace("%shiny" + indexStr + "%", pokemon.getShiny() ? CobbleUtils.language.getSymbolshiny() : "")
-      .replace("%ability" + indexStr + "%", isEgg(pokemon)
-        ? pokemon.getPersistentData().getString("ability")
-        : getAbilityTranslate(pokemon.getAbility()))
+      .replace("%ability" + indexStr + "%", isEgg(pokemon) ? pokemon.getPersistentData().getString("ability") : getAbilityTranslate(pokemon.getAbility()))
       .replace("%ivshp" + indexStr + "%", String.valueOf(pokemon.getIvs().get(Stats.HP)))
       .replace("%ivsatk" + indexStr + "%", String.valueOf(pokemon.getIvs().get(Stats.ATTACK)))
       .replace("%ivsdef" + indexStr + "%", String.valueOf(pokemon.getIvs().get(Stats.DEFENCE)))
@@ -187,10 +182,7 @@ public class PokemonUtils {
       .replace("%legendary" + indexStr + "%", pokemon.isLegendary() ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
       .replace("%item" + indexStr + "%", ItemUtils.getTranslatedName(pokemon.heldItem()))
       .replace("%size" + indexStr + "%", getSize(pokemon))
-      .replace("%form" + indexStr + "%", isEgg(pokemon) ? (pokemon.getPersistentData().getString("form").isEmpty()
-        ? "Normal"
-        : pokemon.getPersistentData().getString("form")) :
-        CobbleUtils.language.getForms().getOrDefault(pokemon.getForm().getName(), pokemon.getForm().getName()))
+      .replace("%form" + indexStr + "%", isEgg(pokemon) ? (pokemon.getPersistentData().getString("form").isEmpty() ? "Normal" : pokemon.getPersistentData().getString("form")) : CobbleUtils.language.getForms().getOrDefault(pokemon.getForm().getName(), pokemon.getForm().getName()))
       .replace("%aspect" + indexStr + "%", pokemon.getAspects().stream().toList().toString())
       .replace("%up" + indexStr + "%", getStatTranslate(nature.getIncreasedStat()))
       .replace("%down" + indexStr + "%", getStatTranslate(nature.getDecreasedStat()))
@@ -206,14 +198,12 @@ public class PokemonUtils {
       .replace("%owner" + indexStr + "%", getOwnerName(pokemon))
       .replace("%ultrabeast" + indexStr + "%", pokemon.isUltraBeast() ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
       .replace("%types" + indexStr + "%", getType(pokemon))
-      .replace("%rarity" + indexStr + "%", String.valueOf(getRarity(pokemon)))
+      .replace("%rarity" + indexStr + "%", getRarityS(pokemon))
       .replace("%breedable" + indexStr + "%", isBreedable(pokemon) ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
       .replace("%pokerus" + indexStr + "%", isPokerus(pokemon) ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
       .replace("%friendship" + indexStr + "%", String.valueOf(pokemon.getFriendship()))
       .replace("%ah" + indexStr + "%", ah)
-      .replace("%country" + indexStr + "%", pokemon.getPersistentData().getString(CobbleUtilsTags.COUNTRY_TAG).isEmpty()
-        ? CobbleUtils.language.getNone()
-        : pokemon.getPersistentData().getString(CobbleUtilsTags.COUNTRY_TAG))
+      .replace("%country" + indexStr + "%", pokemon.getPersistentData().getString(CobbleUtilsTags.COUNTRY_TAG).isEmpty() ? CobbleUtils.language.getNone() : pokemon.getPersistentData().getString(CobbleUtilsTags.COUNTRY_TAG))
       .replace("%egggroups" + indexStr + "%", eggGroups(pokemon))
       .replace("%dex" + indexStr + "%", String.valueOf(pokemon.getSpecies().getNationalPokedexNumber()))
       .replace("%labels" + indexStr + "%", pokemon.getForm().getLabels().toString());
@@ -585,13 +575,40 @@ public class PokemonUtils {
    */
   public static String getRarityS(Pokemon pokemon) {
     double rarity = getRarity(pokemon);
-    for (String key : CobbleUtils.config.getRarity().keySet()) {
-      if (rarity < CobbleUtils.config.getRarity().get(key)) {
-        return key;
+    if (rarity == -1) return CobbleUtils.language.getUnknown();
+
+    pokemon.getForm().getEvYield().put(Stats.HP, 0);
+
+    // Obtenemos el mapa de rarezas
+    Map<String, Double> rarityMap = CobbleUtils.config.getRarity();
+
+    // Inicializamos la rareza a "Unknown" por defecto
+    String rarityResult = "Unknown";
+    double closestValue = Double.MAX_VALUE; // Valor más cercano a la rareza del Pokémon
+
+    // Comparamos el valor de rareza del Pokémon con cada rareza en el mapa
+    for (Map.Entry<String, Double> entry : rarityMap.entrySet()) {
+      double value = entry.getValue();
+
+      // Si el valor de rareza del Pokémon es menor o igual al valor en el mapa
+      if (rarity <= value && value < closestValue) {
+        closestValue = value; // Actualizamos el valor más cercano
+        rarityResult = entry.getKey(); // Actualizamos el resultado de rareza
       }
     }
-    return "common";
+
+    // Si no se encontró una rareza adecuada (por ejemplo, si la rareza es mayor que 7.0),
+    // asignamos la rareza más alta del mapa (en este caso, "common")
+    if ("Unknown".equals(rarityResult)) {
+      rarityResult = rarityMap.entrySet().stream()
+        .max(Map.Entry.comparingByValue()) // Obtenemos la rareza con el valor más alto
+        .map(Map.Entry::getKey)
+        .orElse("Unknown"); // Si no hay rarezas en el mapa, devolvemos "Unknown"
+    }
+
+    return rarityResult;
   }
+
 
   /**
    * Get the size of the pokemon

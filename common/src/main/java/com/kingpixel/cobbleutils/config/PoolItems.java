@@ -63,11 +63,10 @@ public class PoolItems {
    *
    * @return El ítem seleccionado según las probabilidades.
    */
-  public String getRandomItem(String category) {
+  public ItemChance getRandomItem(String category) {
     List<ItemChance> items = randomitems.get(category);
-    if (items == null || items.isEmpty()) {
-      return null;
-    }
+    if (items == null || items.isEmpty()) return new ItemChance("minecraft:stone", 100);
+
 
     int totalWeight = items.stream().mapToInt(ItemChance::getChance).sum();
     int randomValue = Utils.RANDOM.nextInt(totalWeight) + 1;
@@ -76,10 +75,10 @@ public class PoolItems {
     for (ItemChance itemChance : items) {
       currentWeight += itemChance.getChance();
       if (randomValue <= currentWeight) {
-        return itemChance.getItem();
+        return itemChance;
       }
     }
-    return null;
+    return new ItemChance("minecraft:stone", 100);
   }
 
 }

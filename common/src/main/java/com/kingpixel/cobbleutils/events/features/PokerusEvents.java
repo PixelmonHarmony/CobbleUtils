@@ -77,7 +77,7 @@ public class PokerusEvents {
         for (Pokemon pokemon : pokemons) {
           boolean pokerus = pokemon.getPersistentData().getBoolean(POKERUS_TAG);
           if (pokerus)
-            pokemonkilled.getSpecies().getEvYield().forEach((stat, integer) -> {
+            pokemonkilled.getForm().getEvYield().forEach((stat, integer) -> {
               EVs evs = pokemon.getEvs();
               double multiplier = CobbleUtils.config.getPokerus().getMultiplier();
               int adjustedValue;
@@ -137,46 +137,11 @@ public class PokerusEvents {
 
         return Unit.INSTANCE;
       });
+
       PlatformEvents.SERVER_STARTED.subscribe(Priority.NORMAL, (evt) -> {
         CustomPokemonProperty.Companion.register(POKERUS_PROPERTY_TYPE);
         return Unit.INSTANCE;
       });
     }
   }
-
-  /*
-   * private static void processPokemon(PokemonBattleActor pokemonBattleActor,
-   * BattleVictoryEvent evt,
-   * Set<PokemonEntity> processedPokemon, boolean isWinner) {
-   * PokemonEntity entity = pokemonBattleActor.getEntity();
-   * if (entity != null && processedPokemon.add(entity)) {
-   * Pokemon pokemon = entity.getPokemon();
-   * if (pokemon.getPersistentData().getBoolean("pokerus")) {
-   * if (isWinner) {
-   * // Apply EVs bonus for Pokerus for winning Pokémon
-   * evt.getLosers().forEach(loser -> {
-   * if (loser instanceof PokemonBattleActor loserPokemonActor) {
-   * PokemonEntity loserEntity = loserPokemonActor.getEntity();
-   * if (loserEntity != null) {
-   * loserEntity.getPokemon().getSpecies().getEvYield().forEach((stat, value) -> {
-   * EVs evs = pokemon.getEvs();
-   * int bonusValue;
-   * if (value == 0) return;
-   * if (value == 1) {
-   * bonusValue = (int) CobbleUtils.config.getPokerus().getMultiplier();
-   * } else {
-   * bonusValue = (int) (value * CobbleUtils.config.getPokerus().getMultiplier());
-   * }
-   * evs.set(stat, evs.get(stat) + bonusValue);
-   * });
-   * }
-   * }
-   * });
-   * }
-   * } else {
-   * CobbleUtils.config.getPokerus().apply(pokemon, true);
-   * }
-   * }
-   * }
-   */
 }

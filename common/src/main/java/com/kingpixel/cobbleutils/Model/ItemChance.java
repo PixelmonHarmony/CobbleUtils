@@ -10,13 +10,16 @@ import com.kingpixel.cobbleutils.Model.options.ImpactorItem;
 import com.kingpixel.cobbleutils.util.*;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtHelper;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.PatternSyntaxException;
@@ -29,6 +32,20 @@ import java.util.regex.PatternSyntaxException;
 public class ItemChance {
   private final String item;
   private final int chance;
+  private static Map<String, List<ItemMod>> modItems = new HashMap<>();
+
+  @Getter
+  @Setter
+  @ToString
+  public static class ItemMod {
+    private String itemId;
+    private ItemStack itemStack;
+
+    public ItemMod(String itemId, ItemStack itemStack) {
+      this.itemId = itemId;
+      this.itemStack = itemStack;
+    }
+  }
 
   public ItemChance() {
     this("minecraft:dirt", 100);
@@ -37,6 +54,17 @@ public class ItemChance {
   public ItemChance(String item, int chance) {
     this.item = item;
     this.chance = chance;
+  }
+
+  public static void addModItem(String modid, String itemId, ItemStack itemStack) {
+    if (!modItems.containsKey(modid)) {
+      modItems.put(modid, new ArrayList<>());
+    }
+    ItemMod itemMod = new ItemMod(itemId, itemStack);
+    boolean exists = modItems.get(modid).stream().anyMatch(i -> i.getItemId().equals(itemId));
+    if (!exists) {
+      modItems.get(modid).add(itemMod);
+    }
   }
 
   /**
@@ -48,11 +76,12 @@ public class ItemChance {
     if (item.startsWith("pokemon:")) return ItemChanceType.POKEMON;
     if (item.startsWith("command:")) return ItemChanceType.COMMAND;
     if (item.startsWith("money:")) return ItemChanceType.MONEY;
+    if (item.startsWith("mod:")) return ItemChanceType.MOD;
     return ItemChanceType.ITEM;
   }
 
   public enum ItemChanceType {
-    POKEMON, COMMAND, MONEY, ITEM
+    POKEMON, COMMAND, MONEY, ITEM, MOD
   }
 
   /**
@@ -69,6 +98,7 @@ public class ItemChance {
     itemChances.add(new ItemChance("command:give %player% minecraft:dirt", 100));
     itemChances.add(new ItemChance("money:100", 100));
     itemChances.add(new ItemChance("money:tokens:100", 100));
+    itemChances.add(new ItemChance("mod:cobblehunt:radar", 100));
     return itemChances;
   }
 
@@ -114,6 +144,9 @@ public class ItemChance {
         return handleMoneyReward(player, item);
       } else if (item.startsWith("item:")) {
         itemStack = parseItemStack(item, amount);
+        return RewardsUtils.saveRewardItemStack(player, itemStack);
+      } else if (item.startsWith("mod:")) {
+        itemStack = getModItem(itemChance);
         return RewardsUtils.saveRewardItemStack(player, itemStack);
       } else {
         itemStack = Utils.parseItemId(item, amount);
@@ -185,6 +218,19 @@ public class ItemChance {
     return getTitle(this);
   }
 
+  private static ItemStack getModItem(ItemChance itemChance) {
+    String[] parts = itemChance.getItem().split(":");
+    String modid = parts[1];
+    String itemId = parts[2];
+    ItemStack itemStack =
+      modItems.getOrDefault(modid, new ArrayList<>())
+        .stream()
+        .filter(i -> i.getItemId().equalsIgnoreCase(itemId))
+        .findFirst()
+        .orElse(new ItemMod("", Items.DIRT.getDefaultStack())).getItemStack().copy();
+    return itemStack;
+  }
+
   /**
    * Gets the lore of the item based on its type.
    *
@@ -229,6 +275,8 @@ public class ItemChance {
       return parseMoneyItem(item);
     } else if (item.startsWith("item:")) {
       return parseItemStack(item, amount);
+    } else if (item.startsWith("mod:")) {
+      return getModItem(new ItemChance(item, 100));
     } else {
       return Utils.parseItemId(item, amount);
     }
@@ -290,6 +338,8 @@ public class ItemChance {
       return getMoneyTitle(item);
     } else if (item.startsWith("item:")) {
       return getItemTitle(item);
+    } else if (item.startsWith("mod:")) {
+      return ItemUtils.getTranslatedName(getModItem(itemChance));
     } else {
       return ItemUtils.getTranslatedName(Utils.parseItemId(item));
     }

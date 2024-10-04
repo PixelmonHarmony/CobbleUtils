@@ -116,17 +116,17 @@ public class Shop {
     this.shopType = new ShopTypePermanent();
     this.colorItem = "<#6bd68f>";
     this.globalDiscount = 0;
-   /* money = new ItemModel("cobblemon:relic_coin_sack");
-    money.setSlot(47);
-    money.setDisplayname("Balance");
-    money.setLore(List.of(
-      "You have: %balance% %currency%"
-    ));*/
     this.display = new ItemModel("cobblemon:poke_ball");
-    this.products = new ArrayList<>();
-    this.products.add(new Product());
+    this.products = getDefaultProducts();
     this.fillItems = new ArrayList<>();
     this.fillItems.add(new FillItems());
+  }
+
+  private List<Product> getDefaultProducts() {
+    List<Product> products = new ArrayList<>();
+    products.add(new Product());
+    products.add(new Product(true));
+    return products;
   }
 
   public Shop(String id, String title, ShopType shopType, short rows, List<String> lore) {
@@ -145,23 +145,7 @@ public class Shop {
     this.globalDiscount = 0;
     this.display = new ItemModel("cobblemon:poke_ball");
     display.setLore(lore);
-    this.products = new ArrayList<>();
-    this.products.add(new Product());
-    this.products.add(new Product());
-    this.products.add(new Product());
-    this.products.add(new Product());
-    this.products.add(new Product());
-    this.products.add(new Product());
-    this.products.add(new Product());
-    this.products.add(new Product());
-    this.products.add(new Product());
-    this.products.add(new Product());
-    this.products.add(new Product());
-    this.products.add(new Product());
-    this.products.add(new Product("minecraft:stone", BigDecimal.valueOf(100), BigDecimal.valueOf(25), "cobbleutils.shop" +
-      ".product.fantasy",
-      "minecraft:stone",
-      "&cStone Fantasy", List.of("&cDescription"), 0L));
+    this.products = getDefaultProducts();
     this.fillItems = new ArrayList<>();
     this.fillItems.add(new FillItems());
   }
@@ -181,14 +165,7 @@ public class Shop {
     this.display = display;
     this.slotbalance = 47;
     this.globalDiscount = 0;
-    /*money = new ItemModel("cobblemon:relic_coin_sack");
-    money.setSlot(47);
-    money.setDisplayname("Balance");
-    money.setLore(List.of(
-      "You have: %balance% %currency%"
-    ));*/
-    this.products = new ArrayList<>();
-    this.products.add(new Product());
+    this.products = getDefaultProducts();
     this.fillItems = new ArrayList<>();
     this.fillItems.add(new FillItems());
   }
@@ -207,29 +184,8 @@ public class Shop {
     this.colorItem = "<#6bd68f>";
     this.display = display;
     this.globalDiscount = 0;
-    /*money = new ItemModel("cobblemon:relic_coin_sack");
-    money.setSlot(47);
-    money.setDisplayname("Balance");
-    money.setLore(List.of(
-      "You have: %balance% %currency%"
-    ));*/
-    this.products = new ArrayList<>();
-    this.products.add(new Product());
-    this.products.add(new Product());
-    this.products.add(new Product());
-    this.products.add(new Product());
-    this.products.add(new Product());
-    this.products.add(new Product());
-    this.products.add(new Product());
-    this.products.add(new Product());
-    this.products.add(new Product());
-    this.products.add(new Product());
-    this.products.add(new Product());
-    this.products.add(new Product());
-    this.products.add(new Product("minecraft:stone", BigDecimal.valueOf(100), BigDecimal.valueOf(25), "cobbleutils.shop" +
-      ".product.fantasy",
-      "minecraft:stone",
-      "&cStone Fantasy", List.of("&cDescription"), 0L));
+    this.slotbalance = 47;
+    this.products = getProducts();
     this.fillItems = new ArrayList<>();
     this.fillItems.add(new FillItems());
   }
@@ -250,7 +206,7 @@ public class Shop {
   }
 
   public void open(ServerPlayerEntity player, ShopConfig shopConfig, String mod_id, boolean byCommand) {
-    if (!LuckPermsUtil.checkPermission(player, "cobbleutils.shop." + this.getId())) {
+    if (!LuckPermsUtil.checkPermission(player, mod_id + ".shop." + this.getId())) {
       player.sendMessage(
         AdventureTranslator.toNative(
           CobbleUtils.shopLang.getMessageNotHavePermission()
@@ -415,12 +371,6 @@ public class Shop {
 
       // Display
       int slotfree = rectangle.getSlotsFree(rows);
-
-      if (CobbleUtils.config.isDebug()) {
-        CobbleUtils.LOGGER.info("Slots free: " + slotfree);
-        CobbleUtils.LOGGER.info("Products size: " + products.size());
-        CobbleUtils.LOGGER.info(products.size() - slotfree + " < 0: " + (products.size() - slotfree < 0));
-      }
 
       if (!byCommand) {
         template.set((this.rows * 9) - 5, close);
@@ -594,9 +544,6 @@ public class Shop {
   private void openBuySellMenu(ServerPlayerEntity player, ShopConfig shopConfig,
                                Product product, TypeMenu typeMenu,
                                int amount, String mod_id, boolean byCommand) {
-    if (CobbleUtils.config.isDebug()) {
-      CobbleUtils.LOGGER.info(shopConfig.getShop().toString());
-    }
     ChestTemplate template = ChestTemplate
       .builder(shopConfig.getShop().getRowsBuySellMenu())
       .build();
@@ -636,8 +583,7 @@ public class Shop {
       int finalamount = (amount == 0) ? 1 : amount;
       if (typeMenu == TypeMenu.BUY) {
         if (buyProduct(player, product, finalamount, price)) {
-          ShopTransactions.addTransaction(player.getUuid(), this, ShopTransactions.ShopAction.BUY, product,
-            BigDecimal.valueOf(finalamount), price);
+          ShopTransactions.addTransaction(player.getUuid(), this, ShopTransactions.ShopAction.BUY, product, BigDecimal.valueOf(finalamount), price);
           open(player, shopConfig, mod_id, false);
           ShopTransactions.updateTransaction(player.getUuid(), shopConfig.getShop());
         }
@@ -683,6 +629,8 @@ public class Shop {
 
       ItemChance itemChance = product.getItemchance();
       ItemStack productStack = itemChance.getItemStack();
+
+
       int itemsPerPackage = productStack.getCount(); // Número de ítems en cada paquete
       int maxStackSize = productStack.getMaxCount(); // Capacidad máxima de un ItemStack
 
@@ -821,8 +769,8 @@ public class Shop {
                                   ItemModel addModel, ItemModel removeModel,
                                   int increment, int amount,
                                   String mod_id, boolean byCommand) {
-    if (product.getItemchance().getType() == ItemChance.ItemChanceType.MONEY
-      || product.getItemchance().getType() == ItemChance.ItemChanceType.COMMAND) return;
+    if (product.getItemchance().getType() == ItemChance.ItemChanceType.MONEY || product.getItemchance().getType() == ItemChance.ItemChanceType.COMMAND)
+      return;
     template.set(addModel.getSlot(), GooeyButton.builder()
       .display(addModel.getItemStack(increment))
       .title(AdventureTranslator.toNative(addModel.getDisplayname()))

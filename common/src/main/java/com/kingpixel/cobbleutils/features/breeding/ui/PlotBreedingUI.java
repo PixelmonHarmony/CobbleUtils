@@ -9,6 +9,7 @@ import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.features.breeding.Breeding;
 import com.kingpixel.cobbleutils.features.breeding.models.PlotBreeding;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
+import com.kingpixel.cobbleutils.util.LuckPermsUtil;
 import com.kingpixel.cobbleutils.util.PlayerUtils;
 import com.kingpixel.cobbleutils.util.PokemonUtils;
 import net.minecraft.item.ItemStack;
@@ -27,8 +28,16 @@ public class PlotBreedingUI {
     ChestTemplate template = ChestTemplate.builder(CobbleUtils.breedconfig.getRowmenuselectplot()).build();
 
     int size = CobbleUtils.breedconfig.getMaxplots();
+    int max = 0;
 
     for (int i = 0; i < size; i++) {
+      if (LuckPermsUtil.checkPermission(player, CobbleUtils.breedconfig.getPermissionplot(i))) max = i;
+    }
+
+    if (max > size) max = size;
+
+
+    for (int i = 0; i <= max; i++) {
       PlotBreeding plotBreeding = Breeding.managerPlotEggs.getEggs().get(player.getUuid()).get(i);
       List<String> lore = new ArrayList<>(CobbleUtils.breedconfig.getPlotItem().getLore());
       int amount = plotBreeding.getEggs().size();

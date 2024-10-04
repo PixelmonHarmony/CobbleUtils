@@ -102,6 +102,7 @@ public abstract class EconomyUtil {
         }
       }
     } catch (IllegalStateException | NullPointerException | NoClassDefFoundError e) {
+      CobbleUtils.LOGGER.error("Vault not found");
       return false;
     }
     return false;
@@ -112,6 +113,7 @@ public abstract class EconomyUtil {
       BlanketEconomy.INSTANCE.getAPI(CobbleUtils.server);
       return true;
     } catch (IllegalStateException | NullPointerException | NoClassDefFoundError e) {
+      CobbleUtils.LOGGER.error("BlanketEconomy not found");
       return false;
     }
   }
@@ -311,10 +313,7 @@ public abstract class EconomyUtil {
             .replace("%currency%", "")
         )
       );
-    } catch (NoSuchMethodError | Exception e) {
-      if (CobbleUtils.config.isDebug()) {
-        CobbleUtils.LOGGER.error("Error sending message");
-      }
+    } catch (NoSuchMethodError | Exception ignored) {
     }
   }
 
@@ -459,9 +458,6 @@ public abstract class EconomyUtil {
       String c = currency.trim();
       return impactorService.currencies().currency(Key.key(c)).orElseGet(() -> impactorService.currencies().primary());
     } catch (NoSuchMethodError | Exception e) {
-      if (CobbleUtils.config.isDebug()) {
-        CobbleUtils.LOGGER.error("Error getting currency");
-      }
       return impactorService.currencies().primary();
     }
   }
@@ -475,20 +471,25 @@ public abstract class EconomyUtil {
    */
   public static String getSymbol(@Subst("") String currency) {
     setEconomyType();
+    String symbol;
     try {
       return switch (economyType) {
-        case IMPACTOR ->
-          CobbleUtils.language.getImpactorSymbols().getOrDefault(currency, CobbleUtils.language.getDefaultSymbol());
+        case IMPACTOR -> {
+          symbol = CobbleUtils.language.getImpactorSymbols().get(currency);
+          if (symbol == null) {
+            symbol = getCurrency(currency).symbol().insertion();
+          } else {
+            if (symbol.isEmpty()) symbol = CobbleUtils.language.getDefaultSymbol();
+          }
+          if (symbol == null) symbol = CobbleUtils.language.getDefaultSymbol();
+          yield symbol;
+        }
         case VAULT -> CobbleUtils.language.getDefaultSymbol();
         case BLANKECONOMY ->
           currency.isEmpty() ? CobbleUtils.language.getDefaultSymbol() : BlanketEconomy.INSTANCE.getAPI().getCurrencySymbol(currency);
         default -> CobbleUtils.language.getDefaultSymbol();
       };
     } catch (NoSuchMethodError | Exception e) {
-      if (CobbleUtils.config.isDebug()) {
-        CobbleUtils.LOGGER.error("Error getting currency symbol");
-        e.printStackTrace();
-      }
       return CobbleUtils.language.getDefaultSymbol();
     }
   }
@@ -502,15 +503,11 @@ public abstract class EconomyUtil {
    */
   public static String getSymbol(Currency currency) {
     try {
-      if (CobbleUtils.config.isDebug()) {
-        CobbleUtils.LOGGER.info("Currency: " + currency.key().asString());
-      }
-      return CobbleUtils.language.getImpactorSymbols().getOrDefault(currency.key().asString(), CobbleUtils.language.getDefaultSymbol());
+
+      String symbol = currency.symbol().toString();
+      if (symbol == null) symbol = CobbleUtils.language.getDefaultSymbol();
+      return symbol;
     } catch (NoSuchMethodError | Exception | NoClassDefFoundError e) {
-      if (CobbleUtils.config.isDebug()) {
-        CobbleUtils.LOGGER.error("Error getting currency symbol");
-        e.printStackTrace();
-      }
       return CobbleUtils.language.getDefaultSymbol();
     }
   }

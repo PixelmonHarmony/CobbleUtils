@@ -39,8 +39,31 @@ public class Product {
     this.permission = null;
     this.discount = null;
     this.product = "minecraft:stone";
-    this.buy = BigDecimal.ZERO;
-    this.sell = BigDecimal.ZERO;
+    this.buy = BigDecimal.valueOf(999999999);
+    this.sell = BigDecimal.valueOf(25);
+  }
+
+  public Product(boolean optional) {
+    if (optional) {
+      this.display = "minecraft:dirt";
+      this.color = "<#e7af76>";
+      this.displayname = "Custom Dirt";
+      this.lore = List.of("This is a custom dirt", "You can use it to build");
+      this.CustomModelData = 1L;
+      this.permission = "cobbleutils.dirt";
+      this.discount = 10;
+    } else {
+      this.display = null;
+      this.color = null;
+      this.displayname = null;
+      this.lore = null;
+      this.CustomModelData = null;
+      this.permission = null;
+      this.discount = null;
+    }
+    this.product = "minecraft:stone";
+    this.buy = BigDecimal.valueOf(999999999);
+    this.sell = BigDecimal.valueOf(25);
   }
 
   public Product(String product, BigDecimal buy, BigDecimal sell) {

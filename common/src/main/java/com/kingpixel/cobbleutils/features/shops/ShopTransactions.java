@@ -1,27 +1,18 @@
 package com.kingpixel.cobbleutils.features.shops;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
-import com.google.gson.reflect.TypeToken;
 import com.kingpixel.cobbleutils.features.shops.models.Product;
-import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Data;
 import lombok.Getter;
 import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
 
-import java.io.File;
-import java.lang.reflect.Type;
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
-@Slf4j @Getter
+@Getter
 @ToString
 @Data
 public class ShopTransactions {
@@ -30,6 +21,7 @@ public class ShopTransactions {
   public static final Map<UUID, Map<String, TransactionSummary>> transactions = new ConcurrentHashMap<>();
   private static final ReentrantLock writeLock = new ReentrantLock();
   private static boolean firstTime = false;
+
 
   @Getter
   @ToString
@@ -79,10 +71,12 @@ public class ShopTransactions {
 
 
   public static synchronized void addTransaction(UUID player, Shop shop, ShopAction action, Product product, BigDecimal amount, BigDecimal price) {
-    addTransaction(player, shop.getCurrency(), action, product, amount, price);
+    return;
+    //addTransaction(player, shop.getCurrency(), action, product, amount, price);
   }
 
   public static synchronized void addTransaction(UUID player, String currency, ShopAction action, Product product, BigDecimal amount, BigDecimal price) {
+    /*
     transactions.computeIfAbsent(player, k -> new HashMap<>())
       .computeIfAbsent(product.getProduct(), k -> new TransactionSummary())
       .setCurrency(currency);
@@ -93,11 +87,11 @@ public class ShopTransactions {
       summary.addBuy(amount, price);
     } else if (action == ShopAction.SELL) {
       summary.addSell(amount, price);
-    }
+    }*/
   }
 
   public static synchronized void updateTransaction(UUID player, ShopConfigMenu shopConfigMenu) {
-    loadTransactions(shopConfigMenu).thenRun(() -> {
+    /*loadTransactions(shopConfigMenu).thenRun(() -> {
       List<Product> currentProducts = shopConfigMenu.getAllProducts();
 
       transactions.computeIfPresent(player, (uuid, productMap) -> {
@@ -141,11 +135,11 @@ public class ShopTransactions {
       System.err.println("Error al cargar transacciones para el jugador: " + player);
       ex.printStackTrace(); // O usar un logger aquí
       return null;
-    });
+    });*/
   }
 
   public static CompletableFuture<Void> loadTransactions(ShopConfigMenu shopConfigMenu) {
-    if (firstTime) {
+    /*if (firstTime) {
       return CompletableFuture.completedFuture(null);
     }
 
@@ -187,7 +181,8 @@ public class ShopTransactions {
       }
 
       firstTime = true;
-    });
+    });*/
+    return CompletableFuture.completedFuture(null);
   }
 
 

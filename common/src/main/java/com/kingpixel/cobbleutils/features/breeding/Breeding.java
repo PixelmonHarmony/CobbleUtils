@@ -8,10 +8,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.CobbleUtilsTags;
-import com.kingpixel.cobbleutils.features.breeding.events.EggThrow;
-import com.kingpixel.cobbleutils.features.breeding.events.NationalityPokemon;
-import com.kingpixel.cobbleutils.features.breeding.events.PastureUI;
-import com.kingpixel.cobbleutils.features.breeding.events.WalkBreeding;
+import com.kingpixel.cobbleutils.features.breeding.events.*;
 import com.kingpixel.cobbleutils.features.breeding.manager.ManagerPlotEggs;
 import com.kingpixel.cobbleutils.util.PlayerUtils;
 import com.kingpixel.cobbleutils.util.PokemonUtils;
@@ -27,7 +24,6 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -38,7 +34,7 @@ import java.util.concurrent.*;
  */
 public class Breeding {
   public static ManagerPlotEggs managerPlotEggs = new ManagerPlotEggs();
-  public static Map<UUID, UserInfo> playerCountry = new HashMap<>();
+  public static Map<UUID, UserInfo> playerCountry = new ConcurrentHashMap<>();
   private static final String API_URL_IP = "http://ip-api.com/json/";
   private static boolean active = false;
   private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
@@ -55,7 +51,7 @@ public class Breeding {
     }
 
     for (ScheduledFuture<?> task : scheduledTasks) {
-      task.cancel(false);
+      task.cancel(true);
     }
     scheduledTasks.clear();
 
@@ -66,6 +62,7 @@ public class Breeding {
       } catch (Exception e) {
         e.printStackTrace();
       }
+
       CobbleUtils.server.getPlayerManager().getPlayerList().forEach(player -> {
         UserInfo userinfo = playerCountry.get(player.getUuid());
         if (userinfo == null) return;
@@ -107,11 +104,21 @@ public class Breeding {
       managerPlotEggs.getEggs().remove(player.getUuid());
     });
 
+
     LifecycleEvent.SERVER_STOPPING.register(instance -> {
       for (ScheduledFuture<?> task : scheduledTasks) {
         task.cancel(true);
       }
       scheduledTasks.clear();
+      HatchEggEvent.HATCH_EGG_EVENT.clear();
+      scheduler.shutdown();
+      try {
+        if (!scheduler.awaitTermination(1, TimeUnit.SECONDS)) {
+          scheduler.shutdownNow();
+        }
+      } catch (InterruptedException ex) {
+        scheduler.shutdownNow(); // Interrupción forzada
+      }
       CobbleUtils.LOGGER.info("Writing info breeding");
       managerPlotEggs.getEggs().forEach((key, value) -> managerPlotEggs.writeInfo(key));
     });
@@ -167,62 +174,46 @@ public class Breeding {
   }
 
   public record UserInfo(String country, String countryCode, String language) {
-
   }
 
   private static void countryPlayer(ServerPlayerEntity player) {
-    if (playerCountry.get(player.getUuid()) != null) return;
+    if (playerCountry.get(player.getUuid()) != null) return; // Verifica si ya se obtuvo la información del jugador
+
     CompletableFuture.runAsync(() -> {
-      HttpURLConnection conn = null;
-      BufferedReader in = null;
       try {
         URL url = new URL(API_URL_IP + player.getIp());
-        conn = (HttpURLConnection) url.openConnection();
+        // Establece la conexión HTTP con la API
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
 
-        in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-        JsonObject json = JsonParser.parseReader(in).getAsJsonObject();
+        // Usar try-with-resources para asegurar el cierre de BufferedReader
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+          // Parsear la respuesta en un JsonObject
+          JsonObject json = JsonParser.parseReader(in).getAsJsonObject();
 
-        if (json.has("country")) {
-          String country = json.get("country").getAsString();
-          String countryCode = json.get("countryCode").getAsString();
+          // Verifica si el JSON tiene la información del país
+          if (json.has("country")) {
+            String country = json.get("country").getAsString();
+            String countryCode = json.get("countryCode").getAsString();
 
+            // Determina el idioma según el código del país
+            String language = switch (countryCode) {
+              case "AR", "ES" -> "es";
+              case "US", "GB", "AU" -> "en";
+              default -> "en"; // Idioma por defecto
+            };
 
-          String language;
-          switch (countryCode) {
-            case "AR":
-              language = "es";
-              break;
-            case "US":
-            case "GB":
-            case "AU":
-              language = "en";
-              break;
-            case "ES":
-              language = "es";
-              break;
-            default:
-              language = "en";
-              break;
+            // Crea y almacena la información del usuario
+            UserInfo userInfo = new UserInfo(country, countryCode, language);
+            playerCountry.put(player.getUuid(), userInfo);
           }
-          UserInfo userInfo = new UserInfo(country, countryCode, language);
-          playerCountry.put(player.getUuid(), userInfo);
+        } finally {
+          conn.disconnect(); // Desconectar la conexión HTTP
         }
 
       } catch (Exception e) {
+        // Maneja cualquier excepción que ocurra durante la solicitud
         e.printStackTrace();
-      } finally {
-        // Ensure resources are closed
-        try {
-          if (in != null) {
-            in.close();
-          }
-          if (conn != null) {
-            conn.disconnect();
-          }
-        } catch (Exception ex) {
-          ex.printStackTrace();
-        }
       }
     });
   }

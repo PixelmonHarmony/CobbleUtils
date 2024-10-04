@@ -127,7 +127,7 @@ public class Lang {
     // Messages
     messagerandomitem = "&aYou get a &e%type% &arandomitem &f%item% &6%amount%&a!";
     messagearebattle = "&aYou need to be in a battle to use this command.";
-    messagefossiltime = "&aYou need to wait %time% &ato get a new fossil.";
+    messagefossiltime = "&aYou need to wait %cooldown% &ato get a new fossil.";
     messagefossilcomplete = "&aYou have completed the fossil.";
     messageThisPokemonIsShiny = "&aThis Pokemon is shiny!";
     messageNoPokemon = "&cNo Pokemon";

@@ -35,6 +35,7 @@ public class Config {
   private List<String> commandrewards;
   private List<String> commandparty;
   private List<String> commmandplugin;
+  private List<String> commandshop;
   private boolean randomsize;
   private boolean shops;
   private boolean shulkers;
@@ -74,6 +75,7 @@ public class Config {
     commandparty = List.of("party", "cuparty");
     commandrewards = List.of("rewards", "curewards");
     commmandplugin = List.of("cobbleutils", "pokeutils");
+    commandshop = List.of("shop", "cushop");
     shops = false;
     shulkers = true;
     randomsize = true;
@@ -130,6 +132,7 @@ public class Config {
         lang = config.getLang();
         shops = config.isShops();
         fill = config.getFill();
+        commandshop = config.getCommandshop();
         shinytoken = config.getShinytoken();
         directreward = config.isDirectreward();
         randomsize = config.isRandomsize();

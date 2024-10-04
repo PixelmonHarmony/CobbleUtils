@@ -10,8 +10,6 @@ architectury {
 
 dependencies {
 
-    //minecraft("net.minecraft:minecraft:${property("minecraft_version")}")
-    //mappings(loom.officialMojangMappings())
     minecraft("com.mojang:minecraft:${property("minecraft_version")}")
     mappings("net.fabricmc:yarn:${property("yarn_mappings")}:v2")
 
@@ -46,21 +44,16 @@ dependencies {
     // Economy
     // Economy Impactor
     implementation("net.impactdev.impactor.api:economy:${property("impactor_version")}")
+
     // Economy Blanket
     api(files("libs/BlanketEconomy-1.3.jar"))
+
     // Economy Vault
     api("org.spigotmc:spigot-api:1.20.1-R0.1-SNAPSHOT")
     api("com.github.MilkBowl:VaultAPI:1.7")
 
     // Kyori Adventure
-    api("net.kyori:adventure-api:${property("kyori_version")}")
-    api("net.kyori:adventure-nbt:${property("kyori_version")}")
-    api("net.kyori:adventure-text-serializer-plain:${property("kyori_version")}")
-    api("net.kyori:adventure-text-serializer-legacy:${property("kyori_version")}")
     api("net.kyori:adventure-text-serializer-gson:${property("kyori_version")}")
     api("net.kyori:adventure-text-minimessage:${property("kyori_version")}")
-    api("net.kyori:adventure-text-logger-slf4j:${property("kyori_version")}")
-    api("net.kyori:adventure-platform-api:4.3.0")
-    api("net.kyori:event-api:5.0.0-SNAPSHOT")
 }
 

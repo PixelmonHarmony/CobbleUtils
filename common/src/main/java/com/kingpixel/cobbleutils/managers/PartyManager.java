@@ -1,10 +1,12 @@
 package com.kingpixel.cobbleutils.managers;
 
+import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.PlayerInfo;
 import com.kingpixel.cobbleutils.party.event.DeletePartyEvent;
 import com.kingpixel.cobbleutils.party.models.PartyCreateResult;
 import com.kingpixel.cobbleutils.party.models.PartyData;
 import com.kingpixel.cobbleutils.party.models.UserParty;
+import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
@@ -40,7 +42,6 @@ public class PartyManager {
     UUID partyId = newParty.getId();
     this.parties.put(partyId, newParty);
     this.userParty.put(player.getUuid(), new UserParty(partyId));
-
     return PartyCreateResult.SUCCESS;
   }
 
@@ -48,6 +49,22 @@ public class PartyManager {
     PartyData party = getParty(player);
     if (party != null && isOwner(player)) {
       party.getInvites().add(invite.getUuid());
+      player.sendMessage(
+        AdventureTranslator.toNative(
+          CobbleUtils.partyLang.getPartyInvite()
+            .replace("%player%", invite.getGameProfile().getName())
+            .replace("%partyname%", party.getName()),
+          CobbleUtils.partyLang.getPrefix()
+        )
+      );
+      invite.sendMessage(
+        AdventureTranslator.toNative(
+          CobbleUtils.partyLang.getPartyInviteSend()
+            .replace("%player%", player.getGameProfile().getName())
+            .replace("%partyname%", party.getName()),
+          CobbleUtils.partyLang.getPrefix()
+        )
+      );
     }
   }
 
@@ -58,6 +75,13 @@ public class PartyManager {
     party.getMembers().removeIf(member -> member.getPlayeruuid().equals(player.getUuid()));
     userParty.remove(player.getUuid());
     removeParty(party);
+    player.sendMessage(
+      AdventureTranslator.toNative(
+        CobbleUtils.partyLang.getPartyLeave()
+          .replace("%partyname%", party.getName()),
+        CobbleUtils.partyLang.getPrefix()
+      )
+    );
     return true;
   }
 
@@ -67,6 +91,22 @@ public class PartyManager {
     party.getMembers().removeIf(member -> member.getPlayeruuid().equals(target.getUuid()));
     userParty.remove(target.getUuid());
     removeParty(party);
+    player.sendMessage(
+      AdventureTranslator.toNative(
+        CobbleUtils.partyLang.getPartyKick()
+          .replace("%partyname%", party.getName())
+          .replace("%player%", target.getGameProfile().getName()),
+        CobbleUtils.partyLang.getPrefix()
+      )
+    );
+    target.sendMessage(
+      AdventureTranslator.toNative(
+        CobbleUtils.partyLang.getPartyKickOther()
+          .replace("%partyname%", party.getName())
+          .replace("%player%", player.getGameProfile().getName()),
+        CobbleUtils.partyLang.getPrefix()
+      )
+    );
     return true;
   }
 
@@ -91,6 +131,14 @@ public class PartyManager {
 
     // Limpiar otras invitaciones del jugador
     parties.values().forEach(p -> p.getInvites().remove(player.getUuid()));
+
+    player.sendMessage(
+      AdventureTranslator.toNative(
+        CobbleUtils.partyLang.getPartyJoin()
+          .replace("%partyname%", party.getName()),
+        CobbleUtils.partyLang.getPrefix()
+      )
+    );
 
     return true;
   }

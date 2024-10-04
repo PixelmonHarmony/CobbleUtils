@@ -10,10 +10,7 @@ import com.kingpixel.cobbleutils.Model.ItemModel;
 import com.kingpixel.cobbleutils.config.ShopConfig;
 import com.kingpixel.cobbleutils.features.shops.models.Product;
 import com.kingpixel.cobbleutils.features.shops.models.types.*;
-import com.kingpixel.cobbleutils.util.AdventureTranslator;
-import com.kingpixel.cobbleutils.util.PlayerUtils;
-import com.kingpixel.cobbleutils.util.SoundUtil;
-import com.kingpixel.cobbleutils.util.Utils;
+import com.kingpixel.cobbleutils.util.*;
 import lombok.*;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -224,6 +221,12 @@ public class ShopConfigMenu {
           fill.getSlots().forEach(slot -> template.set(slot, button));
         });
       }
+
+      GooeyButton close = UIUtils.getCloseButton(action -> {
+        UIManager.closeUI(action.getPlayer());
+      });
+
+      template.set(shopConfig.getShop().getRows() * 9 - 5, close);
 
       GooeyPage page = GooeyPage
         .builder()

@@ -33,13 +33,16 @@ public class CommandTree {
 
 
     PokeShout.register(dispatcher, CommandManager.literal(CobbleUtils.config.getPokeshout()));
+    PokeShoutMe.register(dispatcher, CommandManager.literal(CobbleUtils.config.getPokeshout() + "me"));
     PokeShoutAll.register(dispatcher, CommandManager.literal(CobbleUtils.config.getPokeshoutall()));
+    PokeShoutAllMe.register(dispatcher, CommandManager.literal(CobbleUtils.config.getPokeshoutall() + "me"));
     Hatch.register(dispatcher, CommandManager.literal("hatch"));
 
 
     for (String literal : CobbleUtils.config.getCommmandplugin()) {
       LiteralArgumentBuilder<ServerCommandSource> base = CommandManager.literal(literal).requires(source ->
         LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.admin")));
+      
       // /cobbleutils scale <scale> <slot> and /cobbleutils scale <scale> <slot> <player>
       PokemonSize.register(dispatcher, base);
 
@@ -112,14 +115,16 @@ public class CommandTree {
     }
 
     if (CobbleUtils.config.isShops()) {
-      LiteralArgumentBuilder<ServerCommandSource> shopliteral =
-        CommandManager.literal("shop").requires(source -> LuckPermsUtil.checkPermission(
-          source, 2, List.of("cobbleutils.admin", "cobbleutils.shop",
-            "cobbleutils.user")
-        ));
-      ShopCommand.register(dispatcher, shopliteral, CobbleUtils.shopConfig, CobbleUtils.MOD_ID);
-      ShopTransactionCommand.register(dispatcher, shopliteral);
-      ShopSellCommand.register(dispatcher, CommandManager.literal("sell"));
+      for (String literal : CobbleUtils.config.getCommandshop()) {
+        LiteralArgumentBuilder<ServerCommandSource> shopliteral =
+          CommandManager.literal(literal).requires(source -> LuckPermsUtil.checkPermission(
+            source, 2, List.of(CobbleUtils.MOD_ID + ".admin", CobbleUtils.MOD_ID + ".shop",
+              CobbleUtils.MOD_ID + ".user")
+          ));
+        ShopCommand.register(dispatcher, shopliteral, CobbleUtils.shopConfig, CobbleUtils.MOD_ID, false);
+        ShopTransactionCommand.register(dispatcher, shopliteral);
+        ShopSellCommand.register(dispatcher, CommandManager.literal("sell"));
+      }
     }
 
     if (CobbleUtils.config.isDebug()) {

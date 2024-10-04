@@ -6,7 +6,6 @@ import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.model.user.UserManager;
-import net.luckperms.api.node.types.PermissionNode;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 
@@ -14,12 +13,13 @@ import java.util.List;
 
 public abstract class LuckPermsUtil {
 
-  public static Permission PERMISSION_TYPE;
+  private static Permission PERMISSION_TYPE;
 
-  public enum Permission {
+  private enum Permission {
     LUCKPERMS,
-    SPIGOT,
-    FABRIC_PERMISSIONS_API
+    FABRIC_PERMISSIONS_API,
+    FORGE_PERMISSIONS_API,
+    NONE
   }
 
   private static void setup() {
@@ -27,11 +27,15 @@ public abstract class LuckPermsUtil {
     if (haveFabricPermissionsApi()) {
       PERMISSION_TYPE = Permission.FABRIC_PERMISSIONS_API;
       CobbleUtils.LOGGER.info("Fabric permissions detected");
+    } else if (haveForgePermissionApi()) {
+      PERMISSION_TYPE = Permission.FORGE_PERMISSIONS_API;
+      CobbleUtils.LOGGER.info("Forge permissions detected");
     } else if (getLuckPermsApi() != null) {
       PERMISSION_TYPE = Permission.LUCKPERMS;
       CobbleUtils.LOGGER.info("LuckPerms detected");
     } else {
       CobbleUtils.LOGGER.error("No permission system detected");
+      PERMISSION_TYPE = Permission.NONE;
     }
   }
 
@@ -41,6 +45,11 @@ public abstract class LuckPermsUtil {
     } catch (IllegalStateException | NullPointerException | NoClassDefFoundError e) {
       return null;
     }
+  }
+
+  private static boolean haveForgePermissionApi() {
+    return false;
+
   }
 
   private static boolean haveFabricPermissionsApi() {
@@ -61,7 +70,6 @@ public abstract class LuckPermsUtil {
 
     return switch (PERMISSION_TYPE) {
       case LUCKPERMS -> checkLuckPermsPermission(player, permissions);
-      case SPIGOT -> false;//checkSpigotPermissions(player, permissions);
       case FABRIC_PERMISSIONS_API -> checkFabricPermissions(source, level, permissions);
       default -> hasPermission;
     };
@@ -86,25 +94,11 @@ public abstract class LuckPermsUtil {
 
     for (String permission : permissions) {
       if (permission == null || permission.isEmpty()) return true;
-      addPermission(permission);
+      //addPermission(permission);
       return user.getCachedData().getPermissionData().checkPermission(permission).asBoolean();
     }
     return false;
   }
-
-  /*private static boolean checkSpigotPermissions(ServerPlayerEntity player, List<String> permissions) {
-    boolean hasPermission = player.hasPermissionLevel(4);
-    for (String permission : permissions) {
-
-      if (permission == null || permission.isEmpty()) return true;
-      addPermission(permission);
-
-      hasPermission = WebSocketClient.getInstance().checkPermission(player, permission).join();
-      if (hasPermission) return true;
-
-    }
-    return hasPermission;
-  }*/
 
   public static boolean checkPermission(ServerCommandSource source, int level, String permission) {
     return checkPermission(source, level, List.of(permission));
@@ -118,29 +112,9 @@ public abstract class LuckPermsUtil {
 
     return switch (PERMISSION_TYPE) {
       case LUCKPERMS -> checkLuckPermsPermission(player, List.of(permission));
-      case SPIGOT -> false; //WebSocketClient.getInstance().checkPermission(player, permission)
-      // .join();
       case FABRIC_PERMISSIONS_API -> Permissions.check(player, permission, 4);
       default -> false;
     };
-  }
-
-  public static void addPermission(String permission) {
-    setup();
-    switch (PERMISSION_TYPE) {
-      case LUCKPERMS:
-        LuckPerms luckPermsApi = getLuckPermsApi();
-        PermissionNode.builder(permission).build();
-        if (luckPermsApi != null) {
-          luckPermsApi.getNodeBuilderRegistry().forPermission().permission(permission).build();
-        }
-        break;
-      case SPIGOT:
-        //WebSocketClient.getInstance().addPermission(permission);
-        break;
-      default:
-        break;
-    }
   }
 
   public static boolean hasOp(ServerPlayerEntity player) {

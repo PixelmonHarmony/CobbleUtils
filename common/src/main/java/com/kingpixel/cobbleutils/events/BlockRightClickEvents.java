@@ -91,8 +91,10 @@ public class BlockRightClickEvents {
 
     if (timeleft != -1 && organic == 128) {
       int time = timeleft / 20;
-      player.sendMessage(AdventureTranslator.toNative(CobbleUtils.language.getMessagefossiltime().replace(
-        "%time%", CobbleUtilities.convertSecondsToTime(time))));
+      player.sendMessage(AdventureTranslator.toNative(CobbleUtils.language.getMessagefossiltime()
+        .replace("%time%", CobbleUtilities.convertSecondsToTime(time))
+        .replace("%cooldown%", CobbleUtilities.convertSecondsToTime(time))
+      ));
     }
   }
 }
