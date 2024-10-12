@@ -13,6 +13,7 @@ import lombok.Getter;
 import lombok.ToString;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -51,6 +52,7 @@ public class BreedConfig {
   private int checkEggToBreedInSeconds;
   private int tickstocheck;
   private int cooldown;
+  private Map<String, Integer> cooldowns;
   private int maxeggperplot;
   private int maxplots;
   private int rowmenuselectplot;
@@ -91,7 +93,7 @@ public class BreedConfig {
 
   public BreedConfig() {
     this.prefix = "&7[<#82d448>Breeding&7] &8»";
-    this.eggcommand = List.of("daycare", "breed");
+    this.eggcommand = List.of("daycare", "pokebreed", "breed");
     this.titleselectplot = "<#82d448>Select Plot";
     this.titleplot = "<#82d448>Plot";
     this.titleemptyplot = "<#82d448>Plot";
@@ -111,6 +113,11 @@ public class BreedConfig {
     this.multipliermasuda = 1.5f;
     this.multiplierShiny = 1.5f;
     this.cooldown = 30;
+    this.cooldowns = Map.of(
+      "cobbleutils.breeding.cooldown.vip", 15,
+      "cobbleutils.breeding.cooldown.vip+", 10,
+      "cobbleutils.breeding.cooldown.vip++", 5
+    );
     this.maxeggperplot = 3;
     this.maxplots = 3;
     this.steps = 256;
@@ -228,6 +235,7 @@ public class BreedConfig {
         autoclaim = config.isAutoclaim();
         titleemptyplot = config.getTitleemptyplot();
         notdoubleditto = config.getNotdoubleditto();
+        cooldowns = config.getCooldowns();
         notditto = config.getNotditto();
         spawnEggWorld = config.isSpawnEggWorld();
         blacklist = config.getBlacklist();

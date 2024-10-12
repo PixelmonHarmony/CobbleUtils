@@ -164,7 +164,8 @@ public class PokemonUtils {
     return message
       .replace("%level" + indexStr + "%", String.valueOf(pokemon.getLevel()))
       .replace("%nature" + indexStr + "%", getNatureTranslate(nature))
-      .replace("%pokemon" + indexStr + "%", isEgg(pokemon) ? pokemon.getPersistentData().getString("species") : pokemon.getSpecies().getName())
+      .replace("%pokemon" + indexStr + "%", isEgg(pokemon) ? pokemon.getPersistentData().getString("species") :
+        pokemon.getDisplayName().getString())
       .replace("%shiny" + indexStr + "%", pokemon.getShiny() ? CobbleUtils.language.getSymbolshiny() : "")
       .replace("%ability" + indexStr + "%", isEgg(pokemon) ? pokemon.getPersistentData().getString("ability") : getAbilityTranslate(pokemon.getAbility()))
       .replace("%ivshp" + indexStr + "%", String.valueOf(pokemon.getIvs().get(Stats.HP)))
@@ -579,31 +580,25 @@ public class PokemonUtils {
 
     pokemon.getForm().getEvYield().put(Stats.HP, 0);
 
-    // Obtenemos el mapa de rarezas
     Map<String, Double> rarityMap = CobbleUtils.config.getRarity();
 
-    // Inicializamos la rareza a "Unknown" por defecto
     String rarityResult = "Unknown";
-    double closestValue = Double.MAX_VALUE; // Valor más cercano a la rareza del Pokémon
+    double closestValue = Double.MAX_VALUE;
 
-    // Comparamos el valor de rareza del Pokémon con cada rareza en el mapa
     for (Map.Entry<String, Double> entry : rarityMap.entrySet()) {
       double value = entry.getValue();
 
-      // Si el valor de rareza del Pokémon es menor o igual al valor en el mapa
       if (rarity <= value && value < closestValue) {
-        closestValue = value; // Actualizamos el valor más cercano
-        rarityResult = entry.getKey(); // Actualizamos el resultado de rareza
+        closestValue = value;
+        rarityResult = entry.getKey();
       }
     }
 
-    // Si no se encontró una rareza adecuada (por ejemplo, si la rareza es mayor que 7.0),
-    // asignamos la rareza más alta del mapa (en este caso, "common")
     if ("Unknown".equals(rarityResult)) {
       rarityResult = rarityMap.entrySet().stream()
-        .max(Map.Entry.comparingByValue()) // Obtenemos la rareza con el valor más alto
+        .max(Map.Entry.comparingByValue())
         .map(Map.Entry::getKey)
-        .orElse("Unknown"); // Si no hay rarezas en el mapa, devolvemos "Unknown"
+        .orElse("Unknown");
     }
 
     return rarityResult;

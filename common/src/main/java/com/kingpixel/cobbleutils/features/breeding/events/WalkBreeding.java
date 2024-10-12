@@ -6,6 +6,7 @@ import com.cobblemon.mod.common.api.storage.party.PlayerPartyStore;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.features.breeding.models.EggData;
+import com.kingpixel.cobbleutils.util.PlayerUtils;
 import dev.architectury.event.events.common.TickEvent;
 import net.minecraft.entity.EntityPose;
 import net.minecraft.util.math.Vec3d;
@@ -73,7 +74,7 @@ public class WalkBreeding {
             if (duplicate) {
               distance = distance * 2;
             }
-            eggData.steps(pokemon, distance);
+            eggData.steps(PlayerUtils.castPlayer(player), pokemon, distance);
           });
         } catch (NoPokemonStoreException e) {
           throw new RuntimeException(e);

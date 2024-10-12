@@ -69,8 +69,12 @@ public class Hatch implements Command<ServerCommandSource> {
               }
 
               try {
-                Cobblemon.INSTANCE.getStorage().getParty(player.getUuid()).forEach(Hatch::openEgg);
-                Cobblemon.INSTANCE.getStorage().getPC(player.getUuid()).forEach(Hatch::openEgg);
+                Cobblemon.INSTANCE.getStorage().getParty(player.getUuid()).forEach(pokemon -> {
+                  openEgg(player, pokemon);
+                });
+                Cobblemon.INSTANCE.getStorage().getPC(player.getUuid()).forEach(pokemon -> {
+                  openEgg(player, pokemon);
+                });
               } catch (NoPokemonStoreException e) {
                 throw new RuntimeException(e);
               }
@@ -92,8 +96,12 @@ public class Hatch implements Command<ServerCommandSource> {
                   }
 
                   try {
-                    Cobblemon.INSTANCE.getStorage().getParty(player.getUuid()).forEach(Hatch::openEgg);
-                    Cobblemon.INSTANCE.getStorage().getPC(player.getUuid()).forEach(Hatch::openEgg);
+                    Cobblemon.INSTANCE.getStorage().getParty(player.getUuid()).forEach(pokemon -> {
+                      openEgg(player, pokemon);
+                    });
+                    Cobblemon.INSTANCE.getStorage().getPC(player.getUuid()).forEach(pokemon -> {
+                      openEgg(player, pokemon);
+                    });
                   } catch (NoPokemonStoreException e) {
                     throw new RuntimeException(e);
                   }
@@ -132,20 +140,20 @@ public class Hatch implements Command<ServerCommandSource> {
           new Date().getTime()
             + TimeUnit.SECONDS.toMillis(CobbleUtils.breedconfig.getCooldowninstaHatchInSeconds()));
       }
-      openEgg(egg);
+      openEgg(player, egg);
     }
     return 1;
   }
 
 
-  public static void openEgg(Pokemon pokemon) {
+  public static void openEgg(ServerPlayerEntity player, Pokemon pokemon) {
     if (pokemon.getSpecies().showdownId().equalsIgnoreCase("egg")) {
       pokemon.getPersistentData().putInt("steps", 0);
       pokemon.getPersistentData().putInt("cycles", -1);
       pokemon.setCurrentHealth(0);
       EggData eggData = EggData.from(pokemon);
-      eggData.steps(pokemon, Integer.MAX_VALUE);
-      eggData.EggToPokemon(pokemon);
+      eggData.steps(player, pokemon, Integer.MAX_VALUE);
+      eggData.EggToPokemon(player, pokemon);
     }
   }
 

@@ -6,6 +6,7 @@ import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.google.gson.JsonObject;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.features.breeding.Breeding;
+import com.kingpixel.cobbleutils.util.LuckPermsUtil;
 import com.kingpixel.cobbleutils.util.RewardsUtils;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author Carlos Varas Alonso - 02/08/2024 13:42
@@ -33,28 +35,44 @@ public class PlotBreeding {
     male = null;
     female = null;
     eggs = new ArrayList<>();
-    cooldown = new Date(new Date().getTime() + TimeUnit.MINUTES.toMillis(CobbleUtils.breedconfig.getCooldown())).getTime();
+    cooldown = applyCooldown(null); // Aplicar cooldown inicial sin jugador
   }
 
+  private long applyCooldown(ServerPlayerEntity player) {
+    AtomicInteger cooldown = new AtomicInteger(CobbleUtils.breedconfig.getCooldown());
+    CobbleUtils.breedconfig.getCooldowns().forEach((permission, time) -> {
+      if (player != null && LuckPermsUtil.checkPermission(player, permission)) {
+        if (time < cooldown.get()) {
+          cooldown.set(time);
+        }
+      }
+    });
+    return TimeUnit.MINUTES.toMillis(cooldown.get()); // Devuelve solo el tiempo de cooldown en milisegundos
+  }
+  
   public void checking(ServerPlayerEntity player) {
     if (!CobbleUtils.breedconfig.isActive()) return;
+
+    // Obtener el cooldown del jugador en milisegundos
+    long playerCooldownMillis = applyCooldown(player);
+
+    long currentTime = new Date().getTime();
+    long remainingCooldown = cooldown - currentTime; // Cooldown restante en milisegundos
+
+    // Si el cooldown restante es mayor que el nuevo cooldown basado en permisos, ajustarlo
+    if (remainingCooldown > playerCooldownMillis) {
+      cooldown = currentTime + playerCooldownMillis;
+    }
+
     if (male == null || female == null) {
-      cooldown = new Date(new Date().getTime() + TimeUnit.MINUTES.toMillis(CobbleUtils.breedconfig.getCooldown())).getTime();
+      cooldown = currentTime + playerCooldownMillis;
       return;
     }
 
     if (eggs == null) eggs = new ArrayList<>();
 
-    // Obtiene el cooldown configurado en minutos
-    long newCooldownMinutes = CobbleUtils.breedconfig.getCooldown();
-    long newCooldownMillis = TimeUnit.MINUTES.toMillis(newCooldownMinutes);
-
-    // Si el cooldown actual es mayor que el nuevo cooldown configurado, actualiza el cooldown
-    if (cooldown > new Date().getTime() + newCooldownMillis) {
-      cooldown = new Date().getTime() + newCooldownMillis;
-    }
-
-    if (cooldown < new Date().getTime()) {
+    // Verifica si el cooldown actual ha expirado
+    if (cooldown < currentTime) {
       try {
         Pokemon pokemon = EggData.createEgg(
           Pokemon.Companion.loadFromJSON(male),
@@ -65,8 +83,8 @@ public class PlotBreeding {
           if (eggs.size() >= CobbleUtils.breedconfig.getMaxeggperplot())
             return;
 
-          // Establece el nuevo cooldown después de la cría
-          cooldown = new Date(new Date().getTime() + newCooldownMillis).getTime();
+          // Establece el nuevo cooldown personalizado después de la cría
+          cooldown = currentTime + playerCooldownMillis;
 
           if (CobbleUtils.breedconfig.isAutoclaim()) {
             RewardsUtils.saveRewardPokemon(player, pokemon);
@@ -80,7 +98,6 @@ public class PlotBreeding {
       }
     }
   }
-
 
   public boolean addMale(Pokemon pokemon) {
     if (pokemon.isLegendary() || pokemon.isUltraBeast())

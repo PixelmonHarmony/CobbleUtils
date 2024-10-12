@@ -2,16 +2,12 @@ package com.kingpixel.cobbleutils.events;
 
 import com.cobblemon.mod.common.api.Priority;
 import com.cobblemon.mod.common.api.events.CobblemonEvents;
-import com.cobblemon.mod.common.api.properties.CustomPokemonProperty;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
-import com.cobblemon.mod.common.platform.events.PlatformEvents;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.CobbleUtilsTags;
 import com.kingpixel.cobbleutils.Model.ScalePokemonData;
 import com.kingpixel.cobbleutils.Model.SizeChanceWithoutItem;
-import com.kingpixel.cobbleutils.properties.ScalePropertyType;
-import com.kingpixel.cobbleutils.properties.SizePropertyType;
 import kotlin.Unit;
 
 import static com.kingpixel.cobbleutils.Model.CobbleUtilsTags.SIZE_CUSTOM_TAG;
@@ -21,8 +17,6 @@ import static com.kingpixel.cobbleutils.Model.CobbleUtilsTags.SIZE_TAG;
  * @author Carlos Varas Alonso - 03/07/2024 22:37
  */
 public class ScaleEvent {
-  private static final SizePropertyType SizePropertyType = new SizePropertyType();
-  private static final ScalePropertyType ScalePropertyType = new ScalePropertyType();
 
   public static void register() {
     CobblemonEvents.FOSSIL_REVIVED.subscribe(Priority.NORMAL, (evt) -> {
@@ -54,12 +48,6 @@ public class ScaleEvent {
     CobblemonEvents.POKEMON_SENT_POST.subscribe(Priority.NORMAL, (evt) -> {
       if (!CobbleUtils.config.isRandomsize()) return Unit.INSTANCE;
       solveScale(evt.getPokemon());
-      return Unit.INSTANCE;
-    });
-
-    PlatformEvents.SERVER_STARTED.subscribe(Priority.NORMAL, (evt) -> {
-      CustomPokemonProperty.Companion.register(ScalePropertyType);
-      CustomPokemonProperty.Companion.register(SizePropertyType);
       return Unit.INSTANCE;
     });
 

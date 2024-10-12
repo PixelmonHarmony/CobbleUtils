@@ -7,6 +7,7 @@ import net.minecraft.item.Items;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.Date;
+import java.util.Map;
 
 /**
  * @author Carlos Varas Alonso - 28/06/2024 20:44
@@ -18,6 +19,27 @@ public class PlayerUtils {
 
   public static void broadcast(String message) {
     CobbleUtils.server.getPlayerManager().getPlayerList().forEach(player -> sendMessage(player, message));
+  }
+
+  /**
+   * Method to get the cooldown based on the player's permissions.
+   *
+   * @param cooldowns       The cooldowns to check.
+   * @param defaultCooldown The default cooldown.
+   * @param player          The player to check.
+   *
+   * @return The cooldown.
+   */
+  public static int getCooldown(Map<String, Integer> cooldowns, int defaultCooldown, ServerPlayerEntity player) {
+    int cooldown = defaultCooldown;
+    for (Map.Entry<String, Integer> entry : cooldowns.entrySet()) {
+      if (player != null && LuckPermsUtil.checkPermission(player, entry.getKey())) {
+        if (entry.getValue() < cooldown) {
+          cooldown = entry.getValue();
+        }
+      }
+    }
+    return cooldown;
   }
 
   public static String getCooldown(Date date) {
@@ -98,6 +120,7 @@ public class PlayerUtils {
    * @return true if the cooldown is active.
    */
   public static boolean isCooldown(Long cooldown) {
+    if (cooldown == null) return false;
     return isCooldown(new Date(cooldown));
   }
 

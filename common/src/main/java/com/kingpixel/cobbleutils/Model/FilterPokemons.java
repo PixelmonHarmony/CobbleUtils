@@ -3,6 +3,7 @@ package com.kingpixel.cobbleutils.Model;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.api.pokemon.PokemonPropertyExtractor;
 import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
+import com.cobblemon.mod.common.api.pokemon.egg.EggGroup;
 import com.cobblemon.mod.common.api.types.ElementalType;
 import com.cobblemon.mod.common.api.types.ElementalTypes;
 import com.cobblemon.mod.common.pokemon.FormData;
@@ -45,11 +46,19 @@ public class FilterPokemons {
   // Forms
   private Set<String> whitelistForms;
   private Set<String> blacklistForms;
+  // Aspects
+  private Set<String> whitelistAspects;
+  private Set<String> blacklistAspects;
+
   // Rarity
   private Set<String> whitelistRarity;
   private Set<String> blacklistRarity;
   // Also implemented
   private boolean alsoImplemented;
+  // Not is a evolution
+  private boolean notEvolution;
+  // Also can Egg
+  private boolean canEgg;
 
 
   public FilterPokemons() {
@@ -58,7 +67,10 @@ public class FilterPokemons {
 
     // Pokemons
     whitelistPokemons = new HashSet<>();
-    blacklistPokemons = new HashSet<>();
+    blacklistPokemons = Set.of(
+      "egg",
+      "pokestop"
+    );
 
     // Types
     whitelistTypes = new HashSet<>(ElementalTypes.INSTANCE.all());
@@ -77,11 +89,16 @@ public class FilterPokemons {
     whitelistForms = new HashSet<>();
     blacklistForms = new HashSet<>();
 
+    // Aspects
+    blacklistAspects = new HashSet<>();
+
     // Rarities
     whitelistRarity = new HashSet<>(CobbleUtils.config.getRarity().keySet());
     blacklistRarity = Set.of("Unknown");
 
     alsoImplemented = true;
+    notEvolution = false;
+    canEgg = false;
   }
 
   public static void removeCache(String modid) {
@@ -176,18 +193,25 @@ public class FilterPokemons {
         forms.forEach(form -> {
           Pokemon p;
           List<String> aspects = form.getAspects();
-          String aspect = aspects.isEmpty() ? "" : aspects.get(0);
-
-          aspect = aspect.replace("-", "_");
-
-          int lastUnderscore = aspect.lastIndexOf("_");
-          if (lastUnderscore != -1) {
-            aspect = aspect.substring(0, lastUnderscore) + "=" + aspect.substring(lastUnderscore + 1);
-          }
-
           if (aspects.isEmpty()) {
             p = pokemon.create(1);
           } else {
+            String aspect = aspects.get(0);
+
+            aspect = aspect.replace("-", "_");
+
+            int lastUnderscore = aspect.lastIndexOf("_");
+            if (lastUnderscore != -1) {
+              aspect = aspect.substring(0, lastUnderscore) + "=" + aspect.substring(lastUnderscore + 1);
+            }
+
+            if (blacklistAspects.contains(aspect)) return;
+
+            if (CobbleUtils.config.isDebug()) {
+              CobbleUtils.LOGGER.info("Pokemon: " + pokemon.showdownId() + " Aspect: " + aspect);
+            }
+
+
             p = PokemonProperties.Companion.parse(pokemon.showdownId() + " " + aspect).create();
           }
 
@@ -201,6 +225,14 @@ public class FilterPokemons {
     return allowedPokemons;
   }
 
+  private boolean isFirstEvolution(Pokemon pokemon) {
+    return pokemon.getPreEvolution() == null;
+  }
+
+  private boolean canEgg(Pokemon pokemon) {
+    return !pokemon.getForm().getEggGroups().contains(EggGroup.DITTO) || !pokemon.getForm().getEggGroups().contains(EggGroup.UNDISCOVERED);
+  }
+
   /**
    * Checks if a pokemon is allowed
    *
@@ -209,6 +241,8 @@ public class FilterPokemons {
    * @return true if the pokemon is allowed
    */
   private boolean isAllowed(Pokemon pokemon) {
+    if (notEvolution && isFirstEvolution(pokemon)) return false;
+    if (canEgg && canEgg(pokemon)) return false;
     if (alsoImplemented && !pokemon.getSpecies().getImplemented()) return false;
 
     // Precalcular tipos

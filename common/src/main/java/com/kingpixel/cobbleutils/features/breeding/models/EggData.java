@@ -59,7 +59,7 @@ public class EggData {
   private String moves;
   private boolean random;
 
-  public void EggToPokemon(Pokemon pokemon) {
+  public void EggToPokemon(ServerPlayerEntity player, Pokemon pokemon) {
     if (!pokemon.getSpecies().showdownId().equalsIgnoreCase("egg")) return;
 
     PokemonProperties pokemonProperties = PokemonProperties.Companion.parse(species + " " + form);
@@ -117,7 +117,7 @@ public class EggData {
 
 
     removeAllpersistent(pokemon);
-    HatchEggEvent.HATCH_EGG_EVENT.emit(pokemon);
+    HatchEggEvent.HATCH_EGG_EVENT.emit(player, pokemon);
   }
 
   private void removeAllpersistent(Pokemon pokemon) {
@@ -148,7 +148,7 @@ public class EggData {
     return eggData;
   }
 
-  public void steps(Pokemon pokemon, int stepsremove) {
+  public void steps(ServerPlayerEntity player, Pokemon pokemon, int stepsremove) {
     if (!pokemon.getSpecies().showdownId().equalsIgnoreCase("egg")) return;
     if (stepsremove == 0) return;
     this.steps -= stepsremove;
@@ -159,7 +159,7 @@ public class EggData {
     }
     updateSteps(pokemon);
     if (this.cycles < 0) {
-      EggToPokemon(pokemon);
+      EggToPokemon(player, pokemon);
     }
   }
 

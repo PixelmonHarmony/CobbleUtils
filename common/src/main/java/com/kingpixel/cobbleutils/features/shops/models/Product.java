@@ -18,6 +18,7 @@ import java.util.List;
 @ToString
 public class Product {
   // Optional
+  private Boolean notCanBuyWithPermission;
   private String permission;
   private String color;
   private String display;
@@ -31,6 +32,7 @@ public class Product {
   private BigDecimal sell;
 
   public Product() {
+    this.notCanBuyWithPermission = null;
     this.display = null;
     this.color = null;
     this.displayname = null;
@@ -45,6 +47,7 @@ public class Product {
 
   public Product(boolean optional) {
     if (optional) {
+      this.notCanBuyWithPermission = true;
       this.display = "minecraft:dirt";
       this.color = "<#e7af76>";
       this.displayname = "Custom Dirt";
@@ -53,6 +56,7 @@ public class Product {
       this.permission = "cobbleutils.dirt";
       this.discount = 10;
     } else {
+      this.notCanBuyWithPermission = null;
       this.display = null;
       this.color = null;
       this.displayname = null;
@@ -67,6 +71,7 @@ public class Product {
   }
 
   public Product(String product, BigDecimal buy, BigDecimal sell) {
+    this.notCanBuyWithPermission = null;
     this.display = null;
     this.color = null;
     this.displayname = null;
@@ -80,6 +85,7 @@ public class Product {
   }
 
   public Product(String product, BigDecimal buy, BigDecimal sell, String permission) {
+    this.notCanBuyWithPermission = null;
     this.display = null;
     this.color = null;
     this.displayname = null;
@@ -93,6 +99,7 @@ public class Product {
   }
 
   public Product(String product, BigDecimal buy, BigDecimal sell, String permission, String display, String displayname, List<String> lore, Long CustomModelData) {
+    this.notCanBuyWithPermission = null;
     this.display = display;
     this.displayname = displayname;
     this.color = null;

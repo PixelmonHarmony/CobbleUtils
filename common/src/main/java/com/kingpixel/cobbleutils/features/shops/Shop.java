@@ -47,6 +47,12 @@ public class Shop {
   private String currency;
   private short rows;
   private short slotbalance;
+  private int slotNext;
+  private List<Integer> slotsNext;
+  private int slotPrevious;
+  private List<Integer> slotsPrevious;
+  private int slotClose;
+  private List<Integer> slotsClose;
   private int globalDiscount;
   private String soundopen;
   private String soundclose;
@@ -108,6 +114,12 @@ public class Shop {
     this.title = "Default";
     this.rows = 6;
     this.slotbalance = 47;
+    this.slotNext = 53;
+    this.slotsNext = List.of(52);
+    this.slotPrevious = 45;
+    this.slotsPrevious = List.of(46);
+    this.slotClose = 49;
+    this.slotsClose = List.of(48, 50);
     this.soundopen = "cobblemon:pc.on";
     this.soundclose = "cobblemon:pc.off";
     this.currency = "dollars";
@@ -135,6 +147,12 @@ public class Shop {
     this.title = title;
     this.rows = rows;
     this.slotbalance = 47;
+    this.slotNext = 53;
+    this.slotsNext = List.of(52);
+    this.slotPrevious = 45;
+    this.slotsPrevious = List.of(46);
+    this.slotClose = 49;
+    this.slotsClose = List.of(48, 50);
     this.soundopen = "cobblemon:pc.on";
     this.soundclose = "cobblemon:pc.off";
     this.currency = "dollars";
@@ -164,6 +182,12 @@ public class Shop {
     this.shopType = new ShopTypePermanent();
     this.display = display;
     this.slotbalance = 47;
+    this.slotNext = 53;
+    this.slotsNext = List.of(52);
+    this.slotPrevious = 45;
+    this.slotsPrevious = List.of(46);
+    this.slotClose = 49;
+    this.slotsClose = List.of(48, 50);
     this.globalDiscount = 0;
     this.products = getDefaultProducts();
     this.fillItems = new ArrayList<>();
@@ -185,6 +209,12 @@ public class Shop {
     this.display = display;
     this.globalDiscount = 0;
     this.slotbalance = 47;
+    this.slotNext = 53;
+    this.slotsNext = List.of(52);
+    this.slotPrevious = 45;
+    this.slotsPrevious = List.of(46);
+    this.slotClose = 49;
+    this.slotsClose = List.of(48, 50);
     this.products = getProducts();
     this.fillItems = new ArrayList<>();
     this.fillItems.add(new FillItems());
@@ -282,6 +312,10 @@ public class Shop {
           )))
           .onClick(action -> {
             if (typeError == TypeError.NONE) {
+              if (product.getPermission() != null) {
+                if (LuckPermsUtil.checkPermission(player, product.getPermission()) && product.getNotCanBuyWithPermission())
+                  return;
+              }
               switch (getShopAction(product)) {
                 case BUY:
                   if (buy.compareTo(BigDecimal.ZERO) > 0) {
@@ -322,15 +356,6 @@ public class Shop {
       });
 
 
-      LinkedPageButton next = UIUtils.getNextButton(action -> {
-        SoundUtil.playSound(getSoundopen(), action.getPlayer());
-      });
-
-      LinkedPageButton previous = UIUtils.getPreviousButton(action -> {
-        SoundUtil.playSound(getSoundopen(), action.getPlayer());
-      });
-
-
       GooeyButton close = UIUtils.getCloseButton(action -> {
         ShopConfigMenu.open(player, shopConfig, mod_id, byCommand);
       });
@@ -363,22 +388,34 @@ public class Shop {
         .replace("%currency%", getCurrency())
         .replace("%symbol%", symbol));
 
-      template.set(this.slotbalance, GooeyButton.builder()
-        .display(balance.getItemStack())
-        .title(AdventureTranslator.toNative(balance.getDisplayname()))
-        .lore(Text.class, AdventureTranslator.toNativeL(lorebalance))
-        .build());
+      if (slotbalance > 0 && slotbalance < 54) {
+        template.set(this.slotbalance, GooeyButton.builder()
+          .display(balance.getItemStack())
+          .title(AdventureTranslator.toNative(balance.getDisplayname()))
+          .lore(Text.class, AdventureTranslator.toNativeL(lorebalance))
+          .build());
 
+      }
       // Display
       int slotfree = rectangle.getSlotsFree(rows);
 
       if (!byCommand) {
-        template.set((this.rows * 9) - 5, close);
+        template.set(slotClose, close);
+        slotsClose.forEach(slot -> template.set(slot, close));
       }
 
       if (slotfree - products.size() < 0) {
-        template.set((this.rows * 9) - 1, next);
-        template.set((this.rows * 9) - 9, previous);
+        LinkedPageButton next = UIUtils.getNextButton(action -> {
+          SoundUtil.playSound(getSoundopen(), action.getPlayer());
+        });
+        template.set(slotNext, next);
+        slotsNext.forEach(slot -> template.set(slot, next));
+        
+        LinkedPageButton previous = UIUtils.getPreviousButton(action -> {
+          SoundUtil.playSound(getSoundopen(), action.getPlayer());
+        });
+        template.set(slotPrevious, previous);
+        slotsPrevious.forEach(slot -> template.set(slot, previous));
       }
 
       LinkedPage.Builder linkedPageBuilder = LinkedPage

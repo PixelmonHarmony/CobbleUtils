@@ -1,8 +1,6 @@
 package com.kingpixel.cobbleutils;
 
-import com.cobblemon.mod.common.api.Priority;
 import com.cobblemon.mod.common.api.properties.CustomPokemonProperty;
-import com.cobblemon.mod.common.platform.events.PlatformEvents;
 import com.kingpixel.cobbleutils.Model.RewardsData;
 import com.kingpixel.cobbleutils.command.CommandTree;
 import com.kingpixel.cobbleutils.config.*;
@@ -22,14 +20,13 @@ import com.kingpixel.cobbleutils.party.config.PartyLang;
 import com.kingpixel.cobbleutils.party.event.CreatePartyEvent;
 import com.kingpixel.cobbleutils.party.event.DeletePartyEvent;
 import com.kingpixel.cobbleutils.party.util.PartyPlaceholder;
-import com.kingpixel.cobbleutils.properties.BreedablePropertyType;
+import com.kingpixel.cobbleutils.properties.*;
 import com.kingpixel.cobbleutils.util.*;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.CommandRegistrationEvent;
 import dev.architectury.event.events.common.InteractionEvent;
 import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.event.events.common.PlayerEvent;
-import kotlin.Unit;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -164,7 +161,15 @@ public class CobbleUtils extends ShopExtend {
 
     LifecycleEvent.SERVER_STARTED.register(server -> {
       load();
+      CustomPokemonProperty.Companion.register(MinIvsPropertyType.getInstance());
+      CustomPokemonProperty.Companion.register(SizePropertyType.getInstance());
+      CustomPokemonProperty.Companion.register(ScalePropertyType.getInstance());
+      if (CobbleUtils.breedconfig.isActive())
+        CustomPokemonProperty.Companion.register(BreedablePropertyType.getInstance());
+      if (CobbleUtils.config.getPokerus().isActive())
+        CustomPokemonProperty.Companion.register(PokerusPropertyType.getInstance());
     });
+
 
     LifecycleEvent.SERVER_STOPPING.register(server -> {
       scheduledTasks.forEach(task -> task.cancel(true));
@@ -226,11 +231,6 @@ public class CobbleUtils extends ShopExtend {
         BlockRightClickEvents.register(PlayerUtils.castPlayer(player), hand, blockpos, direction);
       }
       return EventResult.pass();
-    });
-
-    PlatformEvents.SERVER_STARTED.subscribe(Priority.NORMAL, (evt) -> {
-      CustomPokemonProperty.Companion.register(BreedablePropertyType.getInstance());
-      return Unit.INSTANCE;
     });
 
     InteractionEvent.RIGHT_CLICK_ITEM.register(ItemRightClickEvents::register);
