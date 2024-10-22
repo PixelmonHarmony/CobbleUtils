@@ -35,14 +35,13 @@ public class ShopConfig {
     shop = new ShopConfigMenu();
   }
 
-  public void createConfigIfNotExists(String mod_id, String pathShops, String pathShop) {
+  public void createConfigIfNotExists(String pathShop) {
     CompletableFuture<Boolean> futureRead = Utils.readFileAsync(pathShop, "shopconfig.json",
       el -> {
         Gson gson = Utils.newGson();
         ShopConfig config = gson.fromJson(el, ShopConfig.class);
         this.shop = config.getShop();
         CobbleUtils.LOGGER.info("shopconfig.json loaded successfully from " + pathShop);
-        addShopsFromPath(mod_id, pathShops);
       });
 
     if (!futureRead.join()) {
@@ -62,6 +61,10 @@ public class ShopConfig {
   public static List<Shop> addShopsFromPath(String mod_id, String path) {
     List<Shop> shopList = ShopConfigMenu.getShops(path);
 
+    shopList.forEach(ShopConfig::checkShop);
+
+    saveShopsToPath(mod_id, path, shopList);
+
     String default_path = path + "defaults/";
     // If no shops are found, create default shops
     CobbleUtils.LOGGER.info("No shops found. Creating default shops.");
@@ -78,17 +81,24 @@ public class ShopConfig {
     }
 
     shops.put(shopMod, shopList);
-
-    saveShops();
     return shopList;
   }
 
   private static List<Shop> createDefaultShops() {
     List<Shop> shopArrayList = List.of(
       new Shop("permanent", "Permanent", new ShopTypePermanent(), (short) 6, List.of()),
-      new Shop("dynamic", "Dynamic", new ShopTypeDynamic(), (short) 6, List.of()),
-      new Shop("weekly", "Weekly", new ShopTypeWeekly(), (short) 6, List.of()),
-      new Shop("dynamicweekly", "DynamicWeekly", new ShopTypeDynamicWeekly(), (short) 6, List.of())
+      new Shop("dynamic", "Dynamic", new ShopTypeDynamic(), (short) 6, List.of(
+        "%cooldown%",
+        "%amountProducts%"
+      )),
+      new Shop("weekly", "Weekly", new ShopTypeWeekly(), (short) 6, List.of(
+        "%days%"
+      )),
+      new Shop("dynamicweekly", "DynamicWeekly", new ShopTypeDynamicWeekly(), (short) 6, List.of(
+        "%cooldown%",
+        "%amountProducts%",
+        "%days%"
+      ))
     );
     for (int i = 0; i < shopArrayList.size(); i++) {
       shopArrayList.get(i).getDisplay().setSlot(i);
@@ -106,6 +116,7 @@ public class ShopConfig {
     for (Shop shop : shopList) {
       String json = gson.toJson(shop);
       String fileName = shop.getId() + ".json";
+      checkShop(shop);
 
       try {
         Utils.writeFileAsync(path, fileName, json).join();
@@ -115,31 +126,41 @@ public class ShopConfig {
     }
   }
 
-  public static void saveShops() {
-    Gson gson = Utils.newGson();
+  public static void checkShop(Shop shop) {
+    if (shop.getRows() < 1 || shop.getRows() > 6) shop.setRows((short) 6);
 
-    for (Map.Entry<ShopConfigMenu.ShopMod, List<Shop>> entry : shops.entrySet()) {
-      ShopConfigMenu.ShopMod shopMod = entry.getKey();
-      List<Shop> shopList = entry.getValue();
+    int max_array = (shop.getRows() * 9) - 1;
 
-      for (Shop shop : shopList) {
-        String json = gson.toJson(shop);
-        String fileName = shop.getId() + ".json";
+    if (shop.getSlotNext() > max_array) {
+      shop.setSlotNext(max_array);
+    }
 
-        try {
-          Utils.writeFileAsync(shopMod.getPath(), fileName, json).join();
-        } catch (Exception e) {
-          CobbleUtils.LOGGER.error("Failed to save shop " + shop.getId() + " for mod " + e);
-        }
-      }
+    if (shop.getSlotClose() > max_array) {
+      shop.setSlotClose(max_array - 4);
+    }
+
+    if (shop.getSlotPrevious() > max_array) {
+      shop.setSlotPrevious(max_array - 8);
+    }
+
+    if (shop.getPrevious() == null) {
+      shop.setPrevious(CobbleUtils.language.getItemPrevious());
+    }
+
+    if (shop.getNext() == null) {
+      shop.setNext(CobbleUtils.language.getItemNext());
+    }
+
+    if (shop.getClose() == null) {
+      shop.setClose(CobbleUtils.language.getItemClose());
     }
   }
 
   public void init(String pathShop, String mod_id, String pathShops) {
-    createConfigIfNotExists(mod_id, pathShops, pathShop);
+    createConfigIfNotExists(pathShop);
 
     List<Shop> shopList = addShopsFromPath(mod_id, pathShops);
-
+    shopList.forEach(ShopConfig::checkShop);
     loadTransactions(shop);
     ShopConfigMenu.addShops(mod_id, pathShops, shopList);
   }

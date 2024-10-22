@@ -14,7 +14,6 @@ public class ShopLang {
   public static String PATH_SHOP_LANG = CobbleUtils.PATH_SHOP + "lang/";
   private String prefix;
   private boolean changeItemError;
-  private boolean symbolBeforeAmount;
   private String soundBuy;
   private String soundSell;
   private String soundError;
@@ -61,7 +60,6 @@ public class ShopLang {
   public ShopLang() {
     this.prefix = "&7[&6Shop&7] &8»";
     this.changeItemError = true;
-    this.symbolBeforeAmount = true;
     this.soundBuy = "minecraft:entity.experience_orb.pickup";
     this.soundSell = "minecraft:entity.experience_orb.pickup";
     this.soundError = "minecraft:block.note_block.bass";
@@ -127,7 +125,6 @@ public class ShopLang {
         Gson gson = Utils.newGson();
         ShopLang lang = gson.fromJson(el, ShopLang.class);
         this.prefix = lang.getPrefix();
-        this.symbolBeforeAmount = lang.isSymbolBeforeAmount();
         this.soundBuy = lang.getSoundBuy();
         this.changeItemError = lang.isChangeItemError();
         this.soundSell = lang.getSoundSell();

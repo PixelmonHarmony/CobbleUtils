@@ -11,6 +11,7 @@ import com.cobblemon.mod.common.api.pokemon.Natures;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.api.pokemon.PokemonPropertyExtractor;
 import com.cobblemon.mod.common.api.pokemon.egg.EggGroup;
+import com.cobblemon.mod.common.api.pokemon.evolution.Evolution;
 import com.cobblemon.mod.common.api.pokemon.stats.Stats;
 import com.cobblemon.mod.common.api.storage.NoPokemonStoreException;
 import com.cobblemon.mod.common.item.CobblemonItem;
@@ -96,19 +97,11 @@ public class EggData {
 
         // Obtener el JsonArray bajo la clave "moves"
         JsonArray jsonArray = jsonObject.getAsJsonArray("moves");
-        CobbleUtils.LOGGER.info("JsonArray Moves: " + jsonArray.toString());
         jsonArray.forEach(element -> {
-          CobbleUtils.LOGGER.info(element.getAsString());
-
-          // Validar y agregar los movimientos a BenchedMoves
           Move move = Moves.INSTANCE.getByName(element.getAsString()).create();
-          if (move != null) {
-            JsonObject moveJson = move.saveToJSON(new JsonObject());
-            BenchedMove benchedMove = BenchedMove.Companion.loadFromJSON(moveJson);
-            pokemon.getBenchedMoves().add(benchedMove);
-          } else {
-            CobbleUtils.LOGGER.error("Move not found: " + element.getAsString());
-          }
+          JsonObject moveJson = move.saveToJSON(new JsonObject());
+          BenchedMove benchedMove = BenchedMove.Companion.loadFromJSON(moveJson);
+          pokemon.getBenchedMoves().add(benchedMove);
         });
       } catch (Exception e) {
         CobbleUtils.LOGGER.error("Error to process JSON ARRAY: " + e.getMessage());
@@ -196,13 +189,6 @@ public class EggData {
   public static Pokemon createEgg(
     Pokemon male, Pokemon female, ServerPlayerEntity player) throws NoPokemonStoreException {
 
-    // Validación inicial
-    if (male == null || female == null)
-      return null;
-    if (male.isLegendary() || male.isUltraBeast())
-      return null;
-    if (female.isLegendary() || female.isUltraBeast())
-      return null;
 
     // Intercambiar posiciones si Ditto está en la posición female
     if (female.getSpecies().showdownId().equalsIgnoreCase("ditto")) {
@@ -244,6 +230,16 @@ public class EggData {
 
     egg = EggData.pokemonToEgg(usePokemonToEgg, false, female);
 
+    if (!egg.showdownId().equalsIgnoreCase("egg")) {
+      player.sendMessage(
+        AdventureTranslator.toNative(
+          "%prefix% The CobbleUtils datapack is not installed, please notify the administrator about this.",
+          CobbleUtils.breedconfig.getPrefix()
+        )
+      );
+      return PokemonProperties.Companion.parse("rattata").create();
+    }
+
     if (random) egg.getPersistentData().putBoolean("random", true);
 
     // Aplicar la lógica de mecánicas y tamaño
@@ -258,14 +254,6 @@ public class EggData {
             .replace("%egg%", egg.getPersistentData().getString("species")),
           List.of(male, female, egg))));
 
-    if (!egg.showdownId().equalsIgnoreCase("egg")) {
-      player.sendMessage(
-        AdventureTranslator.toNative(
-          "%prefix% The CobbleUtils datapack is not installed, please notify the administrator about this.",
-          CobbleUtils.breedconfig.getPrefix()
-        )
-      );
-    }
 
     return egg;
   }
@@ -371,14 +359,11 @@ public class EggData {
 
     // Egg Moves
     List<String> moves = new ArrayList<>();
-    male.getMoveSet().getMoves().forEach(move -> moves.add(move.getName()));
-    female.getMoveSet().getMoves().forEach(move -> moves.add(move.getName()));
-
-    male.getBenchedMoves().forEach(move -> moves.add(move.getMoveTemplate().getName()));
-    female.getBenchedMoves().forEach(move -> moves.add(move.getMoveTemplate().getName()));
+    male.getAllAccessibleMoves().forEach(move -> moves.add(move.getName()));
+    female.getAllAccessibleMoves().forEach(move -> moves.add(move.getName()));
 
     List<String> names = new ArrayList<>();
-    female.getForm().getMoves().getEggMoves().forEach(eggmove -> {
+    usePokemonToEgg.getForm().getMoves().getEggMoves().forEach(eggmove -> {
       if (moves.contains(eggmove.getName())) {
         names.add(eggmove.getName());
       }
@@ -515,15 +500,19 @@ public class EggData {
 
 
   private static void applyAbility(Pokemon male, Pokemon female, Pokemon firstEvolution, Pokemon egg) {
-    boolean maleHiddenAbility = PokemonUtils.haveAH(male);
-    boolean femaleHiddenAbility = PokemonUtils.haveAH(female);
+    boolean maleHiddenAbility = PokemonUtils.isAH(male);
+    boolean femaleHiddenAbility = PokemonUtils.isAH(female);
     egg.getPersistentData().remove("ability");
     if (isDitto(male) && isDitto(female)) {
       Ability randomAbility = PokemonUtils.getRandomAbility(firstEvolution);
       egg.getPersistentData().putString("ability", randomAbility.getName());
       return;
     }
-    if ((maleHiddenAbility || femaleHiddenAbility) && (male.showdownId().equalsIgnoreCase(female.showdownId()) || (isDitto(male) && femaleHiddenAbility) || (isDitto(female) && maleHiddenAbility))) {
+    if ((maleHiddenAbility || femaleHiddenAbility)
+      && (male.getSpecies().showdownId().equalsIgnoreCase(female.getSpecies().showdownId())
+      || (isDitto(male) && femaleHiddenAbility)
+      || (isDitto(female) && maleHiddenAbility)
+      || isEvolution(male, female))) {
       if (Utils.RANDOM.nextDouble(100) <= CobbleUtils.breedconfig.getSuccessItems().getPercentageTransmitAH()) {
         Ability ability1 = PokemonUtils.getAH(firstEvolution);
         egg.getPersistentData().putString("ability", ability1.getName());
@@ -537,11 +526,69 @@ public class EggData {
     }
   }
 
+  private static boolean isEvolution(Pokemon male, Pokemon female) {
+    Pokemon nextEvolution = PokemonUtils.getFirstEvolution(female);
+    String id;
+    short count = 0;
+
+    // Initial debug message
+    if (CobbleUtils.config.isDebug()) {
+      CobbleUtils.LOGGER.info("Starting evolution check between: " + male.getSpecies().showdownId() + " and " + female.getSpecies().showdownId());
+    }
+
+    while (count < 6) {
+      if (nextEvolution == null) {
+        if (CobbleUtils.config.isDebug()) {
+          CobbleUtils.LOGGER.info("No more evolutions. End of check.");
+        }
+        return false;
+      }
+      count++;
+      id = nextEvolution.getSpecies().showdownId();
+
+      // Debug message for the current evolution
+      if (CobbleUtils.config.isDebug()) {
+        CobbleUtils.LOGGER.info("Checking evolution: " + id + " (count: " + count + ")");
+      }
+
+      if (id.equalsIgnoreCase(male.getSpecies().showdownId())) {
+        if (CobbleUtils.config.isDebug()) {
+          CobbleUtils.LOGGER.info("Evolution found! " + id + " matches " + male.getSpecies().showdownId() + " or " + female.getSpecies().showdownId());
+        }
+        return true;
+      }
+
+      for (Evolution evolution : nextEvolution.getSpecies().getEvolutions()) {
+        nextEvolution = evolution.getResult().create();
+        id = nextEvolution.getSpecies().showdownId();
+
+        // Debug message inside the for loop
+        if (CobbleUtils.config.isDebug()) {
+          CobbleUtils.LOGGER.info("Checking evolution in loop: " + id + " (count: " + count + ")");
+        }
+
+        if (id.equalsIgnoreCase(male.getSpecies().showdownId())) {
+          if (CobbleUtils.config.isDebug()) {
+            CobbleUtils.LOGGER.info("Evolution found! " + id + " matches " + male.getSpecies().showdownId() + " or " + female.getSpecies().showdownId());
+          }
+          return true;
+        }
+      }
+    }
+
+    if (CobbleUtils.config.isDebug()) {
+      CobbleUtils.LOGGER.info("No evolution found between " + male.getSpecies().showdownId() + " and " + female.getSpecies().showdownId());
+    }
+    return false;
+  }
+
+
   private static Pokemon pokemonToEgg(Pokemon usePokemon, boolean dittos, Pokemon female) {
     String specie = getExcepcionalSpecie(usePokemon);
-    Pokemon egg = PokemonProperties.Companion.parse("egg type_egg=" + specie).create();
-    EggData.applyPersistent(egg, usePokemon, specie, dittos, female);
-    return egg;
+    if (CobbleUtils.config.isDebug()) {
+      CobbleUtils.LOGGER.info("Create Egg: egg type_egg=" + specie);
+    }
+    return EggData.applyPersistent(usePokemon, specie, dittos, female);
   }
 
 
@@ -653,8 +700,8 @@ public class EggData {
     return form;
   }
 
-  private static void applyPersistent(Pokemon egg, Pokemon pokemon, String lure_species, boolean dittos,
-                                      Pokemon female) {
+  private static Pokemon applyPersistent(Pokemon pokemon, String lure_species, boolean dittos,
+                                         Pokemon female) {
     Pokemon firstEvolution;
 
     if (lure_species == null) {
@@ -662,6 +709,8 @@ public class EggData {
     } else {
       firstEvolution = PokemonProperties.Companion.parse(lure_species).create();
     }
+
+    Pokemon egg = PokemonProperties.Companion.parse("egg type_egg=" + firstEvolution.showdownId()).create();
 
     egg.getPersistentData().putString("species", firstEvolution.getSpecies().showdownId());
     egg.getPersistentData().putString("nature", pokemon.getNature().getName().getPath());
@@ -680,6 +729,7 @@ public class EggData {
         PokemonUtils.replace(
           CobbleUtils.breedconfig.getNameEgg(), pokemon)));
     }
+    return egg;
   }
 
   public String getInfo() {

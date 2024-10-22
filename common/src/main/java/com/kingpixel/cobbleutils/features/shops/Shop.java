@@ -5,6 +5,7 @@ import ca.landonjw.gooeylibs2.api.button.Button;
 import ca.landonjw.gooeylibs2.api.button.ButtonClick;
 import ca.landonjw.gooeylibs2.api.button.GooeyButton;
 import ca.landonjw.gooeylibs2.api.button.PlaceholderButton;
+import ca.landonjw.gooeylibs2.api.button.linked.LinkType;
 import ca.landonjw.gooeylibs2.api.button.linked.LinkedPageButton;
 import ca.landonjw.gooeylibs2.api.helpers.PaginationHelper;
 import ca.landonjw.gooeylibs2.api.page.GooeyPage;
@@ -19,7 +20,6 @@ import com.kingpixel.cobbleutils.features.shops.models.Product;
 import com.kingpixel.cobbleutils.features.shops.models.types.ShopType;
 import com.kingpixel.cobbleutils.features.shops.models.types.ShopTypeDynamic;
 import com.kingpixel.cobbleutils.features.shops.models.types.ShopTypeDynamicWeekly;
-import com.kingpixel.cobbleutils.features.shops.models.types.ShopTypePermanent;
 import com.kingpixel.cobbleutils.util.*;
 import lombok.*;
 import net.minecraft.item.ItemStack;
@@ -47,12 +47,16 @@ public class Shop {
   private String currency;
   private short rows;
   private short slotbalance;
-  private int slotNext;
-  private List<Integer> slotsNext;
+  private ItemModel previous;
   private int slotPrevious;
   private List<Integer> slotsPrevious;
+  private String closeCommand;
+  private ItemModel close;
   private int slotClose;
   private List<Integer> slotsClose;
+  private ItemModel next;
+  private int slotNext;
+  private List<Integer> slotsNext;
   private int globalDiscount;
   private String soundopen;
   private String soundclose;
@@ -64,6 +68,48 @@ public class Shop {
   private ItemModel display;
   private List<Product> products;
   private List<FillItems> fillItems;
+
+  public Shop(String id, String title, ShopType shopType, short rows, List<String> lore) {
+    this.active = true;
+    this.id = id;
+    this.title = title;
+    this.rows = rows;
+    this.slotbalance = 47;
+    this.slotNext = 53;
+    this.slotsNext = List.of();
+    this.slotPrevious = 45;
+    this.slotsPrevious = List.of();
+    this.slotClose = 49;
+    this.slotsClose = List.of();
+    this.soundopen = "cobblemon:pc.on";
+    this.soundclose = "cobblemon:pc.off";
+    this.currency = "dollars";
+    this.templateType = TemplateType.CHEST;
+    this.rectangle = new Rectangle();
+    this.shopType = shopType;
+    this.colorItem = "<#6bd68f>";
+    this.closeCommand = "";
+    this.globalDiscount = 0;
+    this.display = new ItemModel("cobblemon:poke_ball");
+    display.setDisplayname(title);
+    display.setLore(lore);
+    this.products = getDefaultProducts();
+    this.fillItems = new ArrayList<>();
+    this.fillItems.add(new FillItems());
+    switch (shopType.getTypeShop()) {
+      case DYNAMIC:
+
+        break;
+      case DYNAMIC_WEEKLY:
+
+        break;
+      case WEEKLY:
+        break;
+      default:
+
+        break;
+    }
+  }
 
   @Getter
   @Setter
@@ -108,116 +154,12 @@ public class Shop {
 
   }
 
-  public Shop() {
-    this.active = true;
-    this.id = "default";
-    this.title = "Default";
-    this.rows = 6;
-    this.slotbalance = 47;
-    this.slotNext = 53;
-    this.slotsNext = List.of(52);
-    this.slotPrevious = 45;
-    this.slotsPrevious = List.of(46);
-    this.slotClose = 49;
-    this.slotsClose = List.of(48, 50);
-    this.soundopen = "cobblemon:pc.on";
-    this.soundclose = "cobblemon:pc.off";
-    this.currency = "dollars";
-    this.templateType = TemplateType.CHEST;
-    this.rectangle = new Rectangle();
-    this.shopType = new ShopTypePermanent();
-    this.colorItem = "<#6bd68f>";
-    this.globalDiscount = 0;
-    this.display = new ItemModel("cobblemon:poke_ball");
-    this.products = getDefaultProducts();
-    this.fillItems = new ArrayList<>();
-    this.fillItems.add(new FillItems());
-  }
 
   private List<Product> getDefaultProducts() {
     List<Product> products = new ArrayList<>();
     products.add(new Product());
     products.add(new Product(true));
     return products;
-  }
-
-  public Shop(String id, String title, ShopType shopType, short rows, List<String> lore) {
-    this.active = true;
-    this.id = id;
-    this.title = title;
-    this.rows = rows;
-    this.slotbalance = 47;
-    this.slotNext = 53;
-    this.slotsNext = List.of(52);
-    this.slotPrevious = 45;
-    this.slotsPrevious = List.of(46);
-    this.slotClose = 49;
-    this.slotsClose = List.of(48, 50);
-    this.soundopen = "cobblemon:pc.on";
-    this.soundclose = "cobblemon:pc.off";
-    this.currency = "dollars";
-    this.templateType = TemplateType.CHEST;
-    this.rectangle = new Rectangle();
-    this.shopType = shopType;
-    this.colorItem = "<#6bd68f>";
-    this.globalDiscount = 0;
-    this.display = new ItemModel("cobblemon:poke_ball");
-    display.setLore(lore);
-    this.products = getDefaultProducts();
-    this.fillItems = new ArrayList<>();
-    this.fillItems.add(new FillItems());
-  }
-
-  public Shop(String id, String title, short rows, String currency, ItemModel display) {
-    this.active = true;
-    this.id = id;
-    this.title = title;
-    this.rows = rows;
-    this.soundopen = "cobblemon:pc.on";
-    this.soundclose = "cobblemon:pc.off";
-    this.currency = currency;
-    this.colorItem = "<#6bd68f>";
-    this.rectangle = new Rectangle();
-    this.templateType = TemplateType.CHEST;
-    this.shopType = new ShopTypePermanent();
-    this.display = display;
-    this.slotbalance = 47;
-    this.slotNext = 53;
-    this.slotsNext = List.of(52);
-    this.slotPrevious = 45;
-    this.slotsPrevious = List.of(46);
-    this.slotClose = 49;
-    this.slotsClose = List.of(48, 50);
-    this.globalDiscount = 0;
-    this.products = getDefaultProducts();
-    this.fillItems = new ArrayList<>();
-    this.fillItems.add(new FillItems());
-  }
-
-  public Shop(String id, String title, short rows, String currency, ItemModel display, ShopType shopType) {
-    this.active = true;
-    this.id = id;
-    this.title = title;
-    this.rows = rows;
-    this.soundopen = "cobblemon:pc.on";
-    this.soundclose = "cobblemon:pc.off";
-    this.currency = currency;
-    this.rectangle = new Rectangle();
-    this.templateType = TemplateType.CHEST;
-    this.shopType = shopType;
-    this.colorItem = "<#6bd68f>";
-    this.display = display;
-    this.globalDiscount = 0;
-    this.slotbalance = 47;
-    this.slotNext = 53;
-    this.slotsNext = List.of(52);
-    this.slotPrevious = 45;
-    this.slotsPrevious = List.of(46);
-    this.slotClose = 49;
-    this.slotsClose = List.of(48, 50);
-    this.products = getProducts();
-    this.fillItems = new ArrayList<>();
-    this.fillItems.add(new FillItems());
   }
 
 
@@ -278,8 +220,8 @@ public class Shop {
       }
 
       products.forEach(product -> {
-        BigDecimal buy = product.getBuy().setScale(EconomyUtil.getDecimals(getCurrency()), RoundingMode.HALF_UP);
-        BigDecimal sell = product.getSell().setScale(EconomyUtil.getDecimals(getCurrency()), RoundingMode.HALF_UP);
+        BigDecimal buy = product.getBuy();
+        BigDecimal sell = product.getSell();
 
 
         TypeError typeError = getTypeError(product, player);
@@ -313,7 +255,7 @@ public class Shop {
           .onClick(action -> {
             if (typeError == TypeError.NONE) {
               if (product.getPermission() != null) {
-                if (LuckPermsUtil.checkPermission(player, product.getPermission()) && product.getNotCanBuyWithPermission())
+                if (LuckPermsUtil.checkPermission(player, product.getPermission()) && product.getNotCanBuyWithPermission() != null && product.getNotCanBuyWithPermission())
                   return;
               }
               switch (getShopAction(product)) {
@@ -356,11 +298,6 @@ public class Shop {
       });
 
 
-      GooeyButton close = UIUtils.getCloseButton(action -> {
-        ShopConfigMenu.open(player, shopConfig, mod_id, byCommand);
-      });
-
-
       if (!getFillItems().isEmpty()) {
         getFillItems().forEach(fillItem -> {
           ItemStack itemStack = fillItem.getItemStack();
@@ -396,26 +333,47 @@ public class Shop {
           .build());
 
       }
+
       // Display
       int slotfree = rectangle.getSlotsFree(rows);
 
       if (!byCommand) {
-        template.set(slotClose, close);
-        slotsClose.forEach(slot -> template.set(slot, close));
+        GooeyButton close = getClose().getButton(action -> {
+          if (closeCommand == null || closeCommand.isEmpty()) {
+            ShopConfigMenu.open(player, shopConfig, mod_id, byCommand);
+          } else {
+            PlayerUtils.executeCommand(closeCommand, player);
+          }
+        });
+        template.set(getSlotClose(), close);
+        if (slotsClose != null && !slotsClose.isEmpty())
+          slotsClose.forEach(slot -> template.set(slot, close));
       }
 
       if (slotfree - products.size() < 0) {
-        LinkedPageButton next = UIUtils.getNextButton(action -> {
-          SoundUtil.playSound(getSoundopen(), action.getPlayer());
-        });
-        template.set(slotNext, next);
-        slotsNext.forEach(slot -> template.set(slot, next));
-        
-        LinkedPageButton previous = UIUtils.getPreviousButton(action -> {
-          SoundUtil.playSound(getSoundopen(), action.getPlayer());
-        });
-        template.set(slotPrevious, previous);
-        slotsPrevious.forEach(slot -> template.set(slot, previous));
+        LinkedPageButton next = LinkedPageButton.builder()
+          .display(getNext().getItemStack())
+          .title(AdventureTranslator.toNative(getNext().getDisplayname()))
+          .onClick(action -> {
+            SoundUtil.playSound(getSoundopen(), action.getPlayer());
+          })
+          .linkType(LinkType.Next)
+          .build();
+        template.set(getSlotNext(), next);
+        if (slotsNext != null && !slotsNext.isEmpty())
+          slotsNext.forEach(slot -> template.set(slot, next));
+
+        LinkedPageButton previous = LinkedPageButton.builder()
+          .display(getPrevious().getItemStack())
+          .title(AdventureTranslator.toNative(getPrevious().getDisplayname()))
+          .onClick(action -> {
+            SoundUtil.playSound(getSoundopen(), action.getPlayer());
+          })
+          .linkType(LinkType.Previous)
+          .build();
+        template.set(getSlotPrevious(), previous);
+        if (slotsPrevious != null && !slotsPrevious.isEmpty())
+          slotsPrevious.forEach(slot -> template.set(slot, previous));
       }
 
       LinkedPage.Builder linkedPageBuilder = LinkedPage
@@ -425,6 +383,7 @@ public class Shop {
         .onClose(pageAction -> {
           SoundUtil.playSound(getSoundclose(), pageAction.getPlayer());
         });
+
 
       GooeyPage page = PaginationHelper.createPagesFromPlaceholders(template, buttons, linkedPageBuilder);
       UIManager.openUIForcefully(player, page);
@@ -452,6 +411,9 @@ public class Shop {
                                       String symbol, TypeError typeError, BigDecimal amount) {
     List<String> lore = new ArrayList<>(CobbleUtils.shopLang.getLoreProduct());
 
+    if (product.getLore() != null && !product.getLore().isEmpty()) {
+      lore.addAll(product.getLore());
+    }
 
     if (buy.compareTo(BigDecimal.ZERO) <= 0) {
       lore.removeIf(s -> s.contains("%buy%"));
@@ -480,9 +442,9 @@ public class Shop {
         player.getUuid()))
       .replace("%currency%", getCurrency())
       .replace("%symbol%", symbol)
-      .replace("%amount%", "1")
+      .replace("%amount%", amount.toString())
       .replace("%amountproduct%", String.valueOf(product.getItemchance().getItemStack().getCount()))
-      .replace("%total%", String.valueOf((amount.compareTo(BigDecimal.ZERO) == 0) ? 1 : amount))
+      .replace("%total%", String.valueOf((amount.compareTo(BigDecimal.ZERO) == 0) ? 1 : amount.multiply(BigDecimal.valueOf(product.getItemchance().getItemStack().getCount()))))
       .replace("%balance%", EconomyUtil.getBalance(player, getCurrency(), EconomyUtil.getDecimals(getCurrency())))
       .replace("%removebuy%", "")
       .replace("%removesell%", "")
@@ -586,8 +548,7 @@ public class Shop {
       .build();
 
     int maxStack = product.getItemchance().getItemStack().getMaxCount();
-    BigDecimal price =
-      calculatePrice(product, typeMenu, BigDecimal.valueOf(amount), true).setScale(EconomyUtil.getDecimals(getCurrency()), RoundingMode.HALF_UP);
+    BigDecimal price = calculatePrice(product, typeMenu, BigDecimal.valueOf(amount), true);
     String title = generateTitle(product, typeMenu);
     String symbol = EconomyUtil.getSymbol(getCurrency());
 
@@ -671,6 +632,12 @@ public class Shop {
       int itemsPerPackage = productStack.getCount(); // Número de ítems en cada paquete
       int maxStackSize = productStack.getMaxCount(); // Capacidad máxima de un ItemStack
 
+      if (itemChance.getType() == ItemChance.ItemChanceType.ITEM) {
+        if (itemChance.getItem().startsWith("item:")) {
+          itemsPerPackage = Integer.parseInt(itemChance.getItem().split(":")[1]);
+        }
+      }
+
       // Total de ítems a entregar
       int totalItems = amount * itemsPerPackage;
 
@@ -700,9 +667,9 @@ public class Shop {
     int packageSize = product.getItemchance().getItemStack().getCount();
     int digits = EconomyUtil.getDecimals(getCurrency());
     BigDecimal unitPrice =
-      product.getSell().setScale(digits, RoundingMode.HALF_UP).divide(BigDecimal.valueOf(packageSize), digits, RoundingMode.HALF_UP);
+      product.getSell().divide(BigDecimal.valueOf(packageSize), digits, RoundingMode.UNNECESSARY);
     BigDecimal totalPrice =
-      unitPrice.setScale(digits, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(amount));
+      unitPrice.multiply(BigDecimal.valueOf(amount));
 
     // Verifica si el jugador tiene la cantidad requerida del producto en su inventario
     int amountItemInv = player.getInventory().main.stream()

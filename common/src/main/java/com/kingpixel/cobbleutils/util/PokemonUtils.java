@@ -156,16 +156,16 @@ public class PokemonUtils {
       } else {
         p.updateAbility(getRandomAbility(p));
       }
-      ah = haveAH(p) ? CobbleUtils.language.getAH() : "";
+      ah = isAH(p) ? CobbleUtils.language.getAH() : "";
     } else {
-      ah = haveAH(pokemon) ? CobbleUtils.language.getAH() : "";
+      ah = isAH(pokemon) ? CobbleUtils.language.getAH() : "";
     }
 
     return message
       .replace("%level" + indexStr + "%", String.valueOf(pokemon.getLevel()))
       .replace("%nature" + indexStr + "%", getNatureTranslate(nature))
       .replace("%pokemon" + indexStr + "%", isEgg(pokemon) ? pokemon.getPersistentData().getString("species") :
-        pokemon.getDisplayName().getString())
+        getTranslatedName(pokemon))
       .replace("%shiny" + indexStr + "%", pokemon.getShiny() ? CobbleUtils.language.getSymbolshiny() : "")
       .replace("%ability" + indexStr + "%", isEgg(pokemon) ? pokemon.getPersistentData().getString("ability") : getAbilityTranslate(pokemon.getAbility()))
       .replace("%ivshp" + indexStr + "%", String.valueOf(pokemon.getIvs().get(Stats.HP)))
@@ -209,7 +209,6 @@ public class PokemonUtils {
       .replace("%dex" + indexStr + "%", String.valueOf(pokemon.getSpecies().getNationalPokedexNumber()))
       .replace("%labels" + indexStr + "%", pokemon.getForm().getLabels().toString());
   }
-
 
   /**
    * Replace the placeholders with the pokemon data
@@ -335,7 +334,7 @@ public class PokemonUtils {
    *
    */
   public static String getTranslatedName(Pokemon pokemon) {
-    return "<lang:cobblemon.species." + pokemon.getSpecies().showdownId() + ".name>";
+    return "<lang:cobblemon.species." + pokemon.showdownId() + ".name>";
   }
 
   /**
@@ -645,10 +644,10 @@ public class PokemonUtils {
    *
    * @return If the pokemon has the hidden ability
    */
-  public static boolean haveAH(Pokemon pokemon) {
+  public static boolean isAH(Pokemon pokemon) {
     for (PotentialAbility ability : pokemon.getForm().getAbilities()) {
       if (ability.getType() instanceof HiddenAbilityType) {
-        return ability.getTemplate().getName().equalsIgnoreCase(pokemon.getAbility().getName());
+        return ability.getTemplate().getName().equalsIgnoreCase(pokemon.getAbility().getTemplate().getName());
       }
     }
     return false;
@@ -747,4 +746,5 @@ public class PokemonUtils {
   public static void setBreedable(Pokemon pokemon, Boolean value) {
     pokemon.getPersistentData().putBoolean(CobbleUtilsTags.BREEDABLE_TAG, value);
   }
+
 }

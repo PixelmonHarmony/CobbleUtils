@@ -28,16 +28,17 @@ public class PlotBreedingUI {
     ChestTemplate template = ChestTemplate.builder(CobbleUtils.breedconfig.getRowmenuselectplot()).build();
 
     int size = CobbleUtils.breedconfig.getMaxplots();
-    int max = 0;
+    int max = 1;
 
     for (int i = 0; i < size; i++) {
-      if (LuckPermsUtil.checkPermission(player, CobbleUtils.breedconfig.getPermissionplot(i))) max = i;
+      if (LuckPermsUtil.checkPermission(player, CobbleUtils.breedconfig.getPermissionplot(i + 1))) max = i;
     }
 
     if (max > size) max = size;
+    if (max < CobbleUtils.breedconfig.getDefaultNumberPlots()) max = CobbleUtils.breedconfig.getDefaultNumberPlots();
 
 
-    for (int i = 0; i <= max; i++) {
+    for (int i = 0; i < max; i++) {
       PlotBreeding plotBreeding = Breeding.managerPlotEggs.getEggs().get(player.getUuid()).get(i);
       List<String> lore = new ArrayList<>(CobbleUtils.breedconfig.getPlotItem().getLore());
       int amount = plotBreeding.getEggs().size();

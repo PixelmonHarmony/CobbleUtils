@@ -55,10 +55,8 @@ public class FilterPokemons {
   private Set<String> blacklistRarity;
   // Also implemented
   private boolean alsoImplemented;
-  // Not is a evolution
+  // Also First Evolution
   private boolean notEvolution;
-  // Also can Egg
-  private boolean canEgg;
 
 
   public FilterPokemons() {
@@ -98,7 +96,6 @@ public class FilterPokemons {
 
     alsoImplemented = true;
     notEvolution = false;
-    canEgg = false;
   }
 
   public static void removeCache(String modid) {
@@ -116,6 +113,10 @@ public class FilterPokemons {
   private List<Pokemon> getCachePokemons(String modId, String id) {
     List<Pokemon> allowedPokemons;
     if (cache.containsKey(modId) && cache.get(modId).containsKey(id)) {
+      if (cache.get(modId).get(id).isEmpty()) {
+        allowedPokemons = getAllowedPokemons();
+        cache.get(modId).put(id, allowedPokemons);
+      }
       allowedPokemons = cache.get(modId).get(id);
     } else {
       allowedPokemons = getAllowedPokemons();
@@ -171,7 +172,6 @@ public class FilterPokemons {
     for (int i = 0; i < size; i++) {
       pokemons.add(getPokemon(allowedPokemons.get(Utils.RANDOM.nextInt(allowedPokemons.size()))));
     }
-    allowedPokemons.clear();
     return pokemons;
   }
 
@@ -226,7 +226,7 @@ public class FilterPokemons {
   }
 
   private boolean isFirstEvolution(Pokemon pokemon) {
-    return pokemon.getPreEvolution() == null;
+    return pokemon.getPreEvolution() != null;
   }
 
   private boolean canEgg(Pokemon pokemon) {
@@ -242,7 +242,6 @@ public class FilterPokemons {
    */
   private boolean isAllowed(Pokemon pokemon) {
     if (notEvolution && isFirstEvolution(pokemon)) return false;
-    if (canEgg && canEgg(pokemon)) return false;
     if (alsoImplemented && !pokemon.getSpecies().getImplemented()) return false;
 
     // Precalcular tipos

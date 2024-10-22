@@ -78,7 +78,7 @@ public class PoolItems {
         return itemChance;
       }
     }
-    return new ItemChance("minecraft:stone", 100);
+    return items.get(Utils.RANDOM.nextInt(items.size()));
   }
 
 }

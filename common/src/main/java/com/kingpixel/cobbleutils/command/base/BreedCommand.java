@@ -107,7 +107,7 @@ public class BreedCommand implements Command<ServerCommandSource> {
 
   private static boolean isCooldownActive(ServerPlayerEntity player) {
     Long cooldown = cooldowns.get(player.getUuid());
-    if (cooldown != null && PlayerUtils.isCooldown(cooldown)) {
+    if (PlayerUtils.isCooldown(cooldown)) {
       player.sendMessage(AdventureTranslator.toNative(CobbleUtils.language.getMessageCooldown()
         .replace("%prefix%", CobbleUtils.breedconfig.getPrefix())
         .replace("%cooldown%", PlayerUtils.getCooldown(new Date(cooldown)))));

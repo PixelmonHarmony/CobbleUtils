@@ -48,9 +48,6 @@ public abstract class EconomyUtil {
     BigDecimal balance = getBalance(player, currency);
 
     if (balance != null) {
-      // Redondear el balance al número de dígitos decimales especificados
-      balance = balance.setScale(digits, RoundingMode.HALF_UP);
-      // Devolver como cadena de texto
       return formatCurrency(balance, currency, player.getUuid());
     }
 
@@ -354,33 +351,6 @@ public abstract class EconomyUtil {
     }
   }
 
-  /**
-   * Method to format a BigDecimal to a currency string.
-   *
-   * @param amount   The balance to format.
-   * @param currency The currency to format the balance to.
-   *
-   * @return The formatted balance with the format of Country host.
-   */
-  public static String formatCurrency(BigDecimal amount, Currency currency) {
-    try {
-      return formatCurrency(amount, currency, UUID.randomUUID());
-    } catch (NoSuchMethodError | Exception e) {
-      return formatCurrency(amount, "");
-    }
-  }
-
-  /**
-   * Method to format a BigDecimal to a currency string.
-   *
-   * @param amount   The balance to format.
-   * @param currency The currency to format the balance to.
-   *
-   * @return The formatted balance with the format of Country host.
-   */
-  public static String formatCurrency(BigDecimal amount, String currency) {
-    return formatCurrency(amount, currency, UUID.randomUUID());
-  }
 
   /**
    * Method to format a BigDecimal to a currency string.
@@ -411,33 +381,42 @@ public abstract class EconomyUtil {
       userinfo = Breeding.playerCountry.get(player);
     }
 
-    Locale locale;
-    if (userinfo == null) {
-      locale = Locale.getDefault();
-    } else {
-      locale = new Locale(userinfo.language(), userinfo.countryCode());
+    // Definir la localidad predeterminada o la del jugador
+    Locale locale = (userinfo == null) ? Locale.getDefault() : new Locale(userinfo.language(), userinfo.countryCode());
 
-    }
-
+    // Obtener un NumberFormat para la moneda de esa localización
     NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(locale);
 
-    // Comprobar si el NumberFormat es una instancia de DecimalFormat
+    // Definir el número de decimales
+    int decimals = getDecimals(currency);
+    currencyFormatter.setMinimumFractionDigits(decimals);
+    currencyFormatter.setMaximumFractionDigits(decimals);
+
+    // Si el formateador es una instancia de DecimalFormat, modificar el símbolo de moneda
     if (currencyFormatter instanceof DecimalFormat) {
-      // Obtener los símbolos de formato actuales
-      DecimalFormatSymbols symbols = ((DecimalFormat) currencyFormatter).getDecimalFormatSymbols();
+      DecimalFormat decimalFormat = (DecimalFormat) currencyFormatter;
+      DecimalFormatSymbols symbols = decimalFormat.getDecimalFormatSymbols();
 
-      // Cambiar el símbolo de la moneda al que desees
+      // Cambiar el símbolo de la moneda
       symbols.setCurrencySymbol(getSymbol(currency));
-      ((DecimalFormat) currencyFormatter).setDecimalFormatSymbols(symbols);
+      decimalFormat.setDecimalFormatSymbols(symbols);
 
-      // Configurar el patrón de formato para determinar la posición del símbolo
-      String pattern = CobbleUtils.shopLang.isSymbolBeforeAmount() ? "¤ #,##0.00" : "#,##0.00 ¤";
-      ((DecimalFormat) currencyFormatter).applyPattern(pattern);
+      // Verificar si el patrón de formato es válido antes de aplicarlo
+      String moneyPattern = CobbleUtils.language.getFormatMoney();
+      if (moneyPattern != null && !moneyPattern.isEmpty()) {
+        try {
+          decimalFormat.applyPattern(moneyPattern);
+        } catch (IllegalArgumentException e) {
+          // Loggear un error o manejar el caso en que el patrón no sea válido
+          System.err.println("Error aplicando el patrón de formato: " + e.getMessage());
+        }
+      }
     }
 
-    // Formatear y devolver el BigDecimal como una cadena
+    // Devolver la cantidad formateada
     return currencyFormatter.format(amount);
   }
+
 
   /**
    * Method to get the currency from the impactor api.
@@ -458,6 +437,9 @@ public abstract class EconomyUtil {
       String c = currency.trim();
       return impactorService.currencies().currency(Key.key(c)).orElseGet(() -> impactorService.currencies().primary());
     } catch (NoSuchMethodError | Exception e) {
+      if (CobbleUtils.config.isDebug()) {
+        CobbleUtils.LOGGER.error("Error getting currency");
+      }
       return impactorService.currencies().primary();
     }
   }
@@ -503,7 +485,6 @@ public abstract class EconomyUtil {
    */
   public static String getSymbol(Currency currency) {
     try {
-
       String symbol = currency.symbol().toString();
       if (symbol == null) symbol = CobbleUtils.language.getDefaultSymbol();
       return symbol;
@@ -537,15 +518,19 @@ public abstract class EconomyUtil {
   public static BigDecimal getBalance(ServerPlayerEntity player, @Subst("") String currency) {
     setEconomyType();
     return switch (economyType) {
-      case IMPACTOR -> getAccount(player.getUuid(), currency).balance()
-        .setScale(getCurrency(currency).decimals(), RoundingMode.HALF_UP);
+      case IMPACTOR -> getAccount(player.getUuid(), currency).balance();
       case VAULT -> {
-        yield BigDecimal.valueOf(vaultEconomy.getBalance(player.getGameProfile().getName()));
-        /*double balance = WebSocketClient.getInstance().getBalance(player.getUuid(), currency).join();
-        yield BigDecimal.valueOf(balance);*/
+        double vaultBalance = vaultEconomy.getBalance(player.getGameProfile().getName());
+        // Asegurarse de que el valor tenga 2 decimales y redondeo apropiado
+        yield BigDecimal.valueOf(vaultBalance).setScale(2, RoundingMode.HALF_UP);
       }
-      case BLANKECONOMY -> BlanketEconomy.INSTANCE.getAPI().getBalance(player.getUuid(), currency);
+      case BLANKECONOMY -> {
+        BigDecimal blanketBalance = BlanketEconomy.INSTANCE.getAPI().getBalance(player.getUuid(), currency);
+        // Redondear el balance si es necesario
+        yield blanketBalance.setScale(2, RoundingMode.HALF_UP);
+      }
       default -> BigDecimal.ZERO;
     };
   }
+
 }

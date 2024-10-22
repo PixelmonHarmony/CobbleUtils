@@ -96,8 +96,8 @@ public class ShopCommand implements Command<ServerCommandSource> {
                       .executes(context -> {
                         ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
                         String shop = StringArgumentType.getString(context, "shop");
-                        if (LuckPermsUtil.checkPermission(player, mod_id + ".shop." + shop)) {
-                          shopConfig.getShop().open(player, shop, shopConfig, mod_id, true);
+                        shopConfig.getShop().open(player, shop, shopConfig, mod_id, true);
+                        /*if (LuckPermsUtil.checkPermission(player, mod_id + ".shop." + shop)) {
                           return 1;
                         } else {
                           player.sendMessage(
@@ -106,9 +106,25 @@ public class ShopCommand implements Command<ServerCommandSource> {
                                 .replace("%prefix%", CobbleUtils.language.getPrefixShop())
                             )
                           );
-                        }
+                        }*/
                         return 1;
-                      })
+                      }).then(
+                        CommandManager.argument("close", StringArgumentType.string())
+                          .suggests((context, builder) -> {
+                            builder.suggest("true");
+                            builder.suggest("false");
+                            return builder.buildFuture();
+                          }).requires(source -> LuckPermsUtil.checkPermission(
+                            source, 2, List.of(mod_id + ".admin", mod_id + ".shopother")
+                          ))
+                          .executes(context -> {
+                            ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
+                            String shop = StringArgumentType.getString(context, "shop");
+                            boolean close = Boolean.parseBoolean(StringArgumentType.getString(context, "close"));
+                            shopConfig.getShop().open(player, shop, shopConfig, mod_id, close);
+                            return 1;
+                          })
+                      )
                   )
               )
           ).then(

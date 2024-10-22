@@ -15,7 +15,7 @@ import java.util.concurrent.CompletableFuture;
 public class Lang {
   private String prefixShop;
   // Messages
-
+  private String formatMoney;
 
   private String titlemenushiny;
   private String titlemenushinyoperation;
@@ -98,6 +98,7 @@ public class Lang {
    */
   public Lang() {
     prefixShop = "&eShop";
+    formatMoney = "#,##0.00 ¤";
     soundopen = "cobblemon:pc.on";
     soundclose = "cobblemon:pc.off";
     confirm = "&aConfirm";
@@ -247,6 +248,9 @@ public class Lang {
         Gson gson = Utils.newGson();
         Lang lang = gson.fromJson(el, Lang.class);
         confirm = lang.getConfirm();
+        formatMoney = lang.getFormatMoney();
+        prefixShop = lang.getPrefixShop();
+
         cancel = lang.getCancel();
         close = lang.getClose();
         next = lang.getNext();
@@ -273,7 +277,7 @@ public class Lang {
         messageNotHaveRewards = lang.getMessageNotHaveRewards();
         nocooldown = lang.getNocooldown();
         movecolor = lang.getMovecolor();
-
+        
         // Sound
         soundopen = lang.getSoundopen();
         soundclose = lang.getSoundclose();

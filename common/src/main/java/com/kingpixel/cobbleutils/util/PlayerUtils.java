@@ -1,9 +1,13 @@
 package com.kingpixel.cobbleutils.util;
 
 import com.kingpixel.cobbleutils.CobbleUtils;
+import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.ParseResults;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.Date;
@@ -123,6 +127,29 @@ public class PlayerUtils {
     if (cooldown == null) return false;
     return isCooldown(new Date(cooldown));
   }
+
+  /**
+   * Execute a command
+   *
+   * @param command The command to execute
+   *
+   * @return If the command was executed successfully
+   */
+  public static boolean executeCommand(String command, ServerPlayerEntity player) {
+    command = command.replace("%player%", player.getGameProfile().getName());
+    CommandDispatcher<ServerCommandSource> disparador = CobbleUtils.server.getCommandManager().getDispatcher();
+    try {
+      ServerCommandSource serverSource = CobbleUtils.server.getCommandSource();
+      ParseResults<ServerCommandSource> parse = disparador.parse(command, serverSource);
+      disparador.execute(parse);
+      return true;
+    } catch (CommandSyntaxException e) {
+      System.err.println("Error to execute command: " + command);
+      e.printStackTrace();
+      return false;
+    }
+  }
+
 
   /**
    * Method to cast a PlayerEntity to a ServerPlayerEntity.

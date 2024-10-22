@@ -125,6 +125,7 @@ public class ShopConfigMenu {
           try (FileReader reader = new FileReader(file)) {
             Shop shop = gson.fromJson(reader, Shop.class);
             if (shop.getShopType() == null) shop.setShopType(new ShopTypePermanent());
+            
             shopList.add(shop);
           } catch (Exception e) {
             e.printStackTrace();
@@ -133,7 +134,7 @@ public class ShopConfigMenu {
       }
     }
 
-    saveShops();
+    saveShops(path);
     return shopList;
   }
 
@@ -309,11 +310,12 @@ public class ShopConfigMenu {
       .orElse(null);
   }
 
-  public static void saveShops() {
+  public static void saveShops(String path) {
     Gson gson = Utils.newGson();
 
-    for (Map.Entry<ShopMod, List<Shop>> entry : shops.entrySet()) {  // Itera sobre cada ShopMod y su lista de Shops
+    for (Map.Entry<ShopMod, List<Shop>> entry : shops.entrySet()) {// Itera sobre cada ShopMod y su lista de Shops
       ShopMod shopMod = entry.getKey();
+      if (!shopMod.path.equalsIgnoreCase(path)) continue;
       List<Shop> shopList = entry.getValue();
 
       for (Shop shop : shopList) {  // Itera sobre cada Shop en la lista de Shops

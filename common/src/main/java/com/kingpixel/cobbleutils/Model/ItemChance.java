@@ -95,7 +95,8 @@ public class ItemChance {
     itemChances.add(new ItemChance("item:8:minecraft:dirt", 100));
     itemChances.add(new ItemChance("item:8:minecraft:dirt#{CustomModelData:1}", 100));
     itemChances.add(new ItemChance("pokemon:zorua hisuian", 100));
-    itemChances.add(new ItemChance("command:give %player% minecraft:dirt", 100));
+    itemChances.add(new ItemChance("command:lp user %player% permission set a", 100));
+    itemChances.add(new ItemChance("command:lp user %player% permission set a#lp user %player% permission set b", 100));
     itemChances.add(new ItemChance("money:100", 100));
     itemChances.add(new ItemChance("money:tokens:100", 100));
     itemChances.add(new ItemChance("mod:cobblehunt:radar", 100));
@@ -139,11 +140,19 @@ public class ItemChance {
         return RewardsUtils.saveRewardPokemon(player, pokemon);
       } else if (item.startsWith("command:")) {
         String command = item.replace("command:", "");
-        return RewardsUtils.saveRewardCommand(player, command);
+        String[] parts = command.split("#");
+        if (parts.length > 1) {
+          for (String part : parts) {
+            RewardsUtils.saveRewardCommand(player, part);
+          }
+          return true;
+        } else {
+          return RewardsUtils.saveRewardCommand(player, command);
+        }
       } else if (item.startsWith("money:")) {
         return handleMoneyReward(player, item);
       } else if (item.startsWith("item:")) {
-        itemStack = parseItemStack(item, amount);
+        itemStack = parseItemStack(item, parseAmount(item.split(":")[1]) * amount);
         return RewardsUtils.saveRewardItemStack(player, itemStack);
       } else if (item.startsWith("mod:")) {
         itemStack = getModItem(itemChance);
@@ -190,7 +199,7 @@ public class ItemChance {
     String[] itemSplit = split[0].split(":");
     String iditem = itemSplit[2] + ":" + itemSplit[3];
     itemStack = Utils.parseItemId(iditem, Integer.parseInt(itemSplit[1]));
-
+    itemStack.setCount(amount);
     if (split.length > 1) {
       try {
         itemStack.setNbt(NbtHelper.fromNbtProviderString(split[1]));
@@ -274,7 +283,7 @@ public class ItemChance {
     } else if (item.startsWith("money:")) {
       return parseMoneyItem(item);
     } else if (item.startsWith("item:")) {
-      return parseItemStack(item, amount);
+      return parseItemStack(item, parseAmount(item.split(":")[1]) * amount);
     } else if (item.startsWith("mod:")) {
       return getModItem(new ItemChance(item, 100));
     } else {
@@ -323,7 +332,7 @@ public class ItemChance {
     try {
       return Integer.parseInt(amountStr);
     } catch (NumberFormatException e) {
-      return 1;  // Valor por defecto en caso de error
+      return 1;
     }
   }
 
