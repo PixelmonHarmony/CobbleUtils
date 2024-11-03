@@ -47,6 +47,23 @@ public class Pokerus {
     pokemon.getPersistentData().putLong(CobbleUtilsTags.POKERUS_TIME_TAG, new Date().getTime() + TimeUnit.DAYS.toMillis(2));
   }
 
+  public static void applyPokemon(Pokemon pokemon) {
+    if (pokemon.getPersistentData().contains(POKERUS_TAG)) {
+      boolean pokerus = pokemon.getPersistentData().getBoolean(POKERUS_INFECTED_TAG);
+      if (!pokerus) {
+        pokemon.getPersistentData().putBoolean(POKERUS_TAG, true);
+        pokemon.getPersistentData().putLong(CobbleUtilsTags.POKERUS_TIME_TAG, new Date().getTime() + TimeUnit.DAYS.toMillis(2));
+      } else {
+        pokemon.getPersistentData().putBoolean(POKERUS_TAG, false);
+        pokemon.getPersistentData().remove(CobbleUtilsTags.POKERUS_TIME_TAG);
+      }
+
+    } else {
+      pokemon.getPersistentData().putBoolean(POKERUS_TAG, true);
+      pokemon.getPersistentData().putLong(CobbleUtilsTags.POKERUS_TIME_TAG, new Date().getTime() + TimeUnit.DAYS.toMillis(2));
+    }
+  }
+
   public static void applywithrarity(Pokemon pokemon) {
     if (pokemon.getPersistentData().getBoolean(POKERUS_TAG)) return;
     if (pokemon.getPersistentData().getBoolean(POKERUS_INFECTED_TAG)) return;

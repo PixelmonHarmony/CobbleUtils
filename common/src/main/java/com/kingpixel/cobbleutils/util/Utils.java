@@ -7,6 +7,7 @@ import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.cobblemon.mod.common.util.adapters.IntRangeAdapter;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.internal.bind.DateTypeAdapter;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.ItemModel;
 import com.kingpixel.cobbleutils.features.shops.ShopTransactions;
@@ -32,6 +33,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.CompletionHandler;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -46,6 +48,7 @@ import java.util.function.Consumer;
 
 public abstract class Utils {
   public static final Random RANDOM = new Random();
+  private static final Charset charset = StandardCharsets.UTF_8;
 
   public static Gson newGson() {
     return addAdapters(new GsonBuilder()
@@ -65,7 +68,8 @@ public abstract class Utils {
       .registerTypeAdapter(ShopType.class, new ShopTypeAdapter())
       .registerTypeAdapter(ShopTransactions.ShopAction.class, new ShopActionAdapter())
       .registerTypeAdapter(ElementalType.class, ElementalTypeAdapter.INSTANCE)
-      .registerTypeAdapter(IntRange.class, IntRangeAdapter.INSTANCE);
+      .registerTypeAdapter(IntRange.class, IntRangeAdapter.INSTANCE)
+      .registerTypeAdapter(DateTypeAdapter.class, new DateTypeAdapter());
   }
 
   public static CompletableFuture<Boolean> writeFileAsync(String filePath, String filename, String data) {
@@ -83,7 +87,7 @@ public abstract class Utils {
       StandardOpenOption.WRITE,
       StandardOpenOption.CREATE,
       StandardOpenOption.TRUNCATE_EXISTING)) {
-      ByteBuffer buffer = ByteBuffer.wrap(data.getBytes(StandardCharsets.UTF_8));
+      ByteBuffer buffer = ByteBuffer.wrap(data.getBytes(charset));
 
       fileChannel.write(buffer, 0, buffer, new CompletionHandler<Integer, ByteBuffer>() {
         @Override
@@ -111,7 +115,7 @@ public abstract class Utils {
   }
 
   public static boolean writeFileSync(File file, String data) {
-    try (FileWriter writer = new FileWriter(file)) {
+    try (FileWriter writer = new FileWriter(file, charset)) {
       writer.write(data);
       return true;
     } catch (IOException e) {
@@ -143,7 +147,7 @@ public abstract class Utils {
 
       byte[] bytes = new byte[buffer.remaining()];
       buffer.get(bytes);
-      String fileContent = new String(bytes, StandardCharsets.UTF_8);
+      String fileContent = new String(bytes, charset);
 
       callback.accept(fileContent);
 
@@ -159,7 +163,7 @@ public abstract class Utils {
   }
 
   public static boolean readFileSync(File file, Consumer<String> callback) {
-    try (Scanner reader = new Scanner(file)) {
+    try (Scanner reader = new Scanner(file, charset)) {
       StringBuilder data = new StringBuilder();
       while (reader.hasNextLine()) {
         data.append(reader.nextLine());
@@ -178,7 +182,7 @@ public abstract class Utils {
     if (!file.exists() || !file.isFile()) {
       throw new IllegalArgumentException("El archivo no existe o no es un archivo regular: " + file.getPath());
     }
-    return Files.readString(Path.of(file.getPath()));
+    return Files.readString(Path.of(file.getPath()), charset);
   }
 
   public static CompletableFuture<Void> writeFileAsync(File file, String content) {

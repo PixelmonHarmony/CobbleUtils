@@ -36,7 +36,7 @@ public class PartyManager {
 
   public PartyCreateResult createParty(ServerPlayerEntity player, String partyName) {
     if (isPlayerInParty(player)) return PartyCreateResult.ALREADY_IN_PARTY;
-
+    if (partyName.length() > CobbleUtils.partyConfig.getCharacterLimit()) return PartyCreateResult.NAME_TOO_LONG;
     PartyData newParty = new PartyData(partyName, PlayerInfo.fromPlayer(player));
     newParty.init();
     UUID partyId = newParty.getId();

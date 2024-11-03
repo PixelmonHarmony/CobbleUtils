@@ -65,10 +65,13 @@ public class CobbleUtilities {
 
     ItemChance.giveReward(player, item, amount);
 
+    if (CobbleUtils.language.getMessagerandomitem().isEmpty()) return;
+
     String message = CobbleUtils.language.getMessagerandomitem()
       .replace("%item%", item.getTitle())
       .replace("%amount%", String.valueOf(amount))
       .replace("%type%", type);
+
 
     player.sendMessage(AdventureTranslator.toNative(message));
   }
@@ -159,6 +162,7 @@ public class CobbleUtilities {
       player.sendMessage(AdventureTranslator.toNative("Invalid type."));
       return false;
     }
+
     String comando = CobbleUtils.config.getEcocommand()
       .replace("%amount%", String.valueOf(money))
       .replace("%player%", player.getGameProfile().getName());

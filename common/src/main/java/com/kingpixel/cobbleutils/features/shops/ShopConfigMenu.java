@@ -120,12 +120,12 @@ public class ShopConfigMenu {
 
       if (files != null) {
         Gson gson = Utils.newGson();
-
         for (File file : files) {
           try (FileReader reader = new FileReader(file)) {
             Shop shop = gson.fromJson(reader, Shop.class);
+            shop.setId(file.getName().replace(".json", ""));
             if (shop.getShopType() == null) shop.setShopType(new ShopTypePermanent());
-            
+
             shopList.add(shop);
           } catch (Exception e) {
             e.printStackTrace();

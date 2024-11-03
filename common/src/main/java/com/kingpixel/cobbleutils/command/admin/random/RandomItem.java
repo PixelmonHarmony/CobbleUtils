@@ -30,7 +30,7 @@ public class RandomItem implements Command<ServerCommandSource> {
           .requires(
             source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.giveitem", "cobbleutils.admin")))
           .then(
-            CommandManager.argument("type", StringArgumentType.string())
+            CommandManager.argument("item", StringArgumentType.string())
               .suggests(
                 (context, builder) -> {
                   CobbleUtils.poolItems.getRandomitems().forEach((key, value) -> builder.suggest(key));
@@ -46,7 +46,7 @@ public class RandomItem implements Command<ServerCommandSource> {
   @Override
   public int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
     ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
-    String type = StringArgumentType.getString(context, "type");
+    String type = StringArgumentType.getString(context, "item");
     int amount = IntegerArgumentType.getInteger(context, "amount");
     if (CobbleUtils.config.isDebug())
       CobbleUtils.LOGGER.info("RandomItem command");

@@ -45,17 +45,17 @@ public class RewardsItemStack implements Command<ServerCommandSource> {
                             return 0;
                           }
                           ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
-                          ItemStack itemStack = ItemStackArgumentType.getItemStackArgument(context, "item").createStack(1, false);
+                          ItemStack itemStack = ItemStackArgumentType.getItemStackArgument(context, "item").createStack(1, true);
                           RewardsUtils.saveRewardItemStack(player, itemStack);
                           return 1;
                         })
                         .then(
                           CommandManager.argument("amount", IntegerArgumentType.integer())
                             .executes(context -> {
-                              ServerPlayerEntity player = EntityArgumentType.getPlayer(context,
-                                "player");
+                              ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
                               int amount = IntegerArgumentType.getInteger(context, "amount");
-                              ItemStack itemStack = ItemStackArgumentType.getItemStackArgument(context, "item").createStack(amount, false);
+                              ItemStack itemStack =
+                                ItemStackArgumentType.getItemStackArgument(context, "item").createStack(amount, true);
                               RewardsUtils.saveRewardItemStack(player, itemStack);
                               return 1;
                             })))))));

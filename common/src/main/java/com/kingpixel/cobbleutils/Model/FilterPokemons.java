@@ -190,6 +190,7 @@ public class FilterPokemons {
           allowedPokemons.add(p);
         }
       } else {
+        List<String> yetAspects = new ArrayList<>();
         forms.forEach(form -> {
           Pokemon p;
           List<String> aspects = form.getAspects();
@@ -197,7 +198,6 @@ public class FilterPokemons {
             p = pokemon.create(1);
           } else {
             String aspect = aspects.get(0);
-
             aspect = aspect.replace("-", "_");
 
             int lastUnderscore = aspect.lastIndexOf("_");
@@ -213,6 +213,8 @@ public class FilterPokemons {
 
 
             p = PokemonProperties.Companion.parse(pokemon.showdownId() + " " + aspect).create();
+            if (yetAspects.contains(p.showdownId())) return;
+            yetAspects.add(p.showdownId());
           }
 
           if (isAllowed(p)) {

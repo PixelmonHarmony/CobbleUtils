@@ -101,7 +101,8 @@ public class RewardsUtils {
           if (spaceAvailable > 0) {
             int toAdd = Math.min(remainingCount, spaceAvailable);
             existingItemStack.setCount(existingCount + toAdd);
-            item.setItem(existingItemStack.getNbt().toString());
+            assert existingItemStack.getNbt() != null;
+            item.setItem(NbtHelper.toFormattedString(existingItemStack.getNbt()));
             remainingCount -= toAdd;
           }
         }
@@ -114,7 +115,7 @@ public class RewardsUtils {
       int toAdd = Math.min(remainingCount, maxStackSize);
       ItemStack newItemStack = itemStack.copy();
       newItemStack.setCount(toAdd);
-      rewardsData.getItems().add(ItemObject.fromString(newItemStack.getNbt().toString()));
+      rewardsData.getItems().add(ItemObject.fromItemStack(newItemStack));
       remainingCount -= toAdd;
     }
   }

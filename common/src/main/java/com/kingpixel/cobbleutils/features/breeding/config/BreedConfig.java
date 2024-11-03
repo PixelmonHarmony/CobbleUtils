@@ -135,7 +135,7 @@ public class BreedConfig {
     this.successItems = new SuccessItems();
     this.plotItem = new ItemModel(0, "minecraft:turtle_egg", "<#82d448>Plot", List.of(
       "&9male: &6%pokemon1% &f(&b%form1%&f) &f(&b%item1%&f)",
-      "&dfemale: &6%pokemon2% &f(&b%form2%&f) &f(&b%item1%&f)",
+      "&dfemale: &6%pokemon2% &f(&b%form2%&f) &f(&b%item2%&f)",
       "&7Eggs: &6%eggs%",
       "&7Cooldown: &6%cooldown%"
     ), 0);

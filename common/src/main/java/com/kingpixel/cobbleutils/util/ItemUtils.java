@@ -1,6 +1,8 @@
 package com.kingpixel.cobbleutils.util;
 
+import com.kingpixel.cobbleutils.CobbleUtils;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 
 /**
  * @author Carlos Varas Alonso - 04/07/2024 4:05
@@ -16,6 +18,7 @@ public class ItemUtils {
   }
 
   public static String getTranslatedName(ItemStack itemStack) {
+    if (itemStack.getItem() == Items.AIR) return CobbleUtils.language.getUnknown();
     if (itemStack.getNbt() == null) return "<lang:" + itemStack.getItem().getTranslationKey() + ">";
     if (itemStack.getNbt().contains("display")) return itemStack.getName().getString();
     return "<lang:" + itemStack.getItem().getTranslationKey() + ">";

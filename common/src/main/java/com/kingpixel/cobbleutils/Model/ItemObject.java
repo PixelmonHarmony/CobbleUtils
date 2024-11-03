@@ -4,6 +4,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtHelper;
 
 import java.util.UUID;
 
@@ -25,6 +27,10 @@ public class ItemObject {
 
   public static ItemObject fromString(String string) {
     return new ItemObject(UUID.randomUUID(), string);
+  }
+
+  public static ItemObject fromItemStack(ItemStack itemStack) {
+    return new ItemObject(UUID.randomUUID(), NbtHelper.toFormattedString(itemStack.getNbt(), true));
   }
 
 }

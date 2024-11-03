@@ -1,5 +1,6 @@
 package com.kingpixel.cobbleutils.features.breeding.models;
 
+import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.storage.NoPokemonStoreException;
 import com.cobblemon.mod.common.pokemon.Gender;
 import com.cobblemon.mod.common.pokemon.Pokemon;
@@ -49,9 +50,34 @@ public class PlotBreeding {
     });
     return TimeUnit.MINUTES.toMillis(cooldown.get()); // Devuelve solo el tiempo de cooldown en milisegundos
   }
-  
+
+  private Pokemon getPokemonMale() {
+    return Pokemon.Companion.loadFromJSON(male);
+  }
+
+  private Pokemon getPokemonFemale() {
+    return Pokemon.Companion.loadFromJSON(female);
+  }
+
   public void checking(ServerPlayerEntity player) {
     if (!CobbleUtils.breedconfig.isActive()) return;
+    boolean banPokemon = false;
+    if (CobbleUtils.breedconfig.getBlacklist().contains((male == null ? "null" : getPokemonMale().showdownId()))) {
+      Cobblemon.INSTANCE.getStorage().getParty(player).add(getPokemonMale());
+      male = null;
+      banPokemon = true;
+    }
+
+    if (CobbleUtils.breedconfig.getBlacklist().contains((female == null ? "null" : getPokemonFemale().showdownId()))) {
+      Cobblemon.INSTANCE.getStorage().getParty(player).add(getPokemonFemale());
+      female = null;
+      banPokemon = true;
+    }
+
+    if (banPokemon) {
+      Breeding.managerPlotEggs.writeInfo(player);
+      return;
+    }
 
     // Obtener el cooldown del jugador en milisegundos
     long playerCooldownMillis = applyCooldown(player);
@@ -74,11 +100,7 @@ public class PlotBreeding {
     // Verifica si el cooldown actual ha expirado
     if (cooldown < currentTime) {
       try {
-        Pokemon pokemon = EggData.createEgg(
-          Pokemon.Companion.loadFromJSON(male),
-          Pokemon.Companion.loadFromJSON(female),
-          player, this
-        );
+        Pokemon pokemon = EggData.createEgg(getPokemonMale(), getPokemonFemale(), player, this);
         if (pokemon != null) {
           if (eggs.size() >= CobbleUtils.breedconfig.getMaxeggperplot())
             return;

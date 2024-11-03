@@ -98,6 +98,7 @@ public class PokemonUtils {
 
     if (pokemon == null) {
       return message
+        .replace("%showdownid" + indexStr + "%", CobbleUtils.language.getUnknown())
         .replace("%level" + indexStr + "%", CobbleUtils.language.getUnknown())
         .replace("%nature" + indexStr + "%", CobbleUtils.language.getUnknown())
         .replace("%pokemon" + indexStr + "%", CobbleUtils.language.getUnknown())
@@ -142,7 +143,8 @@ public class PokemonUtils {
         .replace("%country" + indexStr + "%", CobbleUtils.language.getUnknown())
         .replace("%egggroups" + indexStr + "%", CobbleUtils.language.getUnknown())
         .replace("%dex " + indexStr + "%", CobbleUtils.language.getUnknown())
-        .replace("%labels" + indexStr + "%", CobbleUtils.language.getUnknown());
+        .replace("%labels" + indexStr + "%", CobbleUtils.language.getUnknown())
+        .replace("%aspects" + indexStr + "%", CobbleUtils.language.getUnknown());
     }
 
     Nature nature = pokemon.getNature();
@@ -160,12 +162,39 @@ public class PokemonUtils {
     } else {
       ah = isAH(pokemon) ? CobbleUtils.language.getAH() : "";
     }
+    String aspect;
+    List<String> aspects = pokemon.getAspects().stream().toList();
+
+    if (aspects == null || aspects.isEmpty()) {
+      aspect = "Normal";
+    } else {
+      String s = aspects.get(aspects.size() - 1);
+      if (s.contains("-")) {
+        String[] e = s.split("-");
+        switch (e.length) {
+          case 1 -> s = e[0];
+          case 2 -> s = e[1];
+          case 3 -> s = e[2];
+          default -> s = "Normal";
+        }
+      }
+      if (s.equalsIgnoreCase("male")
+        || s.equalsIgnoreCase("female")
+        || s.equalsIgnoreCase("genderless")
+        || s.equalsIgnoreCase("milkable")
+        || s.equalsIgnoreCase("family")) {
+        aspect = "Normal";
+      } else {
+        aspect = s;
+      }
+    }
+
 
     return message
+      .replace("%showdownid" + indexStr + "%", pokemon.showdownId())
       .replace("%level" + indexStr + "%", String.valueOf(pokemon.getLevel()))
       .replace("%nature" + indexStr + "%", getNatureTranslate(nature))
-      .replace("%pokemon" + indexStr + "%", isEgg(pokemon) ? pokemon.getPersistentData().getString("species") :
-        getTranslatedName(pokemon))
+      .replace("%pokemon" + indexStr + "%", isEgg(pokemon) ? pokemon.getPersistentData().getString("species") : getTranslatedName(pokemon))
       .replace("%shiny" + indexStr + "%", pokemon.getShiny() ? CobbleUtils.language.getSymbolshiny() : "")
       .replace("%ability" + indexStr + "%", isEgg(pokemon) ? pokemon.getPersistentData().getString("ability") : getAbilityTranslate(pokemon.getAbility()))
       .replace("%ivshp" + indexStr + "%", String.valueOf(pokemon.getIvs().get(Stats.HP)))
@@ -183,8 +212,11 @@ public class PokemonUtils {
       .replace("%legendary" + indexStr + "%", pokemon.isLegendary() ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
       .replace("%item" + indexStr + "%", ItemUtils.getTranslatedName(pokemon.heldItem()))
       .replace("%size" + indexStr + "%", getSize(pokemon))
-      .replace("%form" + indexStr + "%", isEgg(pokemon) ? (pokemon.getPersistentData().getString("form").isEmpty() ? "Normal" : pokemon.getPersistentData().getString("form")) : CobbleUtils.language.getForms().getOrDefault(pokemon.getForm().getName(), pokemon.getForm().getName()))
-      .replace("%aspect" + indexStr + "%", pokemon.getAspects().stream().toList().toString())
+      .replace("%form" + indexStr + "%", isEgg(pokemon)
+        ? (pokemon.getPersistentData().getString("form").isEmpty()
+        ? "Normal" : pokemon.getPersistentData().getString("form")) : pokemon.getForm().getName().equalsIgnoreCase("normal")
+        ? aspect
+        : CobbleUtils.language.getForms().getOrDefault(pokemon.getForm().getName(), pokemon.getForm().getName()))
       .replace("%up" + indexStr + "%", getStatTranslate(nature.getIncreasedStat()))
       .replace("%down" + indexStr + "%", getStatTranslate(nature.getDecreasedStat()))
       .replace("%ball" + indexStr + "%", getPokeBallTranslate(pokemon.getCaughtBall()))
@@ -207,7 +239,8 @@ public class PokemonUtils {
       .replace("%country" + indexStr + "%", pokemon.getPersistentData().getString(CobbleUtilsTags.COUNTRY_TAG).isEmpty() ? CobbleUtils.language.getNone() : pokemon.getPersistentData().getString(CobbleUtilsTags.COUNTRY_TAG))
       .replace("%egggroups" + indexStr + "%", eggGroups(pokemon))
       .replace("%dex" + indexStr + "%", String.valueOf(pokemon.getSpecies().getNationalPokedexNumber()))
-      .replace("%labels" + indexStr + "%", pokemon.getForm().getLabels().toString());
+      .replace("%labels" + indexStr + "%", pokemon.getForm().getLabels().toString())
+      .replace("%aspects" + indexStr + "%", pokemon.getAspects().stream().toList().toString());
   }
 
   /**
@@ -334,7 +367,7 @@ public class PokemonUtils {
    *
    */
   public static String getTranslatedName(Pokemon pokemon) {
-    return "<lang:cobblemon.species." + pokemon.showdownId() + ".name>";
+    return "<lang:cobblemon.species." + pokemon.getSpecies().showdownId() + ".name>";
   }
 
   /**

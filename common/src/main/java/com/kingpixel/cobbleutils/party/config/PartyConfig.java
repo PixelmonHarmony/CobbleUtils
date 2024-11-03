@@ -16,12 +16,14 @@ public class PartyConfig {
   private int maxPartySize;
   private boolean temporalParty;
   private boolean partyleavewhenexit;
+  private int characterLimit;
 
 
   public PartyConfig() {
     maxPartySize = 5;
     temporalParty = true;
     partyleavewhenexit = true;
+    characterLimit = 30;
   }
 
   public void init() {
@@ -32,9 +34,9 @@ public class PartyConfig {
         this.maxPartySize = config.getMaxPartySize();
         this.temporalParty = config.isTemporalParty();
         this.partyleavewhenexit = config.isPartyleavewhenexit();
+        this.characterLimit = config.getCharacterLimit();
         String data = gson.toJson(this);
-        CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(CobbleUtils.PATH_PARTY, "config.json",
-          data);
+        CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(CobbleUtils.PATH_PARTY, "config.json", data);
         if (!futureWrite.join()) {
           CobbleUtils.LOGGER.fatal("Could not write config.json file for " + CobbleUtils.MOD_NAME + ".");
         }

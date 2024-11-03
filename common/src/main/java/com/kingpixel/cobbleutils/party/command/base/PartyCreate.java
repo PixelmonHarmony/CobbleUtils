@@ -39,10 +39,16 @@ public class PartyCreate implements Command<ServerCommandSource> {
     switch (partyCreateResult) {
       case SUCCESS:
         player.sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyCreated()
-          .replace("%partyname%", name)));
+          .replace("%partyname%", name)
+          .replace("%player%", player.getGameProfile().getName())
+          .replace("%leader%", player.getGameProfile().getName())
+        ));
         break;
       case ALREADY_IN_PARTY:
         player.sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyAlreadyInParty()));
+        break;
+      case NAME_TOO_LONG:
+        player.sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyCharacterLimit()));
         break;
       default:
         player.sendMessage(AdventureTranslator.toNative(CobbleUtils.partyLang.getPartyAlreadyExists()));

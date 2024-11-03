@@ -76,7 +76,7 @@ public class Config {
     commandrewards = List.of("rewards", "curewards");
     commmandplugin = List.of("cobbleutils", "pokeutils");
     commandshop = List.of("shop", "cushop");
-    shops = false;
+    shops = true;
     shulkers = true;
     randomsize = true;
     fossil = true;

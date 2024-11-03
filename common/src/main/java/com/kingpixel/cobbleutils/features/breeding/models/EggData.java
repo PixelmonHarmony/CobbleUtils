@@ -585,14 +585,12 @@ public class EggData {
 
   private static Pokemon pokemonToEgg(Pokemon usePokemon, boolean dittos, Pokemon female) {
     String specie = getExcepcionalSpecie(usePokemon);
-    if (CobbleUtils.config.isDebug()) {
-      CobbleUtils.LOGGER.info("Create Egg: egg type_egg=" + specie);
-    }
     return EggData.applyPersistent(usePokemon, specie, dittos, female);
   }
 
 
   private static String getExcepcionalSpecie(Pokemon pokemon) {
+    if (CobbleUtils.breedconfig.getIncenses().isEmpty()) return null;
     AtomicReference<String> s = new AtomicReference<>();
     CobbleUtils.breedconfig.getIncenses().forEach(incense -> {
       if (s.get() == null) {

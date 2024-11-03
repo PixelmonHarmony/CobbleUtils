@@ -39,6 +39,7 @@ public class PartyLang {
   private String partyNotInvites;
   private String partyChat;
   private String partyChatNotValidMessage;
+  private String partyCharacterLimit;
   private List<String> partyLoreMember;
 
 
@@ -76,6 +77,7 @@ public class PartyLang {
     partyNotInvites = "%partyprefix% You don't have any invites!";
     partyChatNotValidMessage = "%partyprefix% Your message contains invalid characters!";
     partyLoreMember = List.of("§6Leader: %leader%", "§6Members: %members%");
+    partyCharacterLimit = "§cCharacter limit reached!";
   }
 
   /**
@@ -116,6 +118,7 @@ public class PartyLang {
         this.partyNotInvites = lang.getPartyNotInvites();
         this.partyChatNotValidMessage = lang.getPartyChatNotValidMessage();
         this.partyLoreMember = lang.getPartyLoreMember();
+        this.partyCharacterLimit = lang.getPartyCharacterLimit();
         String data = gson.toJson(this);
         CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(CobbleUtils.PATH_PARTY_LANG, CobbleUtils.config.getLang() +
             ".json",

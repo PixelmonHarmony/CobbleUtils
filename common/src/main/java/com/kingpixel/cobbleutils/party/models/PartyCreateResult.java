@@ -6,5 +6,5 @@ package com.kingpixel.cobbleutils.party.models;
 public enum PartyCreateResult {
   SUCCESS,
   ALREADY_IN_PARTY,
-  ERROR
+  NAME_TOO_LONG, ERROR
 }

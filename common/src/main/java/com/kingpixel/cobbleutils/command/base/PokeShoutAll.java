@@ -32,7 +32,7 @@ public class PokeShoutAll implements Command<ServerCommandSource> {
                               LiteralArgumentBuilder<ServerCommandSource> base) {
     dispatcher.register(
       base
-        .requires(source -> LuckPermsUtil.checkPermission(source, 0, List.of("cobbleutils.pokeshoutplusall",
+        .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.pokeshoutplusall",
           "cobbleutils" +
             ".user")))
         .executes(context -> {
