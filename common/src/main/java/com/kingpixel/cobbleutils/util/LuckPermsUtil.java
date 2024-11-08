@@ -84,7 +84,7 @@ public abstract class LuckPermsUtil {
   }
 
 
-  private static boolean checkLuckPermsPermission(ServerPlayerEntity player, List<String> permissions) {
+  public static boolean checkLuckPermsPermission(ServerPlayerEntity player, List<String> permissions) {
     LuckPerms luckPermsApi = getLuckPermsApi();
     if (luckPermsApi == null) return false;
     UserManager userManager = luckPermsApi.getUserManager();
@@ -99,6 +99,7 @@ public abstract class LuckPermsUtil {
     }
     return false;
   }
+
 
   public static boolean checkPermission(ServerCommandSource source, int level, String permission) {
     return checkPermission(source, level, List.of(permission));

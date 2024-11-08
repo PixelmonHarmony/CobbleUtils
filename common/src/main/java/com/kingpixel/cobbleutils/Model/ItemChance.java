@@ -6,7 +6,6 @@ import com.cobblemon.mod.common.api.storage.NoPokemonStoreException;
 import com.cobblemon.mod.common.item.PokemonItem;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.CobbleUtils;
-import com.kingpixel.cobbleutils.Model.options.ImpactorItem;
 import com.kingpixel.cobbleutils.util.*;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import lombok.Getter;
@@ -18,6 +17,7 @@ import net.minecraft.nbt.NbtHelper;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -169,28 +169,31 @@ public class ItemChance {
 
   private static boolean handleMoneyReward(ServerPlayerEntity player, String item) {
     int money;
-    String command;
-    if (item.split(":").length < 3) {
-      money = Integer.parseInt(item.replace("money:", ""));
+    String currency = "";
+    switch (item.split(":").length)
+    {
+      case 2:
+        money = Integer.parseInt(item.split(":")[1]);
+        currency = "dollars";
+        break;
+      case 3:
+        money = Integer.parseInt(item.split(":")[2]);
+        currency = item.split(":")[1];
+        break;
+      default:
+        money = Integer.parseInt(item.replace("money:", ""));
+        break;
+    }
+
+    CobbleUtils.LOGGER.info("Money: " + money + " Currency: " + currency + " Player: " + player.getGameProfile().getName() + " Split: " + item.split(":").length);
+
+    if (!CobbleUtils.language.getMessageReceiveMoney().isEmpty()){
       player.sendMessage(AdventureTranslator.toNativeWithOutPrefix(
         CobbleUtils.language.getMessageReceiveMoney()
           .replace("%amount%", String.valueOf(money))));
-      command = CobbleUtils.config.getEcocommand()
-        .replace("%player%", player.getGameProfile().getName())
-        .replace("%amount%", String.valueOf(money));
-    } else {
-      money = Integer.parseInt(item.split(":")[2]);
-      String currency = item.split(":")[1];
-      ImpactorItem impactorItem = CobbleUtils.config.getImpactorEconomy().getItemsCommands().get(currency);
-      player.sendMessage(AdventureTranslator.toNativeWithOutPrefix(
-        impactorItem.getMessage()
-          .replace("%amount%", String.valueOf(money))));
-      command = CobbleUtils.config.getImpactorEconomy().getEcocommand()
-        .replace("%player%", player.getGameProfile().getName())
-        .replace("%amount%", String.valueOf(money))
-        .replace("%currency%", currency);
     }
-    return RewardsUtils.saveRewardCommand(player, command);
+
+    return EconomyUtil.addMoney(player, currency, BigDecimal.valueOf(money));
   }
 
   private static ItemStack parseItemStack(String item, int amount) {
@@ -306,26 +309,21 @@ public class ItemChance {
     String currency = "money";
     int amount = 1;
 
-    if (parts.length == 2) {
-      amount = parseAmount(parts[1]);
-    } else if (parts.length == 3) {
-      currency = parts[1];
-      amount = parseAmount(parts[2]);
-    } else {
-      return ItemStack.EMPTY;
+    switch (parts.length) {
+      case 2:
+        amount = Integer.parseInt(parts[1]);
+        break;
+      case 3:
+        currency = parts[1];
+        amount = Integer.parseInt(parts[2]);
+        break;
     }
 
-    // Obtener el ItemStack correspondiente al currency
-    ItemStack itemStack;
-    if (currency.equalsIgnoreCase("money")) {
-      ItemModel itemModel = CobbleUtils.language.getItemMoney();
-      itemStack = new ItemModel(itemModel.getItem(), itemModel.getDisplayname().replace("%amount%", String.valueOf(amount))).getItemStack();
-    } else {
-      ImpactorItem impactorItem = CobbleUtils.config.getImpactorEconomy().getItemsCommands().get(currency);
-      impactorItem.getItem().setDisplayname(impactorItem.getItem().getDisplayname().replace("%amount%", String.valueOf(amount)));
-      itemStack = impactorItem.getItem().getItemStack();
-    }
-    return itemStack;
+    ItemModel impactorItem = new ItemModel(CobbleUtils.language.getItemsEconomy().getOrDefault(currency,
+      new ItemModel(CobbleUtils.language.getItemMoney())));
+    impactorItem.setDisplayname(impactorItem.getDisplayname().replace("%amount%", String.valueOf(amount)));
+
+    return impactorItem.getItemStack();
   }
 
   private static int parseAmount(String amountStr) {
@@ -378,8 +376,9 @@ public class ItemChance {
     } else {
       money = Integer.parseInt(item.split(":")[2]);
       String currency = item.split(":")[1];
-      ImpactorItem impactorItem = CobbleUtils.config.getImpactorEconomy().getItemsCommands().get(currency);
-      return impactorItem.getItem().getDisplayname().replace("%amount%", String.valueOf(money));
+      ItemModel impactorItem = new ItemModel(CobbleUtils.language.getItemsEconomy().getOrDefault(currency,
+        new ItemModel(CobbleUtils.language.getItemMoney())));
+      return impactorItem.getDisplayname().replace("%amount%", String.valueOf(money));
     }
   }
 

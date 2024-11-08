@@ -16,6 +16,7 @@ pluginManagement {
         maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
         maven("https://maven.impactdev.net/raepository/development")
         maven("https://repo.essentialsx.net/releases/")
+        maven("https://maven.impactdev.net/repository/development/")
         gradlePluginPortal()
         mavenLocal()
         maven("https://maven.nucleoid.xyz/") {

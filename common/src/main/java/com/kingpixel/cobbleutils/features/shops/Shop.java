@@ -44,29 +44,26 @@ public class Shop {
   private boolean active;
   private String id;
   private String title;
-  private String currency;
   private short rows;
+  private String currency;
+  private TemplateType templateType;
+  private ShopType shopType;
+  private Rectangle rectangle;
+  private ItemModel display;
   private short slotbalance;
-  private ItemModel previous;
-  private int slotPrevious;
-  private List<Integer> slotsPrevious;
-  private String closeCommand;
-  private ItemModel close;
-  private int slotClose;
-  private List<Integer> slotsClose;
-  private ItemModel next;
-  private int slotNext;
-  private List<Integer> slotsNext;
   private int globalDiscount;
   private String soundopen;
   private String soundclose;
   private String colorItem;
-  private ShopType shopType;
-  private TemplateType templateType;
-  //private ItemModel money;
-  private Rectangle rectangle;
-  private ItemModel display;
+  private ItemModel previous;
+  private String closeCommand;
+  private ItemModel close;
+  private ItemModel next;
   private List<Product> products;
+  private List<Integer> slotsPrevious;
+  private List<Integer> slotsClose;
+  private List<Integer> slotsNext;
+  //private ItemModel money;
   private List<FillItems> fillItems;
 
   public Shop(String id, String title, ShopType shopType, short rows, List<String> lore) {
@@ -75,11 +72,8 @@ public class Shop {
     this.title = title;
     this.rows = rows;
     this.slotbalance = 47;
-    this.slotNext = 53;
     this.slotsNext = List.of();
-    this.slotPrevious = 45;
     this.slotsPrevious = List.of();
-    this.slotClose = 49;
     this.slotsClose = List.of();
     this.soundopen = "cobblemon:pc.on";
     this.soundclose = "cobblemon:pc.off";
@@ -316,6 +310,7 @@ public class Shop {
         getRectangle().getWidth(),
         new PlaceholderButton());
 
+
       // Balance
       ItemModel balance = CobbleUtils.shopLang.getBalance();
       List<String> lorebalance = new ArrayList<>(balance.getLore());
@@ -345,7 +340,7 @@ public class Shop {
             PlayerUtils.executeCommand(closeCommand, player);
           }
         });
-        template.set(getSlotClose(), close);
+        template.set(getClose().getSlot(), close);
         if (slotsClose != null && !slotsClose.isEmpty())
           slotsClose.forEach(slot -> template.set(slot, close));
       }
@@ -359,7 +354,7 @@ public class Shop {
           })
           .linkType(LinkType.Next)
           .build();
-        template.set(getSlotNext(), next);
+        template.set(getClose().getSlot(), next);
         if (slotsNext != null && !slotsNext.isEmpty())
           slotsNext.forEach(slot -> template.set(slot, next));
 
@@ -371,21 +366,22 @@ public class Shop {
           })
           .linkType(LinkType.Previous)
           .build();
-        template.set(getSlotPrevious(), previous);
+        template.set(getClose().getSlot(), previous);
         if (slotsPrevious != null && !slotsPrevious.isEmpty())
           slotsPrevious.forEach(slot -> template.set(slot, previous));
       }
+      PlaceholderButton placeholder = new PlaceholderButton();
+      LinkedPage.Builder linkedPageBuilder = LinkedPage.builder();
 
-      LinkedPage.Builder linkedPageBuilder = LinkedPage
-        .builder()
-        .title(AdventureTranslator.toNative(this.title))
-        .onOpen(pageAction -> SoundUtil.playSound(getSoundopen(), pageAction.getPlayer()))
-        .onClose(pageAction -> {
-          SoundUtil.playSound(getSoundclose(), pageAction.getPlayer());
-        });
+      template.rectangle(rectangle.getStartRow(), rectangle.getStartColumn(), rectangle.getLength(), rectangle.getWidth(),
+        placeholder);
+      linkedPageBuilder
+        .template(template)
+        .title(title)
+        .build();
 
 
-      GooeyPage page = PaginationHelper.createPagesFromPlaceholders(template, buttons, linkedPageBuilder);
+      LinkedPage page = PaginationHelper.createPagesFromPlaceholders(template, buttons, linkedPageBuilder);
       UIManager.openUIForcefully(player, page);
     } catch (Exception e) {
       e.printStackTrace();
@@ -409,6 +405,10 @@ public class Shop {
 
   private List<String> getLoreProduct(BigDecimal buy, BigDecimal sell, Product product, ServerPlayerEntity player,
                                       String symbol, TypeError typeError, BigDecimal amount) {
+    String symbolValue = (symbol != null) ? symbol : "";
+    String currencyValue = (currency != null) ? currency : "";
+    BigDecimal amountValue = (amount != null) ? amount : BigDecimal.ZERO;
+
     List<String> lore = new ArrayList<>(CobbleUtils.shopLang.getLoreProduct());
 
     if (product.getLore() != null && !product.getLore().isEmpty()) {
@@ -436,21 +436,21 @@ public class Shop {
     haveDiscount(product);
 
     lore.replaceAll(s -> s
-      .replace("%buy%", haveDiscount(product) ? "&m" + priceWithoutDiscount + "&r &e" + priceDiscount :
-        priceWithoutDiscount)
-      .replace("%sell%", EconomyUtil.formatCurrency(calculatePrice(product, TypeMenu.SELL, amount, false), currency,
+      .replace("%buy%", haveDiscount(product) ? "&m" + (priceWithoutDiscount != null ? priceWithoutDiscount : "") + "&r &e" + (priceDiscount != null ? priceDiscount : "") :
+        (priceWithoutDiscount != null ? priceWithoutDiscount : ""))
+      .replace("%sell%", EconomyUtil.formatCurrency(calculatePrice(product, TypeMenu.SELL, amountValue, false), currencyValue,
         player.getUuid()))
-      .replace("%currency%", getCurrency())
-      .replace("%symbol%", symbol)
-      .replace("%amount%", amount.toString())
+      .replace("%currency%", getCurrency() != null ? getCurrency() : "")
+      .replace("%symbol%", symbolValue)
+      .replace("%amount%", amountValue.toString())
       .replace("%amountproduct%", String.valueOf(product.getItemchance().getItemStack().getCount()))
-      .replace("%total%", String.valueOf((amount.compareTo(BigDecimal.ZERO) == 0) ? 1 : amount.multiply(BigDecimal.valueOf(product.getItemchance().getItemStack().getCount()))))
+      .replace("%total%", String.valueOf(amountValue.compareTo(BigDecimal.ZERO) == 0 ? 1 : amountValue.multiply(BigDecimal.valueOf(product.getItemchance().getItemStack().getCount()))))
       .replace("%balance%", EconomyUtil.getBalance(player, getCurrency(), EconomyUtil.getDecimals(getCurrency())))
       .replace("%removebuy%", "")
       .replace("%removesell%", "")
       .replace("%discount%", (discount > 0) ? discount + "%" : "")
-
     );
+
 
     if (typeError == TypeError.PERMISSION) {
       lore = new ArrayList<>(lore);
@@ -622,7 +622,10 @@ public class Shop {
 
   private boolean buyProduct(ServerPlayerEntity player, Product product, int amount, BigDecimal price) {
     if (price.compareTo(BigDecimal.ZERO) <= 0) return false;
-    if (EconomyUtil.hasEnough(player, getCurrency(), price)) {
+    if (CobbleUtils.config.isDebug()) {
+      CobbleUtils.LOGGER.info("Buy product: " + "Currency -> " + currency + " Price -> " + price + " Amount -> " + amount);
+    }
+    if (EconomyUtil.hasEnough(player, currency, price)) {
       SoundUtil.playSound(CobbleUtils.shopLang.getSoundBuy(), player);
 
       ItemChance itemChance = product.getItemchance();
@@ -666,8 +669,10 @@ public class Shop {
   private boolean sellProduct(ServerPlayerEntity player, Product product, int amount) {
     int packageSize = product.getItemchance().getItemStack().getCount();
     int digits = EconomyUtil.getDecimals(getCurrency());
+
     BigDecimal unitPrice =
-      product.getSell().divide(BigDecimal.valueOf(packageSize), digits, RoundingMode.UNNECESSARY);
+      product.getSell().divide(BigDecimal.valueOf(packageSize), digits, RoundingMode.HALF_EVEN);
+
     BigDecimal totalPrice =
       unitPrice.multiply(BigDecimal.valueOf(amount));
 

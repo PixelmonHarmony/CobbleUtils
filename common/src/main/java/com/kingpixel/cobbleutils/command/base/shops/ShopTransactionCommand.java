@@ -67,6 +67,7 @@ public class ShopTransactionCommand implements Command<ServerCommandSource> {
   }
 
   private static GooeyPage getTransactionsPlayers(ServerPlayerEntity viewer, ShopConfigMenu shop) {
+    viewer.sendMessage(AdventureTranslator.toNative("&7This command is still in development."));
     ChestTemplate template = ChestTemplate.builder(6).build();
 
     List<Button> buttons = generatePlayerButtons(viewer);

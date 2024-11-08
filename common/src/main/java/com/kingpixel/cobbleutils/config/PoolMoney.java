@@ -1,10 +1,12 @@
 package com.kingpixel.cobbleutils.config;
 
+import com.cobblemon.mod.common.api.storage.NoPokemonStoreException;
 import com.google.gson.Gson;
 import com.kingpixel.cobbleutils.CobbleUtils;
-import com.kingpixel.cobbleutils.Model.MoneyChance;
+import com.kingpixel.cobbleutils.Model.ItemChance;
 import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Getter;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.List;
 import java.util.Map;
@@ -15,13 +17,12 @@ import java.util.concurrent.CompletableFuture;
  */
 @Getter
 public class PoolMoney {
-  private Map<String, List<MoneyChance>> randomMoney;
+  private Map<String, List<ItemChance>> randomMoney;
 
 
   public PoolMoney() {
     randomMoney = Map.of(
-      "a", List.of(new MoneyChance(1, 100)),
-      "b", List.of(new MoneyChance(2, 100), new MoneyChance(3, 100))
+      "default", List.of(new ItemChance("money:tokens:100", 50), new ItemChance("money:100", 50))
     );
   }
 
@@ -60,23 +61,27 @@ public class PoolMoney {
    *
    * @return El ítem seleccionado según las probabilidades.
    */
-  public int getRandomMoney(String category) {
-    List<MoneyChance> moneys = randomMoney.get(category);
+  public boolean getRandomMoney(ServerPlayerEntity player, String category) {
+    List<ItemChance> moneys = randomMoney.get(category);
     if (moneys == null || moneys.isEmpty()) {
-      return 0;
+      return false;
     }
 
-    int totalWeight = moneys.stream().mapToInt(MoneyChance::getChance).sum();
+    int totalWeight = moneys.stream().mapToInt(ItemChance::getChance).sum();
     int randomValue = Utils.RANDOM.nextInt(totalWeight) + 1;
 
     int currentWeight = 0;
-    for (MoneyChance itemChance : moneys) {
+    for (ItemChance itemChance : moneys) {
       currentWeight += itemChance.getChance();
       if (randomValue <= currentWeight) {
-        return itemChance.getMoney();
+        try{
+          return ItemChance.giveReward(player, itemChance);
+        } catch (NoPokemonStoreException e){
+          e.printStackTrace();
+        }
       }
     }
-    return 0;
+    return false;
   }
 
 

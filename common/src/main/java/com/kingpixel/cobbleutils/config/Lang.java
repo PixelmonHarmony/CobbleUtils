@@ -93,6 +93,8 @@ public class Lang {
   private ItemModel itemCancel;
   private ItemModel itemCommand;
 
+  private Map<String, ItemModel> itemsEconomy;
+
   /**
    * Constructor to generate a file if one doesn't exist.
    */
@@ -237,6 +239,9 @@ public class Lang {
       "tokens", "&bT",
       "impactor:tokens", "&bT"
     );
+    this.itemsEconomy = new HashMap<>();
+    itemsEconomy.put("dollars", new ItemModel("minecraft:emerald", "<gradient:#00ff00:#00ff00><bold>Common", List.of(
+      "§aCommon")));
   }
 
   /**
@@ -277,7 +282,7 @@ public class Lang {
         messageNotHaveRewards = lang.getMessageNotHaveRewards();
         nocooldown = lang.getNocooldown();
         movecolor = lang.getMovecolor();
-        
+
         // Sound
         soundopen = lang.getSoundopen();
         soundclose = lang.getSoundclose();
@@ -326,6 +331,7 @@ public class Lang {
         defaultSymbol = lang.getDefaultSymbol();
         impactorSymbols = lang.getImpactorSymbols();
 
+        itemsEconomy = lang.getItemsEconomy();
         String data = gson.toJson(this);
         CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(CobbleUtils.PATH_LANG, CobbleUtils.config.getLang() +
             ".json",

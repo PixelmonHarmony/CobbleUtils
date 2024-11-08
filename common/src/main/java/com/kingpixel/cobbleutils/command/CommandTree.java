@@ -42,7 +42,8 @@ public class CommandTree {
     for (String literal : CobbleUtils.config.getCommmandplugin()) {
       LiteralArgumentBuilder<ServerCommandSource> base = CommandManager.literal(literal).requires(source ->
         LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.admin")));
-      
+
+      WikiCommand.register(dispatcher, base, "https://zonary123-dev.gitbook.io/zonary123-dev-docs/mods/cobbleutils");
       // /cobbleutils scale <scale> <slot> and /cobbleutils scale <scale> <slot> <player>
       PokemonSize.register(dispatcher, base);
 

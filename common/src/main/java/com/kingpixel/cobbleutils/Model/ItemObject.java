@@ -25,12 +25,23 @@ public class ItemObject {
     this.item = item;
   }
 
+  // Crea un ItemObject a partir de un String (sin convertirlo a ItemStack)
   public static ItemObject fromString(String string) {
     return new ItemObject(UUID.randomUUID(), string);
   }
 
+  // Crea un ItemObject a partir de un ItemStack, guardando el NBT como String
   public static ItemObject fromItemStack(ItemStack itemStack) {
     return new ItemObject(UUID.randomUUID(), NbtHelper.toFormattedString(itemStack.getNbt(), true));
   }
 
+  // Convierte un ItemStack desde un String (deserializa el NBT)
+  public static ItemStack fromItemString(String itemString) {
+    try {
+      return ItemStack.fromNbt(NbtHelper.fromNbtProviderString(itemString));
+    } catch (Exception e) {
+      e.printStackTrace();
+      return ItemStack.EMPTY; // Regresa un ItemStack vacío en caso de error
+    }
+  }
 }

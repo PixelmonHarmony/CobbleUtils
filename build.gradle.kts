@@ -32,6 +32,7 @@ allprojects {
         maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
         maven("https://maven.impactdev.net/repository/development")
         maven("https://repo.essentialsx.net/releases/")
+        maven("https://maven.impactdev.net/repository/development/")
         mavenLocal()
 
         maven("https://maven.nucleoid.xyz/") {

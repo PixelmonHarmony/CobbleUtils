@@ -97,8 +97,8 @@ public class AdventureTranslator {
   }
 
   private static String replaceNative(String displayname) {
-    if (displayname == null) {
-      return null;
+    if (displayname == null || displayname.isEmpty()) {
+      return "";
     }
     displayname = displayname
       .replace("&", "§")

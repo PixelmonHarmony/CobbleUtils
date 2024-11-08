@@ -6,6 +6,7 @@ import net.impactdev.impactor.api.economy.EconomyService;
 import net.impactdev.impactor.api.economy.accounts.Account;
 import net.impactdev.impactor.api.economy.currency.Currency;
 import net.impactdev.impactor.api.economy.transactions.EconomyTransaction;
+import net.kyori.adventure.key.InvalidKeyException;
 import net.kyori.adventure.key.Key;
 import net.milkbowl.vault.economy.Economy;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -141,11 +142,11 @@ public abstract class EconomyUtil {
    *
    * @return The account.
    */
-  public static Account getAccount(UUID uuid, @Subst("") String currency) {
+  public static Account getAccount(UUID uuid, String currency) {
     if (!impactorService.hasAccount(uuid).join()) {
       return impactorService.account(uuid).join();
     }
-    return impactorService.account(getCurrency(currency.trim()), uuid).join();
+    return impactorService.account(getCurrency(currency), uuid).join();
   }
 
   /**
@@ -171,16 +172,11 @@ public abstract class EconomyUtil {
    *
    * @return true if the transaction was successful.
    */
-  public static boolean addMoney(ServerPlayerEntity player, @Subst("") String currency, BigDecimal amount) {
+  public static boolean addMoney(ServerPlayerEntity player, String currency, BigDecimal amount) {
     setEconomyType();
     switch (economyType) {
       case IMPACTOR: {
-        Account account;
-        if (currency.isEmpty()) {
-          account = getAccount(player.getUuid());
-        } else {
-          account = getAccount(player.getUuid(), currency.trim());
-        }
+        Account account = getAccount(player.getUuid(), currency);
         EconomyTransaction transaction = account.deposit(amount);
         if (transaction.successful()) {
           CobbleUtils.server.getPlayerManager().getPlayer(account.owner()).sendMessage(
@@ -200,7 +196,6 @@ public abstract class EconomyUtil {
       }
       case VAULT: {
         return vaultEconomy.depositPlayer(player.getGameProfile().getName(), amount.doubleValue()).transactionSuccess();
-        //return WebSocketClient.getInstance().addMoney(player.getUuid(), currency, amount.doubleValue()).join();
       }
       case BLANKECONOMY: {
         BlanketEconomy.INSTANCE.getAPI().addBalance(player.getUuid(), amount, currency);
@@ -221,22 +216,20 @@ public abstract class EconomyUtil {
    *
    * @return true if the transaction was successful.
    */
-  public static boolean removeMoney(ServerPlayerEntity player, @Subst("") String currency, BigDecimal amount) {
+  public static boolean removeMoney(ServerPlayerEntity player, String currency, BigDecimal amount) {
     setEconomyType();
     switch (economyType) {
       case IMPACTOR:
         Account account;
-        if (currency.isEmpty()) {
+        if (currency == null || currency.isEmpty()) {
           account = getAccount(player.getUuid());
         } else {
-          account = getAccount(player.getUuid(), currency.trim());
+          account = getAccount(player.getUuid(), currency);
         }
         EconomyTransaction transaction = account.withdraw(amount);
         return transaction.successful();
       case VAULT:
         return vaultEconomy.bankWithdraw(player.getGameProfile().getName(), amount.doubleValue()).transactionSuccess();
-      //  WebSocketClient.getInstance().removeMoney(player.getUuid(), currency, amount.doubleValue()).join();
-
       case BLANKECONOMY:
         BigDecimal bal = BlanketEconomy.INSTANCE.getAPI().getBalance(player.getUuid(), currency);
         BlanketEconomy.INSTANCE.getAPI().setBalance(player.getUuid(), bal.subtract(amount), currency);
@@ -292,9 +285,7 @@ public abstract class EconomyUtil {
         )
       );
     } catch (NoSuchMethodError | Exception e) {
-      if (CobbleUtils.config.isDebug()) {
-        CobbleUtils.LOGGER.error("Error sending message");
-      }
+      e.printStackTrace();
     }
   }
 
@@ -310,7 +301,8 @@ public abstract class EconomyUtil {
             .replace("%currency%", "")
         )
       );
-    } catch (NoSuchMethodError | Exception ignored) {
+    } catch (NoSuchMethodError | Exception e) {
+      e.printStackTrace();
     }
   }
 
@@ -324,11 +316,11 @@ public abstract class EconomyUtil {
    *
    * @return true if the account has enough balance.
    */
-  public static boolean hasEnough(ServerPlayerEntity player, @Subst("") String currency, BigDecimal amount) {
+  public static boolean hasEnough(ServerPlayerEntity player, String currency, BigDecimal amount) {
     setEconomyType();
     switch (economyType) {
       case IMPACTOR:
-        return hasEnoughImpactor(getAccount(player.getUuid(), currency.trim()), amount);
+        return hasEnoughImpactor(getAccount(player.getUuid(), currency), amount);
       case VAULT:
         if (vaultEconomy.has(player.getGameProfile().getName(), amount.doubleValue())) {
           vaultEconomy.withdrawPlayer(player.getGameProfile().getName(), amount.doubleValue());
@@ -375,45 +367,49 @@ public abstract class EconomyUtil {
    * @return The formatted balance with the format of Country player.
    */
   public static String formatCurrency(BigDecimal amount, String currency, UUID player) {
-    // Crear un NumberFormat para moneda basado en la configuración regional
-    Breeding.UserInfo userinfo = null;
-    if (player != null) {
-      userinfo = Breeding.playerCountry.get(player);
+    // Validación del nombre de la moneda
+    if (currency == null || currency.isEmpty()) {
+      currency = "impactor:dollars";
     }
 
-    // Definir la localidad predeterminada o la del jugador
-    Locale locale = (userinfo == null) ? Locale.getDefault() : new Locale(userinfo.language(), userinfo.countryCode());
+    // Obtener información de usuario, si existe
+    Breeding.UserInfo userinfo = (player != null) ? Breeding.playerCountry.get(player) : null;
 
-    // Obtener un NumberFormat para la moneda de esa localización
+    // Definir la localidad predeterminada o la del jugador
+    Locale locale = (userinfo != null && userinfo.language() != null && userinfo.countryCode() != null)
+      ? new Locale(userinfo.language(), userinfo.countryCode())
+      : Locale.getDefault();
+
+    // Crear el formateador de moneda para la localidad
     NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(locale);
 
-    // Definir el número de decimales
+    // Definir el número de decimales según la moneda
     int decimals = getDecimals(currency);
     currencyFormatter.setMinimumFractionDigits(decimals);
     currencyFormatter.setMaximumFractionDigits(decimals);
 
-    // Si el formateador es una instancia de DecimalFormat, modificar el símbolo de moneda
+    // Configurar el formateador si es instancia de DecimalFormat
     if (currencyFormatter instanceof DecimalFormat) {
       DecimalFormat decimalFormat = (DecimalFormat) currencyFormatter;
       DecimalFormatSymbols symbols = decimalFormat.getDecimalFormatSymbols();
 
-      // Cambiar el símbolo de la moneda
-      symbols.setCurrencySymbol(getSymbol(currency));
+      // Establecer el símbolo de moneda (verifica que no sea nulo)
+      String currencySymbol = getSymbol(currency);
+      symbols.setCurrencySymbol(currencySymbol != null ? currencySymbol : "");
       decimalFormat.setDecimalFormatSymbols(symbols);
 
-      // Verificar si el patrón de formato es válido antes de aplicarlo
+      // Aplicar el patrón de formato si es válido
       String moneyPattern = CobbleUtils.language.getFormatMoney();
       if (moneyPattern != null && !moneyPattern.isEmpty()) {
         try {
           decimalFormat.applyPattern(moneyPattern);
         } catch (IllegalArgumentException e) {
-          // Loggear un error o manejar el caso en que el patrón no sea válido
           System.err.println("Error aplicando el patrón de formato: " + e.getMessage());
         }
       }
     }
 
-    // Devolver la cantidad formateada
+    // Formatear y devolver la cantidad
     return currencyFormatter.format(amount);
   }
 
@@ -428,18 +424,19 @@ public abstract class EconomyUtil {
   public static Currency getCurrency(String currency) {
     setEconomyType();
     try {
-      if (currency.isEmpty()) {
-        if (CobbleUtils.config.isDebug()) {
-          CobbleUtils.LOGGER.error("Currency is empty");
-        }
+      if (currency == null || currency.isEmpty()) {
         return impactorService.currencies().primary();
       }
-      String c = currency.trim();
-      return impactorService.currencies().currency(Key.key(c)).orElseGet(() -> impactorService.currencies().primary());
-    } catch (NoSuchMethodError | Exception e) {
-      if (CobbleUtils.config.isDebug()) {
-        CobbleUtils.LOGGER.error("Error getting currency");
+      if (!currency.contains("impactor:")) {
+        currency = "impactor:" + currency;
       }
+      return impactorService.currencies().currency(Key.key(currency)).orElseGet(() -> impactorService.currencies().primary());
+    } catch (NoSuchMethodError e) {
+      e.printStackTrace();
+      return impactorService.currencies().primary();
+    } catch (InvalidKeyException e) {
+      CobbleUtils.LOGGER.info("Currency -> " + currency);
+      CobbleUtils.LOGGER.info("Key -> " + Key.key(currency).asString());
       return impactorService.currencies().primary();
     }
   }
@@ -453,17 +450,13 @@ public abstract class EconomyUtil {
    */
   public static String getSymbol(@Subst("") String currency) {
     setEconomyType();
-    String symbol;
     try {
       return switch (economyType) {
         case IMPACTOR -> {
-          symbol = CobbleUtils.language.getImpactorSymbols().get(currency);
-          if (symbol == null) {
-            symbol = getCurrency(currency).symbol().insertion();
-          } else {
-            if (symbol.isEmpty()) symbol = CobbleUtils.language.getDefaultSymbol();
-          }
-          if (symbol == null) symbol = CobbleUtils.language.getDefaultSymbol();
+          String symbol = getCurrency(currency).symbol().insertion();
+          if (symbol == null || symbol.isEmpty())
+            symbol = CobbleUtils.language.getImpactorSymbols().getOrDefault(currency,
+              CobbleUtils.language.getDefaultSymbol());
           yield symbol;
         }
         case VAULT -> CobbleUtils.language.getDefaultSymbol();
@@ -472,7 +465,8 @@ public abstract class EconomyUtil {
         default -> CobbleUtils.language.getDefaultSymbol();
       };
     } catch (NoSuchMethodError | Exception e) {
-      return CobbleUtils.language.getDefaultSymbol();
+      return CobbleUtils.language.getImpactorSymbols().getOrDefault(currency,
+        CobbleUtils.language.getDefaultSymbol());
     }
   }
 
@@ -485,8 +479,9 @@ public abstract class EconomyUtil {
    */
   public static String getSymbol(Currency currency) {
     try {
-      String symbol = currency.symbol().toString();
-      if (symbol == null) symbol = CobbleUtils.language.getDefaultSymbol();
+      String symbol = currency.symbol().insertion();
+      if (symbol == null)
+        symbol = CobbleUtils.language.getImpactorSymbols().getOrDefault(currency, CobbleUtils.language.getDefaultSymbol());
       return symbol;
     } catch (NoSuchMethodError | Exception | NoClassDefFoundError e) {
       return CobbleUtils.language.getDefaultSymbol();
@@ -497,12 +492,13 @@ public abstract class EconomyUtil {
     setEconomyType();
     try {
       return switch (economyType) {
-        case IMPACTOR -> currency.plural().insertion() == null ? "$" : currency.plural().insertion();
+        case IMPACTOR -> currency.key().asString();
         case VAULT -> "$";
         case BLANKECONOMY -> "$";
         default -> "$";
       };
-    } catch (NoSuchMethodError | Exception | NoClassDefFoundError ignored) {
+    } catch (NoSuchMethodError | Exception | NoClassDefFoundError e) {
+      e.printStackTrace();
       return "$";
     }
   }

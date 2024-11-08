@@ -59,28 +59,20 @@ public class ShopConfig {
   }
 
   public static List<Shop> addShopsFromPath(String mod_id, String path) {
-    List<Shop> shopList = ShopConfigMenu.getShops(path);
-
-    shopList.forEach(ShopConfig::checkShop);
-
-    saveShopsToPath(mod_id, path, shopList);
-
-    String default_path = path + "defaults/";
-    // If no shops are found, create default shops
-    CobbleUtils.LOGGER.info("No shops found. Creating default shops.");
-
-    List<Shop> defaultShops = createDefaultShops();
-
-    saveShopsToPath(mod_id, default_path, defaultShops);
-
-
-    ShopConfigMenu.ShopMod shopMod = new ShopConfigMenu.ShopMod(mod_id, path);
-
-    if (CobbleUtils.config.isDebug()) {
-      CobbleUtils.LOGGER.info("Adding to map: " + shopMod);
+    if (true) {
+      // Default shops
+      String default_path = path + "defaults/";
+      CobbleUtils.LOGGER.info("No shops found. Creating default shops.");
+      List<Shop> defaultShops = createDefaultShops();
+      saveShopsToPath(mod_id, default_path, defaultShops);
     }
-
+    // Load shops
+    List<Shop> shopList = ShopConfigMenu.getShops(path);
+    shopList.forEach(ShopConfig::checkShop);
+    saveShopsToPath(mod_id, path, shopList);
+    ShopConfigMenu.ShopMod shopMod = new ShopConfigMenu.ShopMod(mod_id, path);
     shops.put(shopMod, shopList);
+
     return shopList;
   }
 
@@ -128,32 +120,18 @@ public class ShopConfig {
 
   public static void checkShop(Shop shop) {
     if (shop.getRows() < 1 || shop.getRows() > 6) shop.setRows((short) 6);
-
     int max_array = (shop.getRows() * 9) - 1;
 
-    if (shop.getSlotNext() > max_array) {
-      shop.setSlotNext(max_array);
-    }
-
-    if (shop.getSlotClose() > max_array) {
-      shop.setSlotClose(max_array - 4);
-    }
-
-    if (shop.getSlotPrevious() > max_array) {
-      shop.setSlotPrevious(max_array - 8);
-    }
-
-    if (shop.getPrevious() == null) {
-      shop.setPrevious(CobbleUtils.language.getItemPrevious());
-    }
-
-    if (shop.getNext() == null) {
-      shop.setNext(CobbleUtils.language.getItemNext());
-    }
-
-    if (shop.getClose() == null) {
-      shop.setClose(CobbleUtils.language.getItemClose());
-    }
+    if (shop.getPrevious() == null) shop.setPrevious(CobbleUtils.language.getItemPrevious());
+    if (shop.getNext() == null) shop.setNext(CobbleUtils.language.getItemNext());
+    if (shop.getClose() == null) shop.setClose(CobbleUtils.language.getItemClose());
+    
+    if (shop.getPrevious().getSlot() == null || shop.getPrevious().getSlot() > max_array)
+      shop.getPrevious().setSlot(max_array - 8);
+    if (shop.getClose().getSlot() == null || shop.getClose().getSlot() > max_array)
+      shop.getClose().setSlot(max_array - 4);
+    if (shop.getNext().getSlot() == null || shop.getNext().getSlot() > max_array)
+      shop.getNext().setSlot(max_array);
   }
 
   public void init(String pathShop, String mod_id, String pathShops) {

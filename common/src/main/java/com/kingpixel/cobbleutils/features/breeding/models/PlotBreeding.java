@@ -108,7 +108,7 @@ public class PlotBreeding {
           // Establece el nuevo cooldown personalizado después de la cría
           cooldown = currentTime + playerCooldownMillis;
 
-          if (CobbleUtils.breedconfig.isAutoclaim()) {
+          if (CobbleUtils.breedconfig.isAutoclaim() || LuckPermsUtil.checkPermission(player, "cobbleutils.breeding.autoclaim")) {
             RewardsUtils.saveRewardPokemon(player, pokemon);
           } else {
             eggs.add(pokemon.saveToJSON(new JsonObject()));

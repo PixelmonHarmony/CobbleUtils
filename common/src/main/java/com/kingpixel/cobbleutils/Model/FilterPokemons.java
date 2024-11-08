@@ -207,11 +207,6 @@ public class FilterPokemons {
 
             if (blacklistAspects.contains(aspect)) return;
 
-            if (CobbleUtils.config.isDebug()) {
-              CobbleUtils.LOGGER.info("Pokemon: " + pokemon.showdownId() + " Aspect: " + aspect);
-            }
-
-
             p = PokemonProperties.Companion.parse(pokemon.showdownId() + " " + aspect).create();
             if (yetAspects.contains(p.showdownId())) return;
             yetAspects.add(p.showdownId());

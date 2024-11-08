@@ -20,6 +20,7 @@ import java.io.FileReader;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -118,6 +119,10 @@ public class ShopConfigMenu {
     if (folder.exists() && folder.isDirectory()) {
       File[] files = folder.listFiles((dir, name) -> name.endsWith(".json"));
 
+      if (CobbleUtils.config.isDebug()){
+        Arrays.stream(files).toList().forEach(file -> CobbleUtils.LOGGER.info("File: " + file.getName()));
+      }
+
       if (files != null) {
         Gson gson = Utils.newGson();
         for (File file : files) {
@@ -133,8 +138,6 @@ public class ShopConfigMenu {
         }
       }
     }
-
-    saveShops(path);
     return shopList;
   }
 

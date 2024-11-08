@@ -2,6 +2,7 @@ package com.kingpixel.cobbleutils.features.breeding.config;
 
 import com.google.gson.Gson;
 import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.Model.DataBaseConfig;
 import com.kingpixel.cobbleutils.Model.ItemModel;
 import com.kingpixel.cobbleutils.Model.PokemonChance;
 import com.kingpixel.cobbleutils.Model.PokemonData;
@@ -26,6 +27,7 @@ import java.util.concurrent.CompletableFuture;
 public class BreedConfig {
   private String prefix;
   private boolean active;
+  private DataBaseConfig dataBaseConfig;
   private boolean changeuipasture;
   private boolean shifttoopen;
   private boolean autoclaim;
@@ -51,6 +53,7 @@ public class BreedConfig {
   private int numberIvsDestinyKnot;
   private int checkEggToBreedInSeconds;
   private int tickstocheck;
+  private String permissionAutoClaim;
   private int cooldown;
   private int defaultNumberPlots;
   private Map<String, Integer> cooldowns;
@@ -94,6 +97,7 @@ public class BreedConfig {
 
   public BreedConfig() {
     this.prefix = "&7[<#82d448>Breeding&7] &8»";
+    this.dataBaseConfig = new DataBaseConfig();
     this.eggcommand = List.of("daycare", "pokebreed", "breed");
     this.titleselectplot = "<#82d448>Select Plot";
     this.titleplot = "<#82d448>Plot";
@@ -113,6 +117,7 @@ public class BreedConfig {
     this.tickstocheck = 20;
     this.multipliermasuda = 1.5f;
     this.multiplierShiny = 1.5f;
+    this.permissionAutoClaim = "cobbleutils.breeding.autoclaim";
     this.cooldown = 30;
     this.cooldowns = Map.of(
       "cobbleutils.breeding.cooldown.vip", 15,
@@ -248,12 +253,10 @@ public class BreedConfig {
         eggSlots = config.getEggSlots();
         blacklisted = config.getBlacklisted();
         percentagespawnegg = config.getPercentagespawnegg();
-        plotItem = config.getPlotItem();
         multiplierShiny = config.getMultiplierShiny();
         eggcommand = config.getEggcommand();
         nameEgg = config.getNameEgg();
         obtainAspect = config.isObtainAspect();
-        plotSlots = config.getPlotSlots();
         rowmenuplot = config.getRowmenuplot();
         rowmenuselectplot = config.getRowmenuselectplot();
         rowmenuselectpokemon = config.getRowmenuselectpokemon();
@@ -285,6 +288,11 @@ public class BreedConfig {
         haveMaxNumberIvsForRandom = config.isHaveMaxNumberIvsForRandom();
         successItems = config.getSuccessItems();
         defaultNumberPlots = config.getDefaultNumberPlots();
+        plotItem = config.getPlotItem();
+        plotSlots = config.getPlotSlots();
+        permissionAutoClaim = config.getPermissionAutoClaim();
+        dataBaseConfig = config.getDataBaseConfig();
+
 
         String data = gson.toJson(this);
         CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(CobbleUtils.PATH_BREED, "config.json",

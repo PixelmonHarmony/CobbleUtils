@@ -18,11 +18,27 @@ import java.util.Map;
  */
 public class PlayerUtils {
   public static void sendMessage(ServerPlayerEntity player, String message) {
-    player.sendMessage(AdventureTranslator.toNativeWithOutPrefix(message));
+    if (!message.isEmpty()) {
+      player.sendMessage(AdventureTranslator.toNativeWithOutPrefix(message));
+    }
+  }
+
+  public static void sendMessage(ServerPlayerEntity player, String message, String prefix) {
+    if (!message.isEmpty()) {
+      player.sendMessage(AdventureTranslator.toNative(message, prefix));
+    }
   }
 
   public static void broadcast(String message) {
-    CobbleUtils.server.getPlayerManager().getPlayerList().forEach(player -> sendMessage(player, message));
+    if (!message.isEmpty()) {
+      CobbleUtils.server.getPlayerManager().getPlayerList().forEach(player -> sendMessage(player, message));
+    }
+  }
+
+  public static void broadcast(String message, String prefix) {
+    if (!message.isEmpty()) {
+      CobbleUtils.server.getPlayerManager().getPlayerList().forEach(player -> sendMessage(player, message, prefix));
+    }
   }
 
   /**

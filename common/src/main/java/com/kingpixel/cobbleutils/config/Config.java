@@ -5,7 +5,6 @@ import com.google.gson.Gson;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.*;
 import com.kingpixel.cobbleutils.Model.options.Boss;
-import com.kingpixel.cobbleutils.Model.options.ImpactorEconomy;
 import com.kingpixel.cobbleutils.Model.options.PokemonDataBoss;
 import com.kingpixel.cobbleutils.Model.options.Pokerus;
 import com.kingpixel.cobbleutils.util.Utils;
@@ -31,7 +30,6 @@ public class Config {
   private String lang;
   private DataBaseConfig database;
   private String fill;
-  private String ecocommand;
   private List<String> commandrewards;
   private List<String> commandparty;
   private List<String> commmandplugin;
@@ -53,7 +51,6 @@ public class Config {
   private int cooldownpokeshout;
   private Pokerus pokerus;
   private Boss bosses;
-  private ImpactorEconomy impactorEconomy;
   private String defaultsize;
   private List<SizeChance> pokemonsizes;
   private List<ScalePokemonData> specifiedSizes;
@@ -71,7 +68,6 @@ public class Config {
     prefix = "§7[§6CobbleUtils§7] ";
     lang = "en";
     fill = "minecraft:gray_stained_glass_pane";
-    ecocommand = "eco deposit %amount% dollars %player%";
     commandparty = List.of("party", "cuparty");
     commandrewards = List.of("rewards", "curewards");
     commmandplugin = List.of("cobbleutils", "pokeutils");
@@ -93,7 +89,7 @@ public class Config {
     cooldownpokeshout = 60;
     pokerus = new Pokerus();
     bosses = new Boss();
-    impactorEconomy = new ImpactorEconomy();
+
     defaultsize = "Normal";
     pokemonsizes = List.of(
       new SizeChance("Tiny", 0.5f, 5),
@@ -149,14 +145,12 @@ public class Config {
         pokerus = config.getPokerus();
         party = config.isParty();
         rewards = config.isRewards();
-        ecocommand = config.getEcocommand();
         commandparty = config.getCommandparty();
         commandrewards = config.getCommandrewards();
         commmandplugin = config.getCommmandplugin();
         alertreward = config.getAlertreward();
         itemsCommands = config.getItemsCommands();
         bosses = config.getBosses();
-        impactorEconomy = config.getImpactorEconomy();
         cooldownpokeshout = config.getCooldownpokeshout();
         if (bosses == null)
           bosses = new Boss();

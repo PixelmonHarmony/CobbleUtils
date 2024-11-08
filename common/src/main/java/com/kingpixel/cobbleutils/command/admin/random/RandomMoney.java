@@ -46,9 +46,6 @@ public class RandomMoney implements Command<ServerCommandSource> {
   public int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
     ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
     String type = StringArgumentType.getString(context, "type");
-    if (CobbleUtils.config.isDebug())
-      CobbleUtils.LOGGER.info("RandomMoney command");
-
     CobbleUtilities.giveRandomMoney(player, type);
     return 1;
   }

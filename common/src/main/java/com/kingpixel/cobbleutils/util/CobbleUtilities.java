@@ -157,16 +157,7 @@ public class CobbleUtilities {
    * @return If the money was given successfully
    */
   public static boolean giveRandomMoney(ServerPlayerEntity player, String type) {
-    int money = CobbleUtils.poolMoney.getRandomMoney(type);
-    if (money == 0) {
-      player.sendMessage(AdventureTranslator.toNative("Invalid type."));
-      return false;
-    }
-
-    String comando = CobbleUtils.config.getEcocommand()
-      .replace("%amount%", String.valueOf(money))
-      .replace("%player%", player.getGameProfile().getName());
-    return executeCommand(comando);
+    return CobbleUtils.poolMoney.getRandomMoney(player, type);
   }
 
   /**

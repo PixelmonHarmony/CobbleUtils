@@ -124,21 +124,9 @@ public class Breeding {
     });
 
 
-    PlayerEvent.ATTACK_ENTITY.register((player, level, target, hand, result) -> {
-      try {
-        return egg(target, (ServerPlayerEntity) player);
-      } catch (ClassCastException e) {
-        return egg(target, PlayerUtils.castPlayer(player));
-      }
-    });
+    PlayerEvent.ATTACK_ENTITY.register((player, level, target, hand, result) -> egg(target, PlayerUtils.castPlayer(player)));
 
-    InteractionEvent.INTERACT_ENTITY.register((player, entity, hand) -> {
-      try {
-        return egg(entity, (ServerPlayerEntity) player);
-      } catch (ClassCastException e) {
-        return egg(entity, PlayerUtils.castPlayer(player));
-      }
-    });
+    InteractionEvent.INTERACT_ENTITY.register((player, entity, hand) -> egg(entity, PlayerUtils.castPlayer(player)));
 
     WalkBreeding.register();
     EggThrow.register();
