@@ -14,7 +14,7 @@ import com.cobblemon.mod.common.item.PokemonItem;
 import com.cobblemon.mod.common.pokemon.Gender;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.CobbleUtils;
-import com.kingpixel.cobbleutils.features.breeding.Breeding;
+import com.kingpixel.cobbleutils.database.DatabaseClientFactory;
 import com.kingpixel.cobbleutils.features.breeding.models.EggData;
 import com.kingpixel.cobbleutils.features.breeding.models.PlotBreeding;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
@@ -32,14 +32,14 @@ import java.util.List;
  */
 public class PlotSelectPokemonUI {
 
-  public static void selectPokemon(ServerPlayerEntity player, PlotBreeding plotBreeding, Gender gender) {
+  public static void selectPokemon(ServerPlayerEntity player, PlotBreeding plotBreeding, Gender gender, int finalI) {
     int row = CobbleUtils.breedconfig.getRowmenuselectpokemon();
     ChestTemplate template = ChestTemplate.builder(row).build();
 
     List<Pokemon> pokemons = getPlayerPokemons(player, gender, plotBreeding);
-    List<Button> buttons = createPokemonButtons(pokemons, player, plotBreeding, gender);
+    List<Button> buttons = createPokemonButtons(pokemons, player, plotBreeding, gender, finalI);
 
-    configureTemplate(template, buttons, row, player, plotBreeding);
+    configureTemplate(template, buttons, row, player, plotBreeding, finalI);
 
     LinkedPage page = PaginationHelper.createPagesFromPlaceholders(
       template, buttons, LinkedPage.builder()
@@ -69,26 +69,26 @@ public class PlotSelectPokemonUI {
   }
 
   private static List<Button> createPokemonButtons(List<Pokemon> pokemons, ServerPlayerEntity player,
-                                                   PlotBreeding plotBreeding, Gender gender) {
+                                                   PlotBreeding plotBreeding, Gender gender, int finalI) {
     List<Button> buttons = new ArrayList<>();
     for (Pokemon pokemon : pokemons) {
-      buttons.add(createPokemonButton(pokemon, player, plotBreeding, gender));
+      buttons.add(createPokemonButton(pokemon, player, plotBreeding, gender, finalI));
     }
     return buttons;
   }
 
   private static GooeyButton createPokemonButton(Pokemon pokemon, ServerPlayerEntity player,
-                                                 PlotBreeding plotBreeding, Gender gender) {
+                                                 PlotBreeding plotBreeding, Gender gender, int finalI) {
     return GooeyButton.builder()
       .display(PokemonItem.from(pokemon))
       .title(AdventureTranslator.toNative(PokemonUtils.replace(pokemon)))
       .lore(Text.class, AdventureTranslator.toNativeL(PokemonUtils.replaceLore(pokemon)))
-      .onClick(action -> handlePokemonSelection(pokemon, player, plotBreeding, gender))
+      .onClick(action -> handlePokemonSelection(pokemon, player, plotBreeding, gender, finalI))
       .build();
   }
 
   private static void handlePokemonSelection(Pokemon pokemon, ServerPlayerEntity player,
-                                             PlotBreeding plotBreeding, Gender gender) {
+                                             PlotBreeding plotBreeding, Gender gender, int finalI) {
     try {
       Cobblemon.INSTANCE.getStorage().getPC(player.getUuid()).remove(pokemon);
       Cobblemon.INSTANCE.getStorage().getParty(player).remove(pokemon);
@@ -96,16 +96,18 @@ public class PlotSelectPokemonUI {
       e.printStackTrace();
     }
     plotBreeding.add(pokemon, gender);
-    Breeding.managerPlotEggs.writeInfo(player);
-    PlotBreedingManagerUI.open(player, plotBreeding);
+    List<PlotBreeding> plots = DatabaseClientFactory.databaseClient.getPlots(player);
+    plots.set(finalI, plotBreeding);
+    DatabaseClientFactory.databaseClient.savePlots(player, plots);
+    PlotBreedingManagerUI.open(player, plotBreeding, finalI);
   }
 
   private static void configureTemplate(ChestTemplate template, List<Button> buttons, int row,
-                                        ServerPlayerEntity player, PlotBreeding plotBreeding) {
+                                        ServerPlayerEntity player, PlotBreeding plotBreeding, int finalI) {
     template.set(row - 1, 0, UIUtils.getPreviousButton(action -> {
       // Implement previous page action if needed
     }));
-    template.set(row - 1, 4, UIUtils.getCloseButton(action -> PlotBreedingManagerUI.open(player, plotBreeding)));
+    template.set(row - 1, 4, UIUtils.getCloseButton(action -> PlotBreedingManagerUI.open(player, plotBreeding, finalI)));
     template.set(row - 1, 8, UIUtils.getNextButton(action -> {
       // Implement next page action if needed
     }));

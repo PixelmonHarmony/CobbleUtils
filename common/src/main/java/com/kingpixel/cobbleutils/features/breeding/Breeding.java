@@ -8,6 +8,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.CobbleUtilsTags;
+import com.kingpixel.cobbleutils.database.DatabaseClientFactory;
 import com.kingpixel.cobbleutils.features.breeding.events.*;
 import com.kingpixel.cobbleutils.features.breeding.manager.ManagerPlotEggs;
 import com.kingpixel.cobbleutils.util.PlayerUtils;
@@ -47,7 +48,9 @@ public class Breeding {
     }
 
     if (CobbleUtils.server != null) {
-      CobbleUtils.server.getPlayerManager().getPlayerList().forEach(managerPlotEggs::checking);
+      CobbleUtils.server.getPlayerManager().getPlayerList().forEach(player -> {
+        DatabaseClientFactory.databaseClient.checkDaycarePlots(player);
+      });
     }
 
     for (ScheduledFuture<?> task : scheduledTasks) {
@@ -58,7 +61,10 @@ public class Breeding {
     // Crear una nueva tarea
     ScheduledFuture<?> checkegg = scheduler.scheduleAtFixedRate(() -> {
       try {
-        CobbleUtils.server.getPlayerManager().getPlayerList().forEach(managerPlotEggs::checking);
+        // Checking eggs
+        CobbleUtils.server.getPlayerManager().getPlayerList().forEach(player -> {
+          DatabaseClientFactory.databaseClient.checkDaycarePlots(player);
+        });
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -91,17 +97,16 @@ public class Breeding {
 
   private static void events() {
     PlayerEvent.PLAYER_JOIN.register(player -> {
-      managerPlotEggs.init(player);
+      DatabaseClientFactory.databaseClient.getPlots(player);
       countryPlayer(player);
     });
 
     PlayerEvent.PLAYER_QUIT.register(player -> {
       // Remove country data
       playerCountry.remove(player.getUuid());
+      // Remove data
+      DatabaseClientFactory.databaseClient.removeDataIfNecessary(player);
 
-      // Remove unnecesarly data
-      managerPlotEggs.writeInfo(player).join();
-      managerPlotEggs.getEggs().remove(player.getUuid());
     });
 
 
@@ -119,8 +124,18 @@ public class Breeding {
       } catch (InterruptedException ex) {
         scheduler.shutdownNow(); // Interrupción forzada
       }
-      CobbleUtils.LOGGER.info("Writing info breeding");
-      managerPlotEggs.getEggs().forEach((key, value) -> managerPlotEggs.writeInfo(key));
+      //CobbleUtils.LOGGER.info("Writing info breeding");
+      /*if (CobbleUtils.breedconfig.getDataBaseConfig().getType() == DataBaseType.JSON){
+        managerPlotEggs.getEggs().forEach((key, value) -> managerPlotEggs.writeInfo(key));
+      } else {
+        managerPlotEggs.getEggs().forEach((key, value) -> {
+          try {
+            managerPlotEggs.writeInfo(key).get();
+          } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+          }
+        });
+      }*/
     });
 
 

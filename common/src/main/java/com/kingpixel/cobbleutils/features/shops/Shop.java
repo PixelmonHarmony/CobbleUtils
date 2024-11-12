@@ -354,7 +354,7 @@ public class Shop {
           })
           .linkType(LinkType.Next)
           .build();
-        template.set(getClose().getSlot(), next);
+        template.set(getNext().getSlot(), next);
         if (slotsNext != null && !slotsNext.isEmpty())
           slotsNext.forEach(slot -> template.set(slot, next));
 
@@ -366,7 +366,7 @@ public class Shop {
           })
           .linkType(LinkType.Previous)
           .build();
-        template.set(getClose().getSlot(), previous);
+        template.set(getPrevious().getSlot(), previous);
         if (slotsPrevious != null && !slotsPrevious.isEmpty())
           slotsPrevious.forEach(slot -> template.set(slot, previous));
       }

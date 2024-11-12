@@ -25,11 +25,7 @@ import com.kingpixel.cobbleutils.Model.PokemonChance;
 import com.kingpixel.cobbleutils.Model.PokemonData;
 import com.kingpixel.cobbleutils.Model.ScalePokemonData;
 import com.kingpixel.cobbleutils.features.breeding.events.HatchEggEvent;
-import com.kingpixel.cobbleutils.features.breeding.util.AdventureBreeding;
-import com.kingpixel.cobbleutils.util.AdventureTranslator;
-import com.kingpixel.cobbleutils.util.ArraysPokemons;
-import com.kingpixel.cobbleutils.util.PokemonUtils;
-import com.kingpixel.cobbleutils.util.Utils;
+import com.kingpixel.cobbleutils.util.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -248,13 +244,9 @@ public class EggData {
     ScalePokemonData.getScalePokemonData(usePokemonToEgg).getRandomPokemonSize().apply(egg);
 
     // Enviar mensaje al jugador
-    player.sendMessage(
-      AdventureBreeding.adventure(
-        PokemonUtils.replace(CobbleUtils.breedconfig.getCreateEgg()
-            .replace("%egg%", egg.getPersistentData().getString("species")),
-          List.of(male, female, egg))));
-
-
+    PlayerUtils.sendMessage(player, PokemonUtils.replace(CobbleUtils.breedconfig.getCreateEgg()
+        .replace("%egg%", egg.getPersistentData().getString("species")),
+      List.of(male, female, egg)), CobbleUtils.breedconfig.getPrefix());
     return egg;
   }
 

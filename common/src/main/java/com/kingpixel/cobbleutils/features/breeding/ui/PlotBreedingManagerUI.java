@@ -13,7 +13,7 @@ import com.cobblemon.mod.common.pokemon.Gender;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.ItemModel;
-import com.kingpixel.cobbleutils.features.breeding.Breeding;
+import com.kingpixel.cobbleutils.database.DatabaseClientFactory;
 import com.kingpixel.cobbleutils.features.breeding.models.PlotBreeding;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.PokemonUtils;
@@ -22,65 +22,70 @@ import com.kingpixel.cobbleutils.util.UIUtils;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
  * @author Carlos Varas Alonso - 02/08/2024 14:29
  */
 public class PlotBreedingManagerUI {
-  public static void open(ServerPlayerEntity player, PlotBreeding plotBreeding) {
+  public static void open(ServerPlayerEntity player, PlotBreeding plotBreeding, int finalI) {
     int row = CobbleUtils.breedconfig.getRowmenuplot();
     ChestTemplate template = ChestTemplate.builder(row).build();
-
+    List<PlotBreeding> plots = DatabaseClientFactory.databaseClient.getPlots(player);
     Pokemon pokemonmale = plotBreeding.obtainMale();
     Pokemon pokemonfemale = plotBreeding.obtainFemale();
 
     GooeyButton male = createButton(pokemonmale, action -> {
       if (pokemonmale == null) {
-        PlotSelectPokemonUI.selectPokemon(player, plotBreeding, Gender.MALE);
+        PlotSelectPokemonUI.selectPokemon(player, plotBreeding, Gender.MALE, finalI);
         return;
       }
       Cobblemon.INSTANCE.getStorage().getParty(player).add(pokemonmale);
       plotBreeding.setMale(null);
-      Breeding.managerPlotEggs.writeInfo(player);
-      open(player, plotBreeding);
+      plots.set(finalI, plotBreeding);
+      DatabaseClientFactory.databaseClient.savePlots(player, plots);
+      open(player, plotBreeding, finalI);
     }, Gender.MALE);
 
     CobbleUtils.breedconfig.getMaleSlots().forEach(slot -> {
       template.set(slot, createEmptyButton(pokemonmale, action -> {
         if (pokemonmale == null) {
-          PlotSelectPokemonUI.selectPokemon(player, plotBreeding, Gender.MALE);
+          PlotSelectPokemonUI.selectPokemon(player, plotBreeding, Gender.MALE, finalI);
           return;
         }
         Cobblemon.INSTANCE.getStorage().getParty(player).add(pokemonmale);
         plotBreeding.setMale(null);
-        Breeding.managerPlotEggs.writeInfo(player);
-        open(player, plotBreeding);
+        plots.set(finalI, plotBreeding);
+        DatabaseClientFactory.databaseClient.savePlots(player, plots);
+        open(player, plotBreeding, finalI);
       }, Gender.MALE));
     });
 
     // Female
     GooeyButton female = createButton(pokemonfemale, action -> {
       if (pokemonfemale == null) {
-        PlotSelectPokemonUI.selectPokemon(player, plotBreeding, Gender.FEMALE);
+        PlotSelectPokemonUI.selectPokemon(player, plotBreeding, Gender.FEMALE, finalI);
         return;
       }
       Cobblemon.INSTANCE.getStorage().getParty(player).add(pokemonfemale);
       plotBreeding.setFemale(null);
-      Breeding.managerPlotEggs.writeInfo(player);
-      open(player, plotBreeding);
+      plots.set(finalI, plotBreeding);
+      DatabaseClientFactory.databaseClient.savePlots(player, plots);
+      open(player, plotBreeding, finalI);
     }, Gender.FEMALE);
 
     CobbleUtils.breedconfig.getFemaleSlots().forEach(slot -> {
       template.set(slot, createEmptyButton(pokemonfemale, action -> {
         if (pokemonfemale == null) {
-          PlotSelectPokemonUI.selectPokemon(player, plotBreeding, Gender.FEMALE);
+          PlotSelectPokemonUI.selectPokemon(player, plotBreeding, Gender.FEMALE, finalI);
           return;
         }
         Cobblemon.INSTANCE.getStorage().getParty(player).add(pokemonfemale);
         plotBreeding.setFemale(null);
-        Breeding.managerPlotEggs.writeInfo(player);
-        open(player, plotBreeding);
+        plots.set(finalI, plotBreeding);
+        DatabaseClientFactory.databaseClient.savePlots(player, plots);
+        open(player, plotBreeding, finalI);
       }, Gender.FEMALE));
     });
 
@@ -106,8 +111,9 @@ public class PlotBreedingManagerUI {
             }
           });
           plotBreeding.getEggs().clear();
-          Breeding.managerPlotEggs.writeInfo(player);
-          open(player, plotBreeding);
+          plots.set(finalI, plotBreeding);
+          DatabaseClientFactory.databaseClient.savePlots(player, plots);
+          open(player, plotBreeding, finalI);
         }
       })
       .build();
@@ -126,8 +132,9 @@ public class PlotBreedingManagerUI {
               }
             });
             plotBreeding.getEggs().clear();
-            Breeding.managerPlotEggs.writeInfo(player);
-            open(player, plotBreeding);
+            plots.set(finalI, plotBreeding);
+            DatabaseClientFactory.databaseClient.savePlots(player, plots);
+            open(player, plotBreeding, finalI);
           }
         })
         .build());

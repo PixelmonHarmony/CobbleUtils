@@ -6,7 +6,7 @@ import ca.landonjw.gooeylibs2.api.page.GooeyPage;
 import ca.landonjw.gooeylibs2.api.template.types.ChestTemplate;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.CobbleUtils;
-import com.kingpixel.cobbleutils.features.breeding.Breeding;
+import com.kingpixel.cobbleutils.database.DatabaseClientFactory;
 import com.kingpixel.cobbleutils.features.breeding.models.PlotBreeding;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.LuckPermsUtil;
@@ -25,6 +25,7 @@ import java.util.List;
  */
 public class PlotBreedingUI {
   public static void open(ServerPlayerEntity player) {
+    DatabaseClientFactory.CheckDaycarePlots(player);
     ChestTemplate template = ChestTemplate.builder(CobbleUtils.breedconfig.getRowmenuselectplot()).build();
 
     int size = CobbleUtils.breedconfig.getMaxplots();
@@ -37,9 +38,9 @@ public class PlotBreedingUI {
     if (max > size) max = size;
     if (max < CobbleUtils.breedconfig.getDefaultNumberPlots()) max = CobbleUtils.breedconfig.getDefaultNumberPlots();
 
-
+    List<PlotBreeding> plots = DatabaseClientFactory.databaseClient.getPlots(player);
     for (int i = 0; i < max; i++) {
-      PlotBreeding plotBreeding = Breeding.managerPlotEggs.getEggs().get(player.getUuid()).get(i);
+      PlotBreeding plotBreeding = plots.get(i);
       List<String> lore = new ArrayList<>(CobbleUtils.breedconfig.getPlotItem().getLore());
       int amount = plotBreeding.getEggs().size();
       List<Pokemon> pokemons = new ArrayList<>();
@@ -55,13 +56,14 @@ public class PlotBreedingUI {
         itemStack = CobbleUtils.breedconfig.getPlotThereAreEggs().getItemStack(amount);
       }
 
+      int finalI = i;
       GooeyButton button = GooeyButton.builder()
         .display(itemStack)
         .title(AdventureTranslator.toNative(CobbleUtils.breedconfig.getPlotItem().getDisplayname()))
         .lore(Text.class, AdventureTranslator.toNativeL(lore))
         .onClick(action -> {
           plotBreeding.checking(player);
-          PlotBreedingManagerUI.open(player, plotBreeding);
+          PlotBreedingManagerUI.open(player, plotBreeding, finalI);
         })
         .build();
       template.set(CobbleUtils.breedconfig.getPlotSlots().get(i), button);

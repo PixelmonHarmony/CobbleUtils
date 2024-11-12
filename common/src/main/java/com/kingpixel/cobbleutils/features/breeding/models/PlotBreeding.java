@@ -5,14 +5,14 @@ import com.cobblemon.mod.common.api.storage.NoPokemonStoreException;
 import com.cobblemon.mod.common.pokemon.Gender;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.kingpixel.cobbleutils.CobbleUtils;
-import com.kingpixel.cobbleutils.features.breeding.Breeding;
 import com.kingpixel.cobbleutils.util.LuckPermsUtil;
 import com.kingpixel.cobbleutils.util.RewardsUtils;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import net.minecraft.server.network.ServerPlayerEntity;
+import org.bson.Document;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -20,12 +20,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * @author Carlos Varas Alonso - 02/08/2024 13:42
- */
 @Getter
 @Setter
-@ToString
 public class PlotBreeding {
   private JsonObject male;
   private JsonObject female;
@@ -37,6 +33,76 @@ public class PlotBreeding {
     female = null;
     eggs = new ArrayList<>();
     cooldown = applyCooldown(null); // Aplicar cooldown inicial sin jugador
+  }
+
+  // Convierte la instancia de PlotBreeding a un documento MongoDB
+  public Document toDocument(String playerId) {
+    Document doc = new Document();
+    doc.append("playerId", playerId); // Identificador del jugador
+    doc.append("cooldown", cooldown);
+
+    // Convertimos male y female a JSON String si no están vacíos
+    if (male != null) {
+      doc.append("male", male.toString());  // No hace falta parsear ya que `male.toString()` ya es un JSON válido
+    }
+    if (female != null) {
+      doc.append("female", female.toString());  // Lo mismo para `female`
+    }
+
+    // Convierte la lista de huevos a documentos JSON
+    List<Document> eggDocs = new ArrayList<>();
+    for (JsonObject egg : eggs) {
+      try {
+        // Asegurarse de que cada huevo es un objeto JSON válido
+        eggDocs.add(Document.parse(egg.toString()));
+      } catch (Exception e) {
+        System.err.println("Error al convertir el huevo a documento JSON: " + e.getMessage());
+      }
+    }
+    doc.append("eggs", eggDocs);
+
+    return doc;
+  }
+
+  // Crea una instancia de PlotBreeding a partir de un documento MongoDB
+  public static PlotBreeding fromDocument(Document doc) {
+    PlotBreeding plot = new PlotBreeding();
+
+    if (doc.containsKey("cooldown")) {
+      plot.setCooldown(doc.getLong("cooldown"));
+    }
+
+    // Parse male y female como JsonObject usando JsonParser
+    if (doc.containsKey("male")) {
+      try {
+        plot.setMale(JsonParser.parseString(doc.getString("male")).getAsJsonObject());
+      } catch (Exception e) {
+        System.err.println("Error al parsear 'male': " + e.getMessage());
+      }
+    }
+    if (doc.containsKey("female")) {
+      try {
+        plot.setFemale(JsonParser.parseString(doc.getString("female")).getAsJsonObject());
+      } catch (Exception e) {
+        System.err.println("Error al parsear 'female': " + e.getMessage());
+      }
+    }
+
+    // Procesa cada huevo en la lista de documentos y conviértelo a JsonObject
+    if (doc.containsKey("eggs")) {
+      List<Document> eggDocs = (List<Document>) doc.get("eggs");
+      List<JsonObject> eggList = new ArrayList<>();
+      for (Document eggDoc : eggDocs) {
+        try {
+          eggList.add(JsonParser.parseString(eggDoc.toJson()).getAsJsonObject());
+        } catch (Exception e) {
+          System.err.println("Error al parsear huevo JSON: " + e.getMessage());
+        }
+      }
+      plot.setEggs(eggList);
+    }
+
+    return plot;
   }
 
   private long applyCooldown(ServerPlayerEntity player) {
@@ -59,8 +125,8 @@ public class PlotBreeding {
     return Pokemon.Companion.loadFromJSON(female);
   }
 
-  public void checking(ServerPlayerEntity player) {
-    if (!CobbleUtils.breedconfig.isActive()) return;
+  public boolean checking(ServerPlayerEntity player) {
+    if (!CobbleUtils.breedconfig.isActive()) return false;
     boolean banPokemon = false;
     if (CobbleUtils.breedconfig.getBlacklist().contains((male == null ? "null" : getPokemonMale().showdownId()))) {
       Cobblemon.INSTANCE.getStorage().getParty(player).add(getPokemonMale());
@@ -75,50 +141,49 @@ public class PlotBreeding {
     }
 
     if (banPokemon) {
-      Breeding.managerPlotEggs.writeInfo(player);
-      return;
+      return true;
     }
 
-    // Obtener el cooldown del jugador en milisegundos
     long playerCooldownMillis = applyCooldown(player);
 
     long currentTime = new Date().getTime();
-    long remainingCooldown = cooldown - currentTime; // Cooldown restante en milisegundos
+    long remainingCooldown = cooldown - currentTime;
 
-    // Si el cooldown restante es mayor que el nuevo cooldown basado en permisos, ajustarlo
     if (remainingCooldown > playerCooldownMillis) {
       cooldown = currentTime + playerCooldownMillis;
+      return true;
     }
 
     if (male == null || female == null) {
       cooldown = currentTime + playerCooldownMillis;
-      return;
+      return true;
     }
 
     if (eggs == null) eggs = new ArrayList<>();
 
-    // Verifica si el cooldown actual ha expirado
     if (cooldown < currentTime) {
       try {
         Pokemon pokemon = EggData.createEgg(getPokemonMale(), getPokemonFemale(), player, this);
         if (pokemon != null) {
           if (eggs.size() >= CobbleUtils.breedconfig.getMaxeggperplot())
-            return;
+            return true;
 
-          // Establece el nuevo cooldown personalizado después de la cría
           cooldown = currentTime + playerCooldownMillis;
 
-          if (CobbleUtils.breedconfig.isAutoclaim() || LuckPermsUtil.checkPermission(player, "cobbleutils.breeding.autoclaim")) {
+          if (CobbleUtils.breedconfig.isAutoclaim() && LuckPermsUtil.checkPermission(player, "cobbleutils.breeding" +
+            ".autoclaim")) {
             RewardsUtils.saveRewardPokemon(player, pokemon);
+            return true;
           } else {
             eggs.add(pokemon.saveToJSON(new JsonObject()));
+            return true;
           }
-          Breeding.managerPlotEggs.writeInfo(player);
         }
       } catch (NoPokemonStoreException e) {
         e.printStackTrace();
       }
     }
+    return true;
   }
 
   public boolean addMale(Pokemon pokemon) {

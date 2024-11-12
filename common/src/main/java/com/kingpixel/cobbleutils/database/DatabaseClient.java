@@ -19,5 +19,8 @@ public interface DatabaseClient {
   List<PlotBreeding> getPlots(ServerPlayerEntity player);
 
   void savePlots(ServerPlayerEntity player, List<PlotBreeding> plots);
-  
+
+  void checkDaycarePlots(ServerPlayerEntity player);
+
+  void removeDataIfNecessary(ServerPlayerEntity player);
 }

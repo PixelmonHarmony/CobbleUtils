@@ -6,7 +6,6 @@ import com.cobblemon.mod.common.command.argument.PartySlotArgumentType;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.features.breeding.models.EggData;
-import com.kingpixel.cobbleutils.features.breeding.util.AdventureBreeding;
 import com.kingpixel.cobbleutils.util.LuckPermsUtil;
 import com.kingpixel.cobbleutils.util.PlayerUtils;
 import com.mojang.brigadier.Command;
@@ -116,16 +115,15 @@ public class Hatch implements Command<ServerCommandSource> {
   private static boolean cooldown(ServerPlayerEntity player) {
     Long cooldown = cooldowns.get(player.getUuid());
 
-    if (cooldown != null && PlayerUtils.isCooldown(cooldown)) {
-      player.sendMessage(AdventureBreeding.adventure(
-        CobbleUtils.language.getMessageCooldown()
-          .replace("%cooldown%", PlayerUtils.getCooldown(new Date(cooldown)))));
+    if (PlayerUtils.isCooldown(cooldown)) {
+      PlayerUtils.sendMessage(player, CobbleUtils.language.getMessageCooldown()
+          .replace("%cooldown%", PlayerUtils.getCooldown(new Date(cooldown))),
+        CobbleUtils.breedconfig.getPrefix()
+      );
       return true;
     }
 
-    if (Cobblemon.INSTANCE.getBattleRegistry().getBattleByParticipatingPlayer(player) != null)
-      return true;
-    return false;
+    return Cobblemon.INSTANCE.getBattleRegistry().getBattleByParticipatingPlayer(player) != null;
   }
 
   private static int hatch(CommandContext<ServerCommandSource> context, ServerPlayerEntity player) {

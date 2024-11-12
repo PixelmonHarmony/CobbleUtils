@@ -9,7 +9,6 @@ import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.features.breeding.models.EggData;
 import com.kingpixel.cobbleutils.features.breeding.ui.PlotBreedingUI;
 import com.kingpixel.cobbleutils.features.breeding.ui.PlotSelectPokemonUI;
-import com.kingpixel.cobbleutils.features.breeding.util.AdventureBreeding;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.LuckPermsUtil;
 import com.kingpixel.cobbleutils.util.PlayerUtils;
@@ -95,7 +94,7 @@ public class BreedCommand implements Command<ServerCommandSource> {
       applyCooldown(targetPlayer);
       return 1;
     } else {
-      targetPlayer.sendMessage(AdventureBreeding.adventure("Failed to create egg."));
+      targetPlayer.sendMessage(AdventureTranslator.toNative("Failed to create egg."));
     }
 
     return 0;
@@ -118,13 +117,13 @@ public class BreedCommand implements Command<ServerCommandSource> {
 
   private static boolean arePokemonsValid(Pokemon male, Pokemon female, ServerPlayerEntity player) {
     if (male == null || female == null || male.getUuid().equals(female.getUuid())) {
-      player.sendMessage(
-        AdventureBreeding.adventure(
-          PokemonUtils.replace(
-            CobbleUtils.breedconfig.getNotCompatible()
-              .replace("%prefix%", CobbleUtils.breedconfig.getPrefix()),
-            List.of(male, female))
-        )
+      PlayerUtils.sendMessage(
+        player,
+        PokemonUtils.replace(
+          CobbleUtils.breedconfig.getNotCompatible()
+            .replace("%prefix%", CobbleUtils.breedconfig.getPrefix()),
+          List.of(male, female)),
+        CobbleUtils.breedconfig.getPrefix()
       );
       return false;
     }
@@ -134,7 +133,7 @@ public class BreedCommand implements Command<ServerCommandSource> {
         return false;
       }
     } catch (Exception e) {
-      player.sendMessage(AdventureBreeding.adventure("Error verifying Pokémon compatibility."));
+      PlayerUtils.sendMessage(player, "Error verifying Pokémon compatibility.", CobbleUtils.breedconfig.getPrefix());
       return false;
     }
     return true;
@@ -147,7 +146,7 @@ public class BreedCommand implements Command<ServerCommandSource> {
 
       return EggData.createEgg(male, female, player);
     } catch (NoPokemonStoreException e) {
-      player.sendMessage(AdventureBreeding.adventure("Failed to create egg: no available storage."));
+      PlayerUtils.sendMessage(player, "Failed to create egg: no available storage.", CobbleUtils.breedconfig.getPrefix());
       return null;
     }
   }

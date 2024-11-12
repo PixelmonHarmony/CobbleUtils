@@ -98,9 +98,9 @@ public class CobbleUtils extends ShopExtend {
 
 
   private static void files() {
+    config.init();
     language.init();
     shopLang.init();
-    config.init();
     breedconfig.init();
     poolItems.init();
     poolPokemons.init();
@@ -108,11 +108,7 @@ public class CobbleUtils extends ShopExtend {
     partyConfig.init();
     partyLang.init();
     shopConfig.init(PATH_SHOP, MOD_ID, PATH_SHOPS);
-    DatabaseClientFactory.createDatabaseClient(config.getDatabase().getType(),
-      config.getDatabase().getDatabase(),
-      config.getDatabase().getUrl(),
-      config.getDatabase().getUser(),
-      config.getDatabase().getPassword());
+    DatabaseClientFactory.createDatabaseClient(config.getDatabase());
 
   }
 
