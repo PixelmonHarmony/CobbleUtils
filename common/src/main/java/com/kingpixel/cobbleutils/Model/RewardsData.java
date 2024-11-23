@@ -8,7 +8,6 @@ import lombok.Getter;
 import lombok.ToString;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -24,7 +23,6 @@ public class RewardsData {
   private List<ItemObject> items;
   private List<JsonObject> pokemons;
   private List<String> commands;
-  private Long lastjoin;
 
   public RewardsData() {
   }
@@ -35,7 +33,6 @@ public class RewardsData {
     this.items = new ArrayList<>();
     this.pokemons = new ArrayList<>();
     this.commands = new ArrayList<>();
-    this.lastjoin = new Date().getTime();
   }
 
   public RewardsData(String playername, UUID playeruuid, List<ItemObject> items, List<JsonObject> pokemons,
@@ -45,7 +42,6 @@ public class RewardsData {
     this.items = items;
     this.pokemons = pokemons;
     this.commands = commands;
-    this.lastjoin = new Date().getTime();
   }
 
   public void init() {
@@ -58,7 +54,6 @@ public class RewardsData {
         this.items = rewards.getItems();
         this.pokemons = rewards.getPokemons();
         this.commands = rewards.getCommands();
-        this.lastjoin = new Date().getTime();
         String data = gson.toJson(this);
         CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(CobbleUtils.PATH_REWARDS_DATA, playeruuid + ".json",
           data);

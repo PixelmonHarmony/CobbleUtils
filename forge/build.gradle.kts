@@ -50,6 +50,10 @@ dependencies {
 
     // Economy Vault
     shadowCommon("com.github.MilkBowl:VaultAPI:1.7")
+
+    // Discord
+    shadowCommon("club.minnced:discord-webhooks:${property("discord_webhooks_version")}")
+    shadowCommon("org.json:json:20210307")
 }
 
 tasks.processResources {
@@ -101,7 +105,6 @@ tasks {
         exclude("org/junit/**/*")
         exclude("org/java_websocket/**/*")
         exclude("org/hamcrest/**/*")
-        exclude("org/json/**/*")
         exclude("com/google/**/*")
 
         relocate("com.mongodb", "com.kingpixel.cobbleutils.mongodb")

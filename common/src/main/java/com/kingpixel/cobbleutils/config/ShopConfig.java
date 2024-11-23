@@ -2,6 +2,7 @@ package com.kingpixel.cobbleutils.config;
 
 import com.google.gson.Gson;
 import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.Model.ItemModel;
 import com.kingpixel.cobbleutils.features.shops.Shop;
 import com.kingpixel.cobbleutils.features.shops.ShopConfigMenu;
 import com.kingpixel.cobbleutils.features.shops.models.types.ShopTypeDynamic;
@@ -14,6 +15,8 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.io.File;
+import java.time.DayOfWeek;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -122,16 +125,56 @@ public class ShopConfig {
     if (shop.getRows() < 1 || shop.getRows() > 6) shop.setRows((short) 6);
     int max_array = (shop.getRows() * 9) - 1;
 
-    if (shop.getPrevious() == null) shop.setPrevious(CobbleUtils.language.getItemPrevious());
-    if (shop.getNext() == null) shop.setNext(CobbleUtils.language.getItemNext());
-    if (shop.getClose() == null) shop.setClose(CobbleUtils.language.getItemClose());
-    
+    if (shop.getPrevious() == null) {
+      ItemModel previous = CobbleUtils.language.getItemPrevious();
+      previous.setSlot(max_array - 8);
+      shop.setPrevious(previous);
+    }
+    if (shop.getClose() == null) {
+      ItemModel close = CobbleUtils.language.getItemClose();
+      close.setSlot(max_array - 4);
+      shop.setClose(close);
+    }
+    if (shop.getNext() == null) {
+      ItemModel next = CobbleUtils.language.getItemNext();
+      next.setSlot(max_array);
+      shop.setNext(next);
+    }
+
+    if (shop.getCloseCommand() == null) shop.setCloseCommand("");
+
     if (shop.getPrevious().getSlot() == null || shop.getPrevious().getSlot() > max_array)
       shop.getPrevious().setSlot(max_array - 8);
     if (shop.getClose().getSlot() == null || shop.getClose().getSlot() > max_array)
       shop.getClose().setSlot(max_array - 4);
     if (shop.getNext().getSlot() == null || shop.getNext().getSlot() > max_array)
       shop.getNext().setSlot(max_array);
+    if (shop.getProducts() == null || shop.getProducts().isEmpty()) shop.setProducts(Shop.getDefaultProducts());
+
+    switch (shop.getShopType().getTypeShop()) {
+      case PERMANENT:
+        break;
+      case DYNAMIC:
+        ShopTypeDynamic dynamic = (ShopTypeDynamic) shop.getShopType();
+        if (dynamic.getAmountProducts() < 1) dynamic.setAmountProducts(6);
+        if (dynamic.getMinutes() < 1) dynamic.setMinutes(60);
+        break;
+      case WEEKLY:
+        ShopTypeWeekly weekly = (ShopTypeWeekly) shop.getShopType();
+        if (weekly.getDayOfWeek() == null || weekly.getDayOfWeek().isEmpty())
+          weekly.setDayOfWeek(Arrays.stream(DayOfWeek.values()).toList());
+        break;
+      case DYNAMIC_WEEKLY:
+        ShopTypeDynamicWeekly dynamicWeekly = (ShopTypeDynamicWeekly) shop.getShopType();
+        if (dynamicWeekly.getAmountProducts() < 1) dynamicWeekly.setAmountProducts(6);
+        if (dynamicWeekly.getMinutes() < 1) dynamicWeekly.setMinutes(60);
+        if (dynamicWeekly.getDayOfWeek() == null || dynamicWeekly.getDayOfWeek().isEmpty())
+          dynamicWeekly.setDayOfWeek(Arrays.stream(DayOfWeek.values()).toList());
+        break;
+      default:
+        break;
+    }
+
   }
 
   public void init(String pathShop, String mod_id, String pathShops) {

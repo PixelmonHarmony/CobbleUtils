@@ -17,6 +17,7 @@ import net.minecraft.text.Text;
 
 import java.io.File;
 import java.io.FileReader;
+import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -49,6 +50,44 @@ public class ShopConfigMenu {
     ShopMod shopMod = new ShopMod(modId, pathShops);
     shops.put(shopMod, shopList);
     shopList.forEach(ShopSell::addProduct);
+  }
+
+  public void addProduct(String product, double buy, double sell, String modId, String shop) {
+    Product product1 = new Product();
+    product1.setProduct(product);
+    product1.setBuy(BigDecimal.valueOf(buy));
+    product1.setSell(BigDecimal.valueOf(sell));
+    Shop shop1 = getShop(modId, shop);
+    if (shop1 != null) {
+      shop1.getProducts().add(product1);
+    }
+    saveShops(shops.entrySet().stream()
+      .filter(entry -> entry.getKey().getMod_id().equals(modId))
+      .findFirst()
+      .map(Map.Entry::getKey)
+      .map(ShopMod::getPath)
+      .orElse(null));
+  }
+
+  public static Shop getShop(String modId, String shop) {
+    String path = shops.entrySet().stream()
+      .filter(entry -> entry.getKey().getMod_id().equals(modId))
+      .findFirst()
+      .map(Map.Entry::getKey)
+      .map(ShopMod::getPath)
+      .orElse(null);
+    Shop actionShop = shops.entrySet().stream()
+      .filter(entry -> entry.getKey().getMod_id().equals(modId))
+      .findFirst()
+      .map(Map.Entry::getValue)
+      .flatMap(list -> list.stream()
+        .filter(shop1 -> shop1.getId().equals(shop))
+        .findFirst())
+      .orElse(null);
+    if (actionShop != null) {
+      saveShops(path);
+    }
+    return actionShop;
   }
 
   @Getter
@@ -119,7 +158,7 @@ public class ShopConfigMenu {
     if (folder.exists() && folder.isDirectory()) {
       File[] files = folder.listFiles((dir, name) -> name.endsWith(".json"));
 
-      if (CobbleUtils.config.isDebug()){
+      if (CobbleUtils.config.isDebug()) {
         Arrays.stream(files).toList().forEach(file -> CobbleUtils.LOGGER.info("File: " + file.getName()));
       }
 
@@ -200,7 +239,6 @@ public class ShopConfigMenu {
                 shop.open(player, shopConfig, mod_id, byCommand);
               }
             } else {
-              player.sendMessage(Text.literal("Shop is not active"));
               SoundUtil.playSound(CobbleUtils.shopLang.getSoundError(), player);
             }
           })
@@ -286,7 +324,7 @@ public class ShopConfigMenu {
   }
 
   public void open(ServerPlayerEntity player, String shopId, ShopConfig shopConfig, String mod_id, boolean b) {
-    Shop shop = getShop(shopId);
+    Shop shop = getShop(mod_id, shopId);
 
     if (shop != null) {
       shop.open(player, shopConfig, mod_id, b);

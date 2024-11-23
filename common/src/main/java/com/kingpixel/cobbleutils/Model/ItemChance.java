@@ -1,6 +1,14 @@
 package com.kingpixel.cobbleutils.Model;
 
+import ca.landonjw.gooeylibs2.api.UIManager;
+import ca.landonjw.gooeylibs2.api.button.Button;
 import ca.landonjw.gooeylibs2.api.button.GooeyButton;
+import ca.landonjw.gooeylibs2.api.button.PlaceholderButton;
+import ca.landonjw.gooeylibs2.api.button.linked.LinkType;
+import ca.landonjw.gooeylibs2.api.button.linked.LinkedPageButton;
+import ca.landonjw.gooeylibs2.api.helpers.PaginationHelper;
+import ca.landonjw.gooeylibs2.api.page.LinkedPage;
+import ca.landonjw.gooeylibs2.api.template.types.ChestTemplate;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.api.storage.NoPokemonStoreException;
 import com.cobblemon.mod.common.item.PokemonItem;
@@ -32,6 +40,7 @@ import java.util.regex.PatternSyntaxException;
 public class ItemChance {
   private final String item;
   private final int chance;
+  private String display;
   private static Map<String, List<ItemMod>> modItems = new HashMap<>();
 
   @Getter
@@ -45,6 +54,48 @@ public class ItemChance {
       this.itemId = itemId;
       this.itemStack = itemStack;
     }
+
+    public static void openMenu(ServerPlayerEntity player) {
+      ChestTemplate template = ChestTemplate.builder(6)
+        .build();
+
+      List<Button> buttons = new ArrayList<>();
+      modItems.forEach((modid, items) -> {
+        items.forEach(item -> {
+          buttons.add(GooeyButton.builder()
+            .display(items.get(0).getItemStack().copy())
+            .title("mod:" + modid + ":" + item.getItemId())
+            .onClick((action) -> {
+              action.getPlayer().giveItemStack(item.getItemStack().copy());
+            })
+            .build());
+        });
+      });
+
+      template.rectangle(0, 0, 5, 9, new PlaceholderButton());
+      template.fillFromList(buttons);
+      ItemModel itemPrevious = CobbleUtils.language.getItemPrevious();
+      template.set(45, LinkedPageButton.builder()
+        .display(itemPrevious.getItemStack())
+        .linkType(LinkType.Previous)
+        .build());
+
+      ItemModel itemClose = CobbleUtils.language.getItemClose();
+      template.set(49, itemClose.getButton(action -> {
+        action.getPlayer().closeHandledScreen();
+      }));
+
+      ItemModel itemNext = CobbleUtils.language.getItemNext();
+      template.set(53, LinkedPageButton.builder()
+        .display(itemNext.getItemStack())
+        .linkType(LinkType.Next)
+        .build());
+
+      LinkedPage.Builder linkedPageBuilder = LinkedPage.builder()
+        .title("Mod Rewards");
+
+      UIManager.openUIForcefully(player, PaginationHelper.createPagesFromPlaceholders(template, buttons, linkedPageBuilder));
+    }
   }
 
   public ItemChance() {
@@ -54,6 +105,7 @@ public class ItemChance {
   public ItemChance(String item, int chance) {
     this.item = item;
     this.chance = chance;
+    this.display = null;
   }
 
   public static void addModItem(String modid, String itemId, ItemStack itemStack) {
@@ -170,8 +222,7 @@ public class ItemChance {
   private static boolean handleMoneyReward(ServerPlayerEntity player, String item) {
     int money;
     String currency = "";
-    switch (item.split(":").length)
-    {
+    switch (item.split(":").length) {
       case 2:
         money = Integer.parseInt(item.split(":")[1]);
         currency = "dollars";
@@ -184,14 +235,10 @@ public class ItemChance {
         money = Integer.parseInt(item.replace("money:", ""));
         break;
     }
-
-    CobbleUtils.LOGGER.info("Money: " + money + " Currency: " + currency + " Player: " + player.getGameProfile().getName() + " Split: " + item.split(":").length);
-
-    if (!CobbleUtils.language.getMessageReceiveMoney().isEmpty()){
-      player.sendMessage(AdventureTranslator.toNativeWithOutPrefix(
-        CobbleUtils.language.getMessageReceiveMoney()
-          .replace("%amount%", String.valueOf(money))));
-    }
+    PlayerUtils.sendMessage(player,
+      CobbleUtils.language.getMessageReceiveMoney()
+        .replace("%amount%", String.valueOf(money)),
+      "");
 
     return EconomyUtil.addMoney(player, currency, BigDecimal.valueOf(money));
   }
@@ -234,12 +281,17 @@ public class ItemChance {
     String[] parts = itemChance.getItem().split(":");
     String modid = parts[1];
     String itemId = parts[2];
+    int amount = 1;
+    if (parts.length > 3) {
+      amount = Integer.parseInt(parts[3]);
+    }
     ItemStack itemStack =
       modItems.getOrDefault(modid, new ArrayList<>())
         .stream()
         .filter(i -> i.getItemId().equalsIgnoreCase(itemId))
         .findFirst()
         .orElse(new ItemMod("", Items.DIRT.getDefaultStack())).getItemStack().copy();
+    itemStack.setCount(amount);
     return itemStack;
   }
 
@@ -459,5 +511,25 @@ public class ItemChance {
         e.printStackTrace();
       }
     }
+  }
+
+  /**
+   * Gets a list of GooeyButton instances representing the item chances.
+   *
+   * @param itemChances The list of item chances to get the buttons for.
+   *
+   * @return The list of GooeyButton instances representing the item chances.
+   */
+  public static List<GooeyButton> getButtons(List<ItemChance> itemChances) {
+    List<GooeyButton> buttons = new ArrayList<>();
+    for (ItemChance itemChance : itemChances) {
+      List<String> lore = new ArrayList<>(itemChance.getLore());
+      lore.replaceAll(s -> s.replace("%chance%", String.valueOf(itemChance.getChance())));
+      buttons.add(GooeyButton.builder()
+        .display(itemChance.getItemStack())
+        .lore(Text.class, AdventureTranslator.toNativeL(lore))
+        .build());
+    }
+    return buttons;
   }
 }

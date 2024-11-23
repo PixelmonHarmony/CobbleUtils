@@ -17,12 +17,15 @@ import java.util.List;
 /**
  * @author Carlos Varas Alonso - 06/11/2024 22:39
  */
+@Deprecated
 public class ParticleUtils {
   // Publics
+  @Deprecated
   public static void sendParticles(Particle particle, ServerPlayerEntity player, List<Entity> entities) {
     entities.forEach(entity -> sendParticles(particle, player, entity));
   }
 
+  @Deprecated
   public static void sendParticles(Particle particle, ServerPlayerEntity player, Entity entity) {
     DefaultParticleType particleType;
     String[] split = particle.getParticle().split(":");
@@ -43,6 +46,7 @@ public class ParticleUtils {
     player.networkHandler.sendPacket(particleS2CPacket);
   }
 
+  @Deprecated
   public static void sendParticlesNearPlayers(Particle particle, Entity entity, int radius) {
     entity.getWorld().getPlayers(TargetPredicate.DEFAULT, entity.getControllingPassenger(),
       Box.from(entity.getPos()).expand(radius)).forEach(player -> sendParticles(particle, PlayerUtils.castPlayer(player),
@@ -50,15 +54,15 @@ public class ParticleUtils {
   }
 
   // Privates
+  @Deprecated
   private static @NotNull ParticleS2CPacket getParticleS2CPacket(Particle particle, Entity entity, DefaultParticleType particleType) {
-    int offsetX = particle.getOffsetX() == null ? 1 : particle.getOffsetX();
-    int offsetY = particle.getOffsetY() == null ? 1 : particle.getOffsetY();
-    int offsetZ = particle.getOffsetZ() == null ? 1 : particle.getOffsetZ();
+    int offsetX = particle.getOffsetX() == null ? 0 : particle.getOffsetX();
+    int offsetY = particle.getOffsetY() == null ? 0 : particle.getOffsetY();
+    int offsetZ = particle.getOffsetZ() == null ? 0 : particle.getOffsetZ();
     int speed = particle.getSpeed() == null ? 0 : particle.getSpeed();
 
-    ParticleS2CPacket particleS2CPacket = new ParticleS2CPacket(particleType, true,
+    return new ParticleS2CPacket(particleType, true,
       entity.getX(),
       entity.getY(), entity.getZ(), offsetX, offsetY, offsetZ, speed, particle.getNumberParticles());
-    return particleS2CPacket;
   }
 }

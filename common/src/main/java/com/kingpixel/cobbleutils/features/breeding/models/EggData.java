@@ -25,7 +25,10 @@ import com.kingpixel.cobbleutils.Model.PokemonChance;
 import com.kingpixel.cobbleutils.Model.PokemonData;
 import com.kingpixel.cobbleutils.Model.ScalePokemonData;
 import com.kingpixel.cobbleutils.features.breeding.events.HatchEggEvent;
-import com.kingpixel.cobbleutils.util.*;
+import com.kingpixel.cobbleutils.util.AdventureTranslator;
+import com.kingpixel.cobbleutils.util.PlayerUtils;
+import com.kingpixel.cobbleutils.util.PokemonUtils;
+import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -203,7 +206,7 @@ public class EggData {
         if (!CobbleUtils.breedconfig.isDoubleditto())
           return null;
         do {
-          usePokemonToEgg = ArraysPokemons.getRandomPokemon();
+          usePokemonToEgg = CobbleUtils.breedconfig.getPokemonsForDoubleDitto().generateRandomPokemon(CobbleUtils.MOD_ID, "breeding");
         } while (usePokemonToEgg.isUltraBeast() || usePokemonToEgg.isLegendary());
         random = true;
       } else {
@@ -229,7 +232,7 @@ public class EggData {
     if (!egg.showdownId().equalsIgnoreCase("egg")) {
       player.sendMessage(
         AdventureTranslator.toNative(
-          "%prefix% The CobbleUtils datapack is not installed, please notify the administrator about this.",
+          "%prefix% The CobbleUtils datapack is not installed, please notify the Owner/Admin about this.",
           CobbleUtils.breedconfig.getPrefix()
         )
       );
@@ -640,6 +643,7 @@ public class EggData {
   private static String getForm(Pokemon pokemon) {
     String form;
 
+
     switch (pokemon.getSpecies().showdownId()) {
       case "perrserker":
       case "sirfetchd":
@@ -670,6 +674,10 @@ public class EggData {
       .ifPresent(eggSpecialForm -> configForm.set(eggSpecialForm.getForm()));
 
     if (configForm.get() != null) {
+      if (CobbleUtils.config.isDebug()) {
+        CobbleUtils.LOGGER.info("Egg Form: " + configForm.get());
+      }
+      if (CobbleUtils.breedconfig.getBlacklistForm().contains(configForm.get())) configForm.set("");
       return configForm.get();
     }
 
@@ -687,6 +695,13 @@ public class EggData {
     if (lastUnderscoreIndex != -1) {
       form = form.substring(0, lastUnderscoreIndex) + "=" + form.substring(lastUnderscoreIndex + 1);
     }
+
+    if (CobbleUtils.config.isDebug()) {
+      CobbleUtils.LOGGER.info("Egg Form: " + form);
+    }
+
+    if (CobbleUtils.breedconfig.getBlacklistForm().contains(form)) form = "";
+
     return form;
   }
 

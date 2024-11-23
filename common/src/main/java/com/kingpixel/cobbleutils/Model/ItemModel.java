@@ -35,7 +35,7 @@ public class ItemModel {
 
   public ItemModel() {
     this.slot = 0;
-    this.item = "";
+    this.item = "minecraft:emerald";
     this.displayname = "";
     this.lore = new ArrayList<>();
     this.CustomModelData = 0;

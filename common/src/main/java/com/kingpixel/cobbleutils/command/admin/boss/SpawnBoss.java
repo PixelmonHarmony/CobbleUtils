@@ -4,8 +4,8 @@ import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.CobbleUtils;
-import com.kingpixel.cobbleutils.Model.CobbleUtilsTags;
 import com.kingpixel.cobbleutils.Model.options.BossChance;
+import com.kingpixel.cobbleutils.events.features.PokemonBoss;
 import com.kingpixel.cobbleutils.util.LuckPermsUtil;
 import com.kingpixel.cobbleutils.util.Utils;
 import com.mojang.brigadier.Command;
@@ -20,14 +20,10 @@ import net.minecraft.command.argument.Vec3ArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 import java.util.List;
-
-import static com.kingpixel.cobbleutils.Model.CobbleUtilsTags.SIZE_CUSTOM_TAG;
-import static com.kingpixel.cobbleutils.Model.CobbleUtilsTags.SIZE_TAG;
 
 /**
  * @author Carlos Varas Alonso - 03/08/2024 5:29
@@ -36,6 +32,7 @@ public class SpawnBoss implements Command<ServerCommandSource> {
 
   public static void register(CommandDispatcher<ServerCommandSource> dispatcher,
                               LiteralArgumentBuilder<ServerCommandSource> base) {
+    if (!CobbleUtils.config.getBosses().isActive()) return;
     dispatcher.register(
       base.then(
         CommandManager.literal("spawnboss")
@@ -90,30 +87,14 @@ public class SpawnBoss implements Command<ServerCommandSource> {
       return;
 
     PokemonEntity pokemonEntity;
-    if (CobbleUtils.config.getBosses().isForceAspectBoss()) {
-      int n = Utils.RANDOM.nextInt(bossChance.getPokemons().getPokemon().size());
-      pokemonEntity = PokemonProperties.Companion
-        .parse(bossChance.getPokemons().getPokemon().get(n) + bossChance.getPokemons().getFormsoraspects())
-        .createEntity(level);
-    } else {
-      pokemonEntity = PokemonProperties.Companion.parse("random uncatchable=yes").createEntity(level);
-    }
+
+    int n = bossChance.getPokemons().getPokemon().size() == 1 ? 0 : Utils.RANDOM.nextInt(bossChance.getPokemons().getPokemon().size());
+    pokemonEntity = PokemonProperties.Companion
+      .parse(bossChance.getPokemons().getPokemon().get(n) + " " + bossChance.getPokemons().getFormsoraspects() + " uncatchable=yes")
+      .createEntity(level);
+
     Pokemon pokemon = pokemonEntity.getPokemon();
-    pokemon.getPersistentData().putBoolean(CobbleUtilsTags.BOSS_TAG, true);
-    pokemon.getPersistentData().putString(CobbleUtilsTags.BOSS_RARITY_TAG, bossChance.getRarity());
-    pokemon.getPersistentData().putString(SIZE_TAG, SIZE_CUSTOM_TAG);
-    if (bossChance.getMinsize() != bossChance.getMaxsize()) {
-      pokemon.setScaleModifier(Utils.RANDOM.nextFloat(bossChance.getMinsize(), bossChance.getMaxsize()));
-    } else {
-      pokemon.setScaleModifier(bossChance.getMinsize());
-    }
-    pokemon.setShiny(CobbleUtils.config.getBosses().isShiny());
-    pokemon.setNickname(Text.literal(bossChance.getRarity()));
-    if (bossChance.getMinlevel() != bossChance.getMaxlevel()) {
-      pokemon.setLevel(Utils.RANDOM.nextInt(bossChance.getMinlevel(), bossChance.getMaxlevel()));
-    } else {
-      pokemon.setLevel(bossChance.getMinlevel());
-    }
+    PokemonBoss.apply(pokemon, bossChance, CobbleUtils.config.getBosses().getPokemonDataBoss(pokemon));
     pokemonEntity.setPos(pos.x, pos.y, pos.z);
     level.spawnEntity(pokemonEntity);
   }

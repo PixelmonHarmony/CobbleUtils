@@ -2,6 +2,7 @@ package com.kingpixel.cobbleutils.features.breeding.config;
 
 import com.google.gson.Gson;
 import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.Model.FilterPokemons;
 import com.kingpixel.cobbleutils.Model.ItemModel;
 import com.kingpixel.cobbleutils.Model.PokemonChance;
 import com.kingpixel.cobbleutils.Model.PokemonData;
@@ -90,6 +91,7 @@ public class BreedConfig {
   private List<String> whitelist;
   private List<String> blacklistForm;
   private List<Incense> incenses;
+  private FilterPokemons pokemonsForDoubleDitto;
   //private List<String> nationalities;
 
 
@@ -164,7 +166,7 @@ public class BreedConfig {
     this.notditto = "%prefix% <#d65549>you can't use one ditto!";
     this.blacklisted = "%prefix% <#ecca18>%pokemon% <#d65549>is blacklisted!";
     this.notbreedable = "%prefix% <#ecca18>%pokemon% <#d65549>is not breedable!";
-    this.blacklist = List.of("pokestop", "egg");
+    this.blacklist = List.of("pokestop", "egg", "manaphy");
     this.whitelist = List.of("manaphy");
     this.nameEgg = "Egg";
     this.nameRandomEgg = "Random Egg";
@@ -197,6 +199,8 @@ public class BreedConfig {
         new PokemonChance("volbeat", 50)
       ))
     );
+    pokemonsForDoubleDitto = new FilterPokemons();
+    pokemonsForDoubleDitto.setLegendarys(false);
 
   }
 
@@ -288,7 +292,9 @@ public class BreedConfig {
         plotItem = config.getPlotItem();
         plotSlots = config.getPlotSlots();
         permissionAutoClaim = config.getPermissionAutoClaim();
+        pokemonsForDoubleDitto = config.getPokemonsForDoubleDitto();
 
+        checker(this);
 
         String data = gson.toJson(this);
         CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(CobbleUtils.PATH_BREED, "config.json",
@@ -310,5 +316,9 @@ public class BreedConfig {
       }
     }
 
+  }
+
+  private void checker(BreedConfig breedConfig) {
+    if (breedConfig.getPokemonsForDoubleDitto() == null) breedConfig.setPokemonsForDoubleDitto(new FilterPokemons());
   }
 }

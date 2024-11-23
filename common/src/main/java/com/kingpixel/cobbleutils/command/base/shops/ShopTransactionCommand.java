@@ -18,9 +18,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.item.ItemStack;
-import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -36,37 +34,9 @@ public class ShopTransactionCommand implements Command<ServerCommandSource> {
 
   public static void register(CommandDispatcher<ServerCommandSource> dispatcher,
                               LiteralArgumentBuilder<ServerCommandSource> base) {
-    dispatcher.register(
-      base
-        .then(CommandManager.literal("transactions")
-          .requires(source -> LuckPermsUtil.checkPermission(
-            source, 2, List.of("cobbleutils.admin", "cobbleutils.shoptransactions")
-          ))
-          .executes(context -> {
-            if (!context.getSource().isExecutedByPlayer()) {
-              return 0;
-            }
-            ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
-            UIManager.openUIForcefully(player, getTransactionsPlayers(player, CobbleUtils.shopConfig.getShop()));
-            return 1;
-          })
-          .then(CommandManager.argument("player", EntityArgumentType.player())
-            .executes(context -> {
-              if (!context.getSource().isExecutedByPlayer()) {
-                return 0;
-              }
-              ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
-              UUID targetUUID = EntityArgumentType.getPlayer(context, "player").getUuid();
-
-              UIManager.openUIForcefully(player, getTransactionPlayer(player, targetUUID, CobbleUtils.shopConfig.getShop()));
-              return 1;
-            })
-          )
-        )
-    );
   }
 
-  private static GooeyPage getTransactionsPlayers(ServerPlayerEntity viewer, ShopConfigMenu shop) {
+  static GooeyPage getTransactionsPlayers(ServerPlayerEntity viewer, ShopConfigMenu shop) {
     viewer.sendMessage(AdventureTranslator.toNative("&7This command is still in development."));
     ChestTemplate template = ChestTemplate.builder(6).build();
 
@@ -150,7 +120,7 @@ public class ShopTransactionCommand implements Command<ServerCommandSource> {
       .build();
   }
 
-  private static GooeyPage getTransactionPlayer(ServerPlayerEntity player, UUID uuid, ShopConfigMenu shop) {
+  static GooeyPage getTransactionPlayer(ServerPlayerEntity player, UUID uuid, ShopConfigMenu shop) {
     ChestTemplate template = ChestTemplate.builder(6).build();
     List<Button> buttons = generateTransactionButtons(player, uuid, shop);
 

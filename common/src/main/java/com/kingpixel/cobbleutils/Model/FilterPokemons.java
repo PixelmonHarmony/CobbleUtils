@@ -16,7 +16,9 @@ import lombok.Data;
 import java.util.*;
 
 /**
- * @author Carlos Varas Alonso - 23/09/2024 11:54
+ * Improved version of FilterPokemons class
+ *
+ * @author
  */
 @Data
 public class FilterPokemons {
@@ -26,18 +28,20 @@ public class FilterPokemons {
   // Order
   private Set<orderFilter> order;
 
-  private enum orderFilter {
+  public enum orderFilter {
     POKEMON,
     TYPE,
     LABEL,
     FORM,
-    RARITY
+    RARITY,
+    LEGENDARY
   }
 
   // Pokemons
   private Set<String> whitelistPokemons;
   private Set<String> blacklistPokemons;
   // Types
+  private boolean allowOneTypeRequired;
   private Set<ElementalType> whitelistTypes;
   private Set<ElementalType> blacklistTypes;
   // Labels
@@ -57,7 +61,9 @@ public class FilterPokemons {
   private boolean alsoImplemented;
   // Also First Evolution
   private boolean notEvolution;
-
+  // Legendarys
+  private boolean legendarys;
+  // Allow partial whitelist
 
   public FilterPokemons() {
     // Order
@@ -71,6 +77,7 @@ public class FilterPokemons {
     );
 
     // Types
+    allowOneTypeRequired = true;
     whitelistTypes = new HashSet<>(ElementalTypes.INSTANCE.all());
     blacklistTypes = new HashSet<>();
 
@@ -96,6 +103,37 @@ public class FilterPokemons {
 
     alsoImplemented = true;
     notEvolution = false;
+    legendarys = true;
+  }
+
+  private void checker() {
+    if (blacklistPokemons == null || blacklistPokemons.isEmpty()) {
+      blacklistPokemons = Set.of(
+        "egg",
+        "pokestop"
+      );
+    }
+    if (!blacklistPokemons.contains("egg")) {
+      blacklistPokemons.add("egg");
+    }
+    if (!blacklistPokemons.contains("pokestop")) {
+      blacklistPokemons.add("pokestop");
+    }
+
+    if (whitelistTypes == null) {
+      whitelistTypes = new HashSet<>(ElementalTypes.INSTANCE.all());
+    }
+
+    if (blacklistTypes == null) {
+      blacklistTypes = new HashSet<>();
+    }
+
+    if (whitelistTypes.contains(null)) {
+      whitelistTypes.remove(null);
+    }
+    if (blacklistTypes.contains(null)) {
+      blacklistTypes.remove(null);
+    }
   }
 
   public static void removeCache(String modid) {
@@ -119,6 +157,7 @@ public class FilterPokemons {
       }
       allowedPokemons = cache.get(modId).get(id);
     } else {
+      checker();
       allowedPokemons = getAllowedPokemons();
       cache.putIfAbsent(modId, new HashMap<>());
       cache.get(modId).put(id, allowedPokemons);
@@ -134,12 +173,14 @@ public class FilterPokemons {
    * @return the pokemon
    */
   private Pokemon getPokemon(Pokemon pokemon) {
-    pokemon.createPokemonProperties(List.of(
+    Pokemon copy = pokemon.clone(true, true);
+    copy.createPokemonProperties(List.of(
       PokemonPropertyExtractor.NATURE,
       PokemonPropertyExtractor.IVS,
-      PokemonPropertyExtractor.GENDER
-    )).apply(pokemon);
-    return pokemon;
+      PokemonPropertyExtractor.GENDER,
+      PokemonPropertyExtractor.POKEBALL
+    )).apply(copy);
+    return copy;
   }
 
   /**
@@ -181,12 +222,18 @@ public class FilterPokemons {
    * @return the list of allowed pokemons
    */
   public List<Pokemon> getAllowedPokemons() {
+    if (order == null || order.contains(null)) {
+      this.order = new HashSet<>(Arrays.stream(orderFilter.values()).toList());
+    }
     List<Pokemon> allowedPokemons = new ArrayList<>();
+    List<String> pokemonIds = new ArrayList<>();
     PokemonSpecies.INSTANCE.getSpecies().forEach(pokemon -> {
       List<FormData> forms = pokemon.getForms();
       if (forms.isEmpty()) {
         Pokemon p = pokemon.create(1);
+        if (pokemonIds.contains(p.showdownId())) return;
         if (isAllowed(p)) {
+          pokemonIds.add(p.showdownId());
           allowedPokemons.add(p);
         }
       } else {
@@ -211,9 +258,10 @@ public class FilterPokemons {
             if (yetAspects.contains(p.showdownId())) return;
             yetAspects.add(p.showdownId());
           }
-
+          if (pokemonIds.contains(p.showdownId())) return;
           if (isAllowed(p)) {
             allowedPokemons.add(p);
+            pokemonIds.add(p.showdownId());
           }
         });
       }
@@ -240,7 +288,7 @@ public class FilterPokemons {
   private boolean isAllowed(Pokemon pokemon) {
     if (notEvolution && isFirstEvolution(pokemon)) return false;
     if (alsoImplemented && !pokemon.getSpecies().getImplemented()) return false;
-
+    if (order == null || order.isEmpty()) return true;
     // Precalcular tipos
     ElementalType primaryType = pokemon.getPrimaryType();
     ElementalType secondaryType = pokemon.getSecondaryType();
@@ -249,6 +297,7 @@ public class FilterPokemons {
     boolean allowed = false;
 
     for (orderFilter filter : order) {
+      if (filter == null) continue;
       switch (filter) {
         case POKEMON:
           if (blacklistPokemons.contains(showdownId) || blacklistPokemons.contains("*")) {
@@ -256,14 +305,17 @@ public class FilterPokemons {
           }
           allowed |= whitelistPokemons.contains("*") || whitelistPokemons.contains(showdownId);
           break;
-
         case TYPE:
           if (blacklistTypes.contains(primaryType) || blacklistTypes.contains(secondaryType)) {
-            return false;
+            if (allowOneTypeRequired && (whitelistTypes.contains(primaryType) || whitelistTypes.contains(secondaryType))) {
+              allowed = true;
+            } else {
+              return false;
+            }
+          } else {
+            allowed |= whitelistTypes.contains(primaryType) || whitelistTypes.contains(secondaryType);
           }
-          allowed |= whitelistTypes.contains(primaryType) || whitelistTypes.contains(secondaryType);
           break;
-
         case LABEL:
           boolean hasBlacklistedLabel = blacklistLabels.stream().anyMatch(label -> pokemon.getForm().getLabels().contains(label));
           if (hasBlacklistedLabel || blacklistLabels.contains("*")) {
@@ -284,6 +336,12 @@ public class FilterPokemons {
             return false;
           }
           allowed |= whitelistRarity.contains("*") || whitelistRarity.contains(rarity);
+          break;
+        case LEGENDARY:
+          if (!legendarys && pokemon.isLegendary()) {
+            return false;
+          }
+          allowed = true;
           break;
       }
     }

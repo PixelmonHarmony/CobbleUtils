@@ -34,6 +34,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import java.util.List;
 import java.util.concurrent.*;
 
+import static com.kingpixel.cobbleutils.util.EconomyUtil.setEconomyType;
+
 public class CobbleUtils extends ShopExtend {
   public static final String MOD_ID = "cobbleutils";
   public static final String PATH = "/config/cobbleutils";
@@ -129,7 +131,7 @@ public class CobbleUtils extends ShopExtend {
     LOGGER.info("§e| §6Pokerus: " + isActive(CobbleUtils.config.getPokerus().isActive()));
     LOGGER.info("§e| §6Breeding: " + isActive(CobbleUtils.breedconfig.isActive()));
     LOGGER.info("§e| §6Bosses: " + isActive(CobbleUtils.config.getBosses().isActive()));
-    LOGGER.info("§e| §6Supported economies: Impactor, BlanketEconomy, and Vault");
+    LOGGER.info("§e| §6Supported economies: Impactor, BlanketEconomy, CobbleDollars and Vault");
     LOGGER.info("§e+-------------------------------+");
   }
 
@@ -277,6 +279,8 @@ public class CobbleUtils extends ShopExtend {
 
     scheduledTasks.add(alertreward);
     scheduledTasks.add(fixnbt);
+
+    setEconomyType();
   }
 
 

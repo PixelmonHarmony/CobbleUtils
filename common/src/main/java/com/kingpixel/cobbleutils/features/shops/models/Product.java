@@ -70,47 +70,6 @@ public class Product {
     this.sell = BigDecimal.valueOf(25);
   }
 
-  public Product(String product, BigDecimal buy, BigDecimal sell) {
-    this.notCanBuyWithPermission = null;
-    this.display = null;
-    this.color = null;
-    this.displayname = null;
-    this.lore = null;
-    this.CustomModelData = null;
-    this.permission = null;
-    this.discount = null;
-    this.product = product;
-    this.buy = buy;
-    this.sell = sell;
-  }
-
-  public Product(String product, BigDecimal buy, BigDecimal sell, String permission) {
-    this.notCanBuyWithPermission = null;
-    this.display = null;
-    this.color = null;
-    this.displayname = null;
-    this.lore = null;
-    this.CustomModelData = null;
-    this.discount = null;
-    this.permission = permission;
-    this.product = product;
-    this.buy = buy;
-    this.sell = sell;
-  }
-
-  public Product(String product, BigDecimal buy, BigDecimal sell, String permission, String display, String displayname, List<String> lore, Long CustomModelData) {
-    this.notCanBuyWithPermission = null;
-    this.display = display;
-    this.displayname = displayname;
-    this.color = null;
-    this.discount = null;
-    this.lore = lore;
-    this.CustomModelData = CustomModelData;
-    this.permission = permission;
-    this.product = product;
-    this.buy = buy;
-    this.sell = sell;
-  }
 
   public ItemChance getItemchance() {
     return new ItemChance(product, 100);

@@ -1,6 +1,19 @@
 package com.kingpixel.cobbleutils.Model;
 
+import com.kingpixel.cobbleutils.util.PlayerUtils;
 import lombok.Getter;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.ai.TargetPredicate;
+import net.minecraft.network.packet.s2c.play.ParticleS2CPacket;
+import net.minecraft.particle.DefaultParticleType;
+import net.minecraft.particle.ParticleTypes;
+import net.minecraft.registry.Registries;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Box;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 /**
  * @author Carlos Varas Alonso - 06/11/2024 22:41
@@ -22,7 +35,7 @@ public class Particle {
     this.offsetY = 1;
     this.offsetZ = 1;
     this.speed = 0;
-    this.radius = null;
+    this.radius = 32.0;
   }
 
   public Particle(boolean isNeedNearPlayers) {
@@ -32,11 +45,7 @@ public class Particle {
     this.offsetY = 1;
     this.offsetZ = 1;
     this.speed = 0;
-    if (isNeedNearPlayers) {
-      this.radius = 10.0;
-    } else {
-      this.radius = null;
-    }
+    this.radius = 32.0;
   }
 
   public Particle(String particle) {
@@ -46,7 +55,7 @@ public class Particle {
     this.offsetY = 1;
     this.offsetZ = 1;
     this.speed = 0;
-    this.radius = null;
+    this.radius = 32.0;
   }
 
   public Particle(String particle, int numberParticles) {
@@ -56,6 +65,46 @@ public class Particle {
     this.offsetY = 1;
     this.offsetZ = 1;
     this.speed = 0;
-    this.radius = null;
+    this.radius = 32.0;
+  }
+
+  public void sendParticles(@NotNull ServerPlayerEntity player, @NotNull List<Entity> entities) {
+    entities.forEach(entity -> sendParticles(player, entity));
+  }
+
+  public void sendParticles(@NotNull ServerPlayerEntity player, @NotNull Entity entity) {
+    DefaultParticleType particleType;
+    String[] split = this.getParticle().split(":");
+    Identifier identifier = new Identifier(split[0], split[1]);
+
+    try {
+      if (Registries.PARTICLE_TYPE.get(identifier) instanceof DefaultParticleType) {
+        particleType = (DefaultParticleType) Registries.PARTICLE_TYPE.get(identifier);
+      } else {
+        particleType = ParticleTypes.LAVA;
+      }
+    } catch (Exception e) {
+      particleType = ParticleTypes.LAVA;
+    }
+
+    player.networkHandler.sendPacket(getParticleS2CPacket(entity, particleType));
+  }
+
+  public void sendParticlesNearPlayers(@NotNull Entity entity) {
+    entity.getWorld().getPlayers(TargetPredicate.DEFAULT, entity.getControllingPassenger(),
+      Box.from(entity.getPos()).expand(radius == null ? 32 : radius)).forEach(player -> sendParticles(PlayerUtils.castPlayer(player),
+      entity));
+  }
+
+  // Privates
+  private @NotNull ParticleS2CPacket getParticleS2CPacket(@NotNull Entity entity, @NotNull DefaultParticleType particleType) {
+    int offsetX = this.getOffsetX() == null ? 0 : this.getOffsetX();
+    int offsetY = this.getOffsetY() == null ? 0 : this.getOffsetY();
+    int offsetZ = this.getOffsetZ() == null ? 0 : this.getOffsetZ();
+    int speed = this.getSpeed() == null ? 0 : this.getSpeed();
+
+    return new ParticleS2CPacket(particleType, true,
+      entity.getX(),
+      entity.getY(), entity.getZ(), offsetX, offsetY, offsetZ, speed, this.getNumberParticles());
   }
 }

@@ -219,7 +219,6 @@ public class RewardsUtils {
       }
     });
     commands.clear();
-
   }
 
   /**

@@ -9,14 +9,16 @@ import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.time.DayOfWeek;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @author Carlos Varas Alonso - 27/08/2024 21:50
+ * Improved version of ShopTypeDynamicWeekly class
+ *
+ * @author
  */
 @Getter
 @Setter
@@ -41,28 +43,15 @@ public class ShopTypeDynamicWeekly extends ShopType {
   }
 
   public ShopTypeDynamicWeekly updateShop(Shop shop) {
-    // Asegúrate de que las estructuras en ShopConfigMenu estén inicializadas
     initializeShopMenu();
-
-    // Si el cooldown ha expirado o no existe, realiza la reposición de productos
-    if (!PlayerUtils.isCooldown(ShopDynamicData.cooldowns.get(shop.getId()))) {
-      // Actualiza el cooldown
-      ShopDynamicData.cooldowns.put(shop.getId(), new Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(minutes)));
-
-      // Realiza la reposición de productos
+    if (!PlayerUtils.isCooldown(getCooldown(shop))) {
+      setCooldown(shop);
       replenish(shop);
     }
-    if (amountProducts != ShopDynamicData.shopProducts.get(shop.getId()).size()) replenish(shop);
+    if (amountProducts != ShopDynamicData.shopProducts.get(shop.getId()).size()) {
+      replenish(shop);
+    }
     return this;
-  }
-
-  private void initializeShopMenu() {
-    if (ShopDynamicData.shopProducts == null) {
-      ShopDynamicData.shopProducts = new ConcurrentHashMap<>();
-    }
-    if (ShopDynamicData.cooldowns == null) {
-      ShopDynamicData.cooldowns = new ConcurrentHashMap<>();
-    }
   }
 
   public List<Product> replenish(Shop shop) {
@@ -78,29 +67,37 @@ public class ShopTypeDynamicWeekly extends ShopType {
         currentProducts.add(shopProducts.get(randomIndex));
       }
     }
-    if (CobbleUtils.config.isDebug()) {
-      CobbleUtils.LOGGER.info("Replenished shop " + shop.getId() + " with " + currentProducts.size() + " products");
-      CobbleUtils.LOGGER.info("Chosen indices: " + chosenIndices);
-      CobbleUtils.LOGGER.info("Current cooldown: " + getCooldown(shop));
-      CobbleUtils.LOGGER.info("Current products: " + getProducts(shop));
-    }
-    if (!PlayerUtils.isCooldown(getCooldown(shop))) {
-      ShopDynamicData.cooldowns.put(shop.getId(), new Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(minutes)));
-    }
+    setCooldown(shop);
     ShopDynamicData.shopProducts.put(shop.getId(), currentProducts);
     return currentProducts;
   }
 
   public Date getCooldown(Shop shop) {
-    if (ShopDynamicData.cooldowns.get(shop.getId()) == null) {
-      ShopDynamicData.cooldowns.put(shop.getId(), new Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(minutes)));
-      replenish(shop);
-    }
     return ShopDynamicData.cooldowns.get(shop.getId());
   }
 
+  private void setCooldown(Shop shop) {
+    ShopDynamicData.cooldowns.put(shop.getId(), new Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(minutes)));
+  }
+
+  @Override
   public List<Product> getProducts(Shop shop) {
-    // Obtén los productos de la tienda o realiza la reposición si no existen
+    if (!PlayerUtils.isCooldown(getCooldown(shop))) {
+      replenish(shop);
+    }
     return ShopDynamicData.shopProducts.computeIfAbsent(shop.getId(), k -> replenish(shop));
+  }
+
+  @Override
+  public boolean isAvailable(ServerPlayerEntity player) {
+    boolean isAvailable = dayOfWeek.contains(DayOfWeek.from(new Date().toInstant()));
+    if (!isAvailable) {
+      PlayerUtils.sendMessage(
+        player,
+        "This shop is only available on the following days: " + dayOfWeek,
+        CobbleUtils.language.getPrefixShop()
+      );
+    }
+    return isAvailable;
   }
 }

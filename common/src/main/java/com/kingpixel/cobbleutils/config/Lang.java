@@ -56,6 +56,10 @@ public class Lang {
   private List<String> lorepokemon;
   private List<String> lorechance;
 
+  // AdvancedItemChance
+  private String titleLoot;
+  private String messagePermissionRewards;
+
   // Sounds
   private String soundopen;
   private String soundclose;
@@ -99,7 +103,7 @@ public class Lang {
    * Constructor to generate a file if one doesn't exist.
    */
   public Lang() {
-    prefixShop = "&eShop";
+    prefixShop = "&7[<gradient:#34ff00:#ade37e><bold>Shop&7] &8» &a";
     formatMoney = "#,##0.00 ¤";
     soundopen = "cobblemon:pc.on";
     soundclose = "cobblemon:pc.off";
@@ -127,6 +131,7 @@ public class Lang {
     coloritem = "<gradient:#cc7435:#e3ab84>";
     pokemonnameformat = "&e%pokemon%%shiny% %gender% &f(&b%form%&f) &f(&b%level%&f) %ah%";
     messageHaveRewards = "&aYou have rewards %amount%.";
+    titleLoot = "&eLoot";
     // Messages
     messagerandomitem = "&aYou get a &e%type% &arandomitem &f%item% &6%amount%&a!";
     messagearebattle = "&aYou need to be in a battle to use this command.";
@@ -168,6 +173,7 @@ public class Lang {
       "&7Chance: &e%chance%&f%"
     );
     // Time
+    messagePermissionRewards = "&cYou don't have permission to get this reward: %permission%";
 
     days = "&6%s &adays ";
     day = "&6%s &aday ";
@@ -282,6 +288,7 @@ public class Lang {
         messageNotHaveRewards = lang.getMessageNotHaveRewards();
         nocooldown = lang.getNocooldown();
         movecolor = lang.getMovecolor();
+        messagePermissionRewards = lang.getMessagePermissionRewards();
 
         // Sound
         soundopen = lang.getSoundopen();
@@ -330,7 +337,7 @@ public class Lang {
         messageCooldown = lang.getMessageCooldown();
         defaultSymbol = lang.getDefaultSymbol();
         impactorSymbols = lang.getImpactorSymbols();
-
+        titleLoot = lang.getTitleLoot();
         itemsEconomy = lang.getItemsEconomy();
         String data = gson.toJson(this);
         CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(CobbleUtils.PATH_LANG, CobbleUtils.config.getLang() +

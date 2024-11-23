@@ -24,7 +24,6 @@ import com.kingpixel.cobbleutils.action.PokemonButtonAction;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import org.joml.Vector4f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +55,7 @@ public class UIUtils {
     }
 
     return GooeyButton.builder()
-      .display(PokemonItem.from(pokemon, 1, new Vector4f(5, 5, 5, 5)))
+      .display(PokemonItem.from(pokemon))
       .title(AdventureTranslator.toNative(PokemonUtils.replace(CobbleUtils.language.getPokemonnameformat(), pokemon)))
       .lore(Text.class, AdventureTranslator.toNativeL(lorepokemon(pokemon)))
       .onClick(action -> actionpokemon.accept(new PokemonButtonAction(action, pokemon)))

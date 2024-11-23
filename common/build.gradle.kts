@@ -48,6 +48,9 @@ dependencies {
     // Economy Blanket
     api(files("libs/BlanketEconomy-1.3.jar"))
 
+    // CobbleDollars
+    api(files("libs/CobbleDollars-fabric-1.5.2+1.20.1.jar"))
+    
     // Economy Vault
     api("org.spigotmc:spigot-api:1.20.1-R0.1-SNAPSHOT")
     api("com.github.MilkBowl:VaultAPI:1.7")
@@ -55,5 +58,8 @@ dependencies {
     // Kyori Adventure
     api("net.kyori:adventure-text-serializer-gson:${property("kyori_version")}")
     api("net.kyori:adventure-text-minimessage:${property("kyori_version")}")
+
+    //Discord
+    api("club.minnced:discord-webhooks:${property("discord_webhooks_version")}")
 }
 

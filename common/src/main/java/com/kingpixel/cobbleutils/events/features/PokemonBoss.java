@@ -109,21 +109,27 @@ public class PokemonBoss {
     });
   }
 
-  private static void apply(Pokemon pokemon, BossChance bossChance, PokemonDataBoss pokemonDataBoss) {
+  public static void apply(Pokemon pokemon, BossChance bossChance, PokemonDataBoss pokemonDataBoss) {
     String form = "";
 
     if (pokemonDataBoss != null) form = pokemonDataBoss.getFormsoraspects();
 
     PokemonProperties.Companion.parse("uncatchable=yes " + form).apply(pokemon);
-
-    pokemon.setLevel(Utils.RANDOM.nextInt(bossChance.getMinlevel(), bossChance.getMaxlevel()));
+    if (bossChance.getMinlevel() != bossChance.getMaxlevel()) {
+      pokemon.setLevel(Utils.RANDOM.nextInt(bossChance.getMinlevel(), bossChance.getMaxlevel()));
+    } else {
+      pokemon.setLevel(bossChance.getMinlevel());
+    }
     pokemon.getPersistentData().putString(BOSS_RARITY_TAG, bossChance.getRarity());
     pokemon.getPersistentData().putBoolean(BOSS_TAG, true);
     pokemon.setNickname(Text.literal(bossChance.getRarity()));
     pokemon.setShiny(CobbleUtils.config.getBosses().isShiny());
     pokemon.getPersistentData().putString(SIZE_TAG, SIZE_CUSTOM_TAG);
-    pokemon.setScaleModifier(Utils.RANDOM.nextFloat(bossChance.getMinsize(), bossChance.getMaxsize()));
-
+    if (bossChance.getMinsize() != bossChance.getMaxsize()) {
+      pokemon.setScaleModifier(Utils.RANDOM.nextFloat(bossChance.getMinsize(), bossChance.getMaxsize()));
+    } else {
+      pokemon.setScaleModifier(bossChance.getMinsize());
+    }
     spawnboss = false;
   }
 }

@@ -20,6 +20,7 @@ import com.kingpixel.cobbleutils.features.shops.models.Product;
 import com.kingpixel.cobbleutils.features.shops.models.types.ShopType;
 import com.kingpixel.cobbleutils.features.shops.models.types.ShopTypeDynamic;
 import com.kingpixel.cobbleutils.features.shops.models.types.ShopTypeDynamicWeekly;
+import com.kingpixel.cobbleutils.features.shops.models.types.ShopTypePermanent;
 import com.kingpixel.cobbleutils.util.*;
 import lombok.*;
 import net.minecraft.item.ItemStack;
@@ -66,15 +67,19 @@ public class Shop {
   //private ItemModel money;
   private List<FillItems> fillItems;
 
+  public Shop() {
+
+  }
+
   public Shop(String id, String title, ShopType shopType, short rows, List<String> lore) {
     this.active = true;
     this.id = id;
     this.title = title;
     this.rows = rows;
     this.slotbalance = 47;
-    this.slotsNext = List.of();
-    this.slotsPrevious = List.of();
-    this.slotsClose = List.of();
+    this.slotsNext = new ArrayList<>();
+    this.slotsPrevious = new ArrayList<>();
+    this.slotsClose = new ArrayList<>();
     this.soundopen = "cobblemon:pc.on";
     this.soundclose = "cobblemon:pc.off";
     this.currency = "dollars";
@@ -83,6 +88,9 @@ public class Shop {
     this.shopType = shopType;
     this.colorItem = "<#6bd68f>";
     this.closeCommand = "";
+    this.close = CobbleUtils.language.getItemClose();
+    this.next = CobbleUtils.language.getItemNext();
+    this.previous = CobbleUtils.language.getItemPrevious();
     this.globalDiscount = 0;
     this.display = new ItemModel("cobblemon:poke_ball");
     display.setDisplayname(title);
@@ -92,17 +100,19 @@ public class Shop {
     this.fillItems.add(new FillItems());
     switch (shopType.getTypeShop()) {
       case DYNAMIC:
-
+        setShopType(new ShopTypeDynamic());
         break;
       case DYNAMIC_WEEKLY:
-
+        setShopType(new ShopTypeDynamicWeekly());
         break;
       case WEEKLY:
+        setShopType(new ShopTypeDynamicWeekly());
         break;
       default:
-
+        setShopType(new ShopTypePermanent());
         break;
     }
+
   }
 
   @Getter
@@ -149,9 +159,15 @@ public class Shop {
   }
 
 
-  private List<Product> getDefaultProducts() {
+  public static List<Product> getDefaultProducts() {
     List<Product> products = new ArrayList<>();
-    products.add(new Product());
+    ItemChance.defaultItemChances().forEach(itemChance -> {
+      Product product = new Product();
+      product.setProduct(itemChance.getItem());
+      product.setBuy(BigDecimal.valueOf(100));
+      product.setSell(BigDecimal.valueOf(25));
+      products.add(product);
+    });
     products.add(new Product(true));
     return products;
   }
@@ -181,6 +197,7 @@ public class Shop {
       );
       return;
     }
+
     try {
       short rows = this.rows;
       if (rows >= 6) {
@@ -196,21 +213,13 @@ public class Shop {
       List<Button> buttons = new ArrayList<>();
 
       String symbol = EconomyUtil.getSymbol(getCurrency());
-      List<Product> products;
-
-      if (shopType.getTypeShop() == ShopType.TypeShop.DYNAMIC) {
-        products = ((ShopTypeDynamic) shopType).updateShop(this).getProducts(this);
-      } else if (shopType.getTypeShop() == ShopType.TypeShop.DYNAMIC_WEEKLY) {
-        products = ((ShopTypeDynamicWeekly) shopType).updateShop(this).getProducts(this);
-      } else {
-        products = this.products;
-      }
+      List<Product> products = shopType.getProducts(this);
 
       if (products == null) {
         if (CobbleUtils.config.isDebug()) {
           CobbleUtils.LOGGER.info("Products null");
         }
-        products = new ArrayList<>();
+        return;
       }
 
       products.forEach(product -> {
@@ -366,6 +375,7 @@ public class Shop {
           })
           .linkType(LinkType.Previous)
           .build();
+
         template.set(getPrevious().getSlot(), previous);
         if (slotsPrevious != null && !slotsPrevious.isEmpty())
           slotsPrevious.forEach(slot -> template.set(slot, previous));
@@ -377,7 +387,7 @@ public class Shop {
         placeholder);
       linkedPageBuilder
         .template(template)
-        .title(title)
+        .title(AdventureTranslator.toNative(title))
         .build();
 
 

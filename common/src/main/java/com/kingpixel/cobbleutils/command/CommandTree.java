@@ -43,6 +43,8 @@ public class CommandTree {
       LiteralArgumentBuilder<ServerCommandSource> base = CommandManager.literal(literal).requires(source ->
         LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.admin")));
 
+      ModRewardsCommand.register(dispatcher, base);
+
       WikiCommand.register(dispatcher, base, "https://zonary123-dev.gitbook.io/zonary123-dev-docs/mods/cobbleutils");
       // /cobbleutils scale <scale> <slot> and /cobbleutils scale <scale> <slot> <player>
       PokemonSize.register(dispatcher, base);
@@ -122,7 +124,7 @@ public class CommandTree {
             source, 2, List.of(CobbleUtils.MOD_ID + ".admin", CobbleUtils.MOD_ID + ".shop",
               CobbleUtils.MOD_ID + ".user")
           ));
-        ShopCommand.register(dispatcher, shopliteral, CobbleUtils.shopConfig, CobbleUtils.MOD_ID, false);
+        ShopCommand.register(dispatcher, literal, CobbleUtils.shopConfig, CobbleUtils.MOD_ID, false);
         ShopTransactionCommand.register(dispatcher, shopliteral);
         ShopSellCommand.register(dispatcher, CommandManager.literal("sell"));
       }
