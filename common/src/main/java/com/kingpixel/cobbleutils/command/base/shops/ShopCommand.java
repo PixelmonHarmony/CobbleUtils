@@ -2,10 +2,10 @@ package com.kingpixel.cobbleutils.command.base.shops;
 
 import ca.landonjw.gooeylibs2.api.UIManager;
 import com.kingpixel.cobbleutils.CobbleUtils;
-import com.kingpixel.cobbleutils.Model.ItemChance;
 import com.kingpixel.cobbleutils.config.ShopConfig;
 import com.kingpixel.cobbleutils.features.shops.Shop;
 import com.kingpixel.cobbleutils.features.shops.ShopConfigMenu;
+import com.kingpixel.cobbleutils.features.shops.models.Product;
 import com.kingpixel.cobbleutils.features.shops.models.types.ShopType;
 import com.kingpixel.cobbleutils.features.shops.models.types.ShopTypeDynamic;
 import com.kingpixel.cobbleutils.features.shops.models.types.ShopTypeDynamicWeekly;
@@ -13,7 +13,6 @@ import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.LuckPermsUtil;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -74,19 +73,7 @@ public class ShopCommand implements Command<ServerCommandSource> {
             )
           )
           .then(CommandManager.literal("addProduct")
-            .then(CommandManager.argument("product", StringArgumentType.string())
-              .suggests((context, builder) -> {
-                ItemChance.defaultItemChances().forEach(itemChance -> {
-                  builder.suggest("\"" + itemChance.getItem() + "\"");
-                });
-                return builder.buildFuture();
-              })
-              .then(CommandManager.argument("buy", DoubleArgumentType.doubleArg())
-                .then(CommandManager.argument("sell", DoubleArgumentType.doubleArg())
-                  .executes(context -> executeAddProduct(context, shopConfig, mod_id))
-                )
-              )
-            )
+            .executes(context -> executeAddProduct(context, shopConfig, mod_id))
           )
         )
       )
@@ -180,12 +167,9 @@ public class ShopCommand implements Command<ServerCommandSource> {
     return 1;
   }
 
-  private static int executeAddProduct(CommandContext<ServerCommandSource> context, ShopConfig shopConfig, String mod_id) {
+  private static int executeAddProduct(CommandContext<ServerCommandSource> context, ShopConfig shopConfig, String mod_id) throws CommandSyntaxException {
     String shop = StringArgumentType.getString(context, "shop");
-    String product = StringArgumentType.getString(context, "product");
-    double buy = DoubleArgumentType.getDouble(context, "buy");
-    double sell = DoubleArgumentType.getDouble(context, "sell");
-    shopConfig.getShop().addProduct(product, buy, sell, mod_id, shop);
+    ShopAddFuntionality.open(context.getSource().getPlayerOrThrow(), shopConfig, mod_id, shop, new Product());
     return 1;
   }
 

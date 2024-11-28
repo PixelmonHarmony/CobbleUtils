@@ -71,29 +71,29 @@ public class ShopLang {
     this.titleSell = "&cSell %product%";
     this.messageBought = "%prefix% <gradient:#1E90FF:#87CEFA>You spent &e%price%</gradient>";
     this.messageNotHaveMoney = "%prefix% <gradient:#FF6347:#FFA07A>You don't have enough money. The price is %price% " +
-      "and you have %balance% %currency%.</gradient>";
+      "and you have %balance%.</gradient>";
     this.messageSell = "%prefix% &aYou have sold all your items for: %currencys%";
-    this.messageSellHand = "%prefix% &aYou have sold the item in your hand for: %balance% %currency%";
+    this.messageSellHand = "%prefix% &aYou have sold the item in your hand for: %balance%";
     this.messageSellHandNoItem = "%prefix% &cYou don't have any item in your hand to sell";
     this.messageSellHandNoItemPrice = "%prefix% &cThe item in your hand can't be sold";
-    this.messageSellSuccess = "%prefix% &7You sold %amount% %product% for %sell% %symbol%";
-    this.messageBuySuccess = "%prefix% &7You bought %amount% %product% for %buy% %symbol%";
-    this.messageSellError = "%prefix% &7You don't have enough %currency% to sell %amount% %product%";
-    this.messageSellErrorInvalidQuantity = "%prefix% &7You can't sell %amount% %product% because it's not a multiple of %packageSize%";
+    this.messageSellSuccess = "%prefix% &7You sold %amount% %product% &7for %sell% %symbol%";
+    this.messageBuySuccess = "%prefix% &7You bought %amount% %product% &7for %buy% %symbol%";
+    this.messageSellError = "%prefix% &7You don't have enough %currency% &7to sell %amount% %product%";
+    this.messageSellErrorInvalidQuantity = "%prefix% &7You can't sell %amount% %product% &7because it's not a multiple of %packageSize%";
     this.messageShopWeekly = "%prefix% &7You can enter the shop again in: %days%";
     this.notPermission = "%prefix% &7You don't have permission to buy/sell %product%";
-    this.messageAddMoney = "%prefix% &7You added %amount% %currency% to your balance";
-    this.messageRemoveMoney = "%prefix% &7You removed %amount% %currency% from your balance";
+    this.messageAddMoney = "%prefix% &7You added %amount% &7to your balance";
+    this.messageRemoveMoney = "%prefix% &7You removed %amount% &7from your balance";
     this.loreProduct = List.of(
       "",
       "&7Amount: %amount%x%amountproduct%=%total%",
-      "&7Buy: &a%buy% %discount%",
-      "&7Sell: &c%sell%",
+      "&7Buy: &a%buy% %discount% %removebuy%",
+      "&7Sell: &c%sell% %removesell%",
       "",
       "&7Left click to buy %removebuy%",
       "&7Right click to sell %removesell%",
       "",
-      "&7Balance: &e%balance% %currency%",
+      "&7Balance: &e%balance%",
       "");
     this.messageNotHavePermission = "%prefix% &7You don't have permission to open the shop";
     this.balance = new ItemModel(47, "cobblemon:relic_coin_sack", "&6Balance", List.of(

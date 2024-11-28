@@ -17,7 +17,6 @@ import net.minecraft.text.Text;
 
 import java.io.File;
 import java.io.FileReader;
-import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -52,14 +51,10 @@ public class ShopConfigMenu {
     shopList.forEach(ShopSell::addProduct);
   }
 
-  public void addProduct(String product, double buy, double sell, String modId, String shop) {
-    Product product1 = new Product();
-    product1.setProduct(product);
-    product1.setBuy(BigDecimal.valueOf(buy));
-    product1.setSell(BigDecimal.valueOf(sell));
+  public void addProduct(Product product, String modId, String shop) {
     Shop shop1 = getShop(modId, shop);
     if (shop1 != null) {
-      shop1.getProducts().add(product1);
+      shop1.getProducts().add(product);
     }
     saveShops(shops.entrySet().stream()
       .filter(entry -> entry.getKey().getMod_id().equals(modId))
@@ -89,6 +84,7 @@ public class ShopConfigMenu {
     }
     return actionShop;
   }
+
 
   @Getter
   @Setter

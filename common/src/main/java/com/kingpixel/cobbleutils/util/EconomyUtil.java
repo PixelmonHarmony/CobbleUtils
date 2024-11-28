@@ -32,7 +32,7 @@ import java.util.UUID;
 public abstract class EconomyUtil {
 
   // The impactor service
-  private static EconomyService impactorService;
+  public static EconomyService impactorService;
 
   // The economy type
   public static EconomyType economyType;
@@ -40,7 +40,7 @@ public abstract class EconomyUtil {
   private static Economy vaultEconomy;
 
 
-  private enum EconomyType {
+  public enum EconomyType {
     IMPACTOR,
     VAULT,
     BLANKECONOMY,
@@ -74,9 +74,6 @@ public abstract class EconomyUtil {
     if (isVaultPresent()) {
       economyType = EconomyType.VAULT;
       CobbleUtils.LOGGER.info("Vault economy found");
-    } else if (isCobbleDollars()) {
-      economyType = EconomyType.COBBLEDOLLARS;
-      CobbleUtils.LOGGER.info("CobbleDollars found");
     } else if (isImpactorPresent()) {
       economyType = EconomyType.IMPACTOR;
       impactorService = EconomyService.instance();
@@ -84,6 +81,9 @@ public abstract class EconomyUtil {
     } else if (isBlankEconomyPresent()) {
       economyType = EconomyType.BLANKECONOMY;
       CobbleUtils.LOGGER.info("BlanketEconomy found");
+    } else if (isCobbleDollars()) {
+      economyType = EconomyType.COBBLEDOLLARS;
+      CobbleUtils.LOGGER.info("CobbleDollars found");
     } else {
       economyType = null;
       CobbleUtils.LOGGER.error("No economy api found");

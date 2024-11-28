@@ -41,7 +41,7 @@ public class Product {
     this.permission = null;
     this.discount = null;
     this.product = "minecraft:stone";
-    this.buy = BigDecimal.valueOf(999999999);
+    this.buy = BigDecimal.valueOf(100);
     this.sell = BigDecimal.valueOf(25);
   }
 
@@ -66,7 +66,7 @@ public class Product {
       this.discount = null;
     }
     this.product = "minecraft:stone";
-    this.buy = BigDecimal.valueOf(999999999);
+    this.buy = BigDecimal.valueOf(100);
     this.sell = BigDecimal.valueOf(25);
   }
 

@@ -107,6 +107,7 @@ public class CommandTree {
         RewardsReload.register(dispatcher, base);
       }
     }
+    
 
     if (CobbleUtils.breedconfig.isActive()) {
       for (String literal : CobbleUtils.breedconfig.getEggcommand()) {

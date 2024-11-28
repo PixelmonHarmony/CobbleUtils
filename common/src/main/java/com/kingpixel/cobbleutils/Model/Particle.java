@@ -1,9 +1,7 @@
 package com.kingpixel.cobbleutils.Model;
 
-import com.kingpixel.cobbleutils.util.PlayerUtils;
 import lombok.Getter;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.ai.TargetPredicate;
 import net.minecraft.network.packet.s2c.play.ParticleS2CPacket;
 import net.minecraft.particle.DefaultParticleType;
 import net.minecraft.particle.ParticleTypes;
@@ -30,7 +28,7 @@ public class Particle {
 
   public Particle() {
     this.particle = "minecraft:flame";
-    this.numberParticles = 1;
+    this.numberParticles = 25;
     this.offsetX = 1;
     this.offsetY = 1;
     this.offsetZ = 1;
@@ -91,9 +89,9 @@ public class Particle {
   }
 
   public void sendParticlesNearPlayers(@NotNull Entity entity) {
-    entity.getWorld().getPlayers(TargetPredicate.DEFAULT, entity.getControllingPassenger(),
-      Box.from(entity.getPos()).expand(radius == null ? 32 : radius)).forEach(player -> sendParticles(PlayerUtils.castPlayer(player),
-      entity));
+    entity.getWorld().getEntitiesByClass(ServerPlayerEntity.class,
+        Box.from(entity.getPos()).expand(radius == null ? 32 : radius), entity1 -> false)
+      .forEach(player -> sendParticles(player, entity));
   }
 
   // Privates

@@ -12,6 +12,7 @@ import ca.landonjw.gooeylibs2.api.page.GooeyPage;
 import ca.landonjw.gooeylibs2.api.page.LinkedPage;
 import ca.landonjw.gooeylibs2.api.template.TemplateType;
 import ca.landonjw.gooeylibs2.api.template.types.ChestTemplate;
+import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.ItemChance;
 import com.kingpixel.cobbleutils.Model.ItemModel;
@@ -68,7 +69,27 @@ public class Shop {
   private List<FillItems> fillItems;
 
   public Shop() {
-
+    this.active = true;
+    this.id = "";
+    this.title = "";
+    this.rows = 3;
+    this.currency = "dollars";
+    this.templateType = TemplateType.CHEST;
+    this.rectangle = new Rectangle();
+    this.display = new ItemModel("cobblemon:poke_ball");
+    this.slotbalance = 47;
+    this.globalDiscount = 0;
+    this.soundopen = "cobblemon:pc.on";
+    this.soundclose = "cobblemon:pc.off";
+    this.colorItem = "<#6bd68f>";
+    this.closeCommand = "";
+    this.close = CobbleUtils.language.getItemClose();
+    this.next = CobbleUtils.language.getItemNext();
+    this.previous = CobbleUtils.language.getItemPrevious();
+    this.products = getDefaultProducts();
+    this.fillItems = new ArrayList<>();
+    this.fillItems.add(new FillItems());
+    this.shopType = new ShopTypePermanent();
   }
 
   public Shop(String id, String title, ShopType shopType, short rows, List<String> lore) {
@@ -120,7 +141,7 @@ public class Shop {
   @EqualsAndHashCode
   @Data
   @ToString
-  private static class Rectangle {
+  public static class Rectangle {
     private int startRow;
     private int startColumn;
     private int length;
@@ -133,11 +154,22 @@ public class Shop {
       this.width = 9;
     }
 
+    public Rectangle(int rows) {
+      this.startRow = 0;
+      this.startColumn = 0;
+      this.length = rows - 1;
+      this.width = 9;
+    }
+
     public Rectangle(int startRow, int startColumn, int length, int width) {
       this.startRow = startRow;
       this.startColumn = startColumn;
       this.length = length;
       this.width = width;
+    }
+
+    public void apply(ChestTemplate template) {
+      template.rectangle(startRow, startColumn, length, width, new PlaceholderButton());
     }
 
     public int getSlotsFree(int rows) {
@@ -251,7 +283,7 @@ public class Shop {
 
         GooeyButton button = GooeyButton.builder()
           .display(itemStack)
-          .title(AdventureTranslator.toNative(getTitleItem(product)))
+          .title(AdventureTranslator.toNative(colorItem == null ? getTitleItem(product) : colorItem + getTitleItem(product)))
           .lore(Text.class, AdventureTranslator.toNativeL(getLoreProduct(
             buy, sell, product, player, symbol, typeError, BigDecimal.ONE
           )))
@@ -779,8 +811,8 @@ public class Shop {
 
   private String generateTitle(Product product, TypeMenu typeMenu) {
     return (typeMenu == TypeMenu.BUY) ?
-      CobbleUtils.shopLang.getTitleBuy().replace("%product%", ItemUtils.getTranslatedName(product.getItemchance().getItemStack())) :
-      CobbleUtils.shopLang.getTitleSell().replace("%product%", ItemUtils.getTranslatedName(product.getItemchance().getItemStack()));
+      CobbleUtils.shopLang.getTitleBuy().replace("%product%", getTitleItem(product)) :
+      CobbleUtils.shopLang.getTitleSell().replace("%product%", getTitleItem(product));
   }
 
   private void createAmountButton(ShopConfig shopConfig, ChestTemplate template, ServerPlayerEntity player,
@@ -871,6 +903,14 @@ public class Shop {
 
   private String getTitleItem(Product product) {
     String titleItem;
+
+    if (product.getProduct().contains("pokemon:")) {
+      return PokemonUtils.replace(product.getColor() == null ? CobbleUtils.language.getPokemonnameformat() :
+          product.getColor() + CobbleUtils.language.getPokemonnameformat(),
+        PokemonProperties.Companion.parse(product.getProduct().replace(
+          "pokemon:",
+          "")).create());
+    }
 
     if (product.getDisplayname() != null && !product.getDisplayname().isEmpty()) {
       titleItem = product.getDisplayname();

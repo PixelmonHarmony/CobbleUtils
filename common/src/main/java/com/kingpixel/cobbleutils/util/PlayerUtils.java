@@ -64,7 +64,6 @@ public class PlayerUtils {
 
   public static String getCooldown(Date date) {
     if (date == null) {
-      CobbleUtils.LOGGER.info("Date is null");
       return CobbleUtils.language.getNocooldown();
     }
     long time = date.getTime() - new Date().getTime();

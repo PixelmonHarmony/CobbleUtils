@@ -40,8 +40,34 @@ import java.util.regex.PatternSyntaxException;
 public class ItemChance {
   private final String item;
   private final int chance;
-  private String display;
-  private static Map<String, List<ItemMod>> modItems = new HashMap<>();
+  private final String display;
+  private final String displayname;
+  public static Map<String, List<ItemMod>> modItems = new HashMap<>();
+
+  public ItemChance() {
+    this("minecraft:dirt", 100);
+  }
+
+  public ItemChance(String item, int chance) {
+    this.item = item;
+    this.chance = chance;
+    this.display = null;
+    this.displayname = null;
+  }
+
+  public ItemChance(String item, int chance, String display) {
+    this.item = item;
+    this.chance = chance;
+    this.display = display;
+    this.displayname = null;
+  }
+
+  public ItemChance(String item, int chance, String display, String displayname) {
+    this.item = item;
+    this.chance = chance;
+    this.display = display;
+    this.displayname = displayname;
+  }
 
   @Getter
   @Setter
@@ -63,7 +89,7 @@ public class ItemChance {
       modItems.forEach((modid, items) -> {
         items.forEach(item -> {
           buttons.add(GooeyButton.builder()
-            .display(items.get(0).getItemStack().copy())
+            .display(item.getItemStack().copy())
             .title("mod:" + modid + ":" + item.getItemId())
             .onClick((action) -> {
               action.getPlayer().giveItemStack(item.getItemStack().copy());
@@ -98,15 +124,6 @@ public class ItemChance {
     }
   }
 
-  public ItemChance() {
-    this("minecraft:dirt", 100);
-  }
-
-  public ItemChance(String item, int chance) {
-    this.item = item;
-    this.chance = chance;
-    this.display = null;
-  }
 
   public static void addModItem(String modid, String itemId, ItemStack itemStack) {
     if (!modItems.containsKey(modid)) {
@@ -147,8 +164,8 @@ public class ItemChance {
     itemChances.add(new ItemChance("item:8:minecraft:dirt", 100));
     itemChances.add(new ItemChance("item:8:minecraft:dirt#{CustomModelData:1}", 100));
     itemChances.add(new ItemChance("pokemon:zorua hisuian", 100));
-    itemChances.add(new ItemChance("command:lp user %player% permission set a", 100));
-    itemChances.add(new ItemChance("command:lp user %player% permission set a#lp user %player% permission set b", 100));
+    itemChances.add(new ItemChance("command:lp user %player% permission set a", 100, "minecraft:emerald", "Give permission a"));
+    itemChances.add(new ItemChance("command:lp user %player% permission set a#lp user %player% permission set b", 100, "minecraft:emerald", "Give permission a and b"));
     itemChances.add(new ItemChance("money:100", 100));
     itemChances.add(new ItemChance("money:tokens:100", 100));
     itemChances.add(new ItemChance("mod:cobblehunt:radar", 100));
@@ -331,6 +348,9 @@ public class ItemChance {
    * @return The ItemStack of the reward.
    */
   private static ItemStack getRewardItemStack(String item, int amount) {
+    if (item == null) {
+      return Items.AIR.getDefaultStack();
+    }
     if (item.startsWith("pokemon:")) {
       return PokemonItem.from(getRewardPokemon(item));
     } else if (item.startsWith("command:")) {
@@ -387,7 +407,10 @@ public class ItemChance {
   }
 
 
-  private static String getTitle(ItemChance itemChance) {
+  public static String getTitle(ItemChance itemChance) {
+    if (itemChance.getDisplayname() != null && !itemChance.getDisplayname().isEmpty())
+      return itemChance.getDisplayname();
+
     String item = itemChance.getItem();
     if (item.startsWith("pokemon:")) {
       return getPokemonTitle(item);
@@ -484,6 +507,7 @@ public class ItemChance {
    *                                  number of rewards is less than or equal to
    *                                  zero.
    */
+  @Deprecated
   public static void getRandomRewards(List<ItemChance> itemChances, ServerPlayerEntity player, int numberOfRewards) {
     if (itemChances == null || itemChances.isEmpty()) {
       throw new IllegalArgumentException("The list of item chances cannot be empty");
@@ -495,6 +519,42 @@ public class ItemChance {
     for (int i = 0; i < numberOfRewards; i++) {
       getRandomReward(itemChances, player);
     }
+  }
+
+  /**
+   * Gets a list of rewards from a list of item chances and gives them to the
+   * player.
+   *
+   * @param itemChances     The list of item chances to choose from.
+   * @param player          The player to give the rewards to.
+   * @param numberOfRewards The number of rewards to give.
+   *
+   * @return The list of rewards given to the player.
+   */
+  public static List<ItemChance> getRewards(List<ItemChance> itemChances, ServerPlayerEntity player,
+                                            int numberOfRewards) {
+    List<ItemChance> rewards = new ArrayList<>();
+    for (int i = 0; i < numberOfRewards; i++) {
+      int totalChance = itemChances.stream().mapToInt(ItemChance::getChance).sum();
+      int randomChance = Utils.RANDOM.nextInt(totalChance);
+      int cumulativeChance = 0;
+
+      for (ItemChance itemChance : itemChances) {
+        cumulativeChance += itemChance.getChance();
+        if (randomChance < cumulativeChance) {
+          rewards.add(itemChance);
+          break;
+        }
+      }
+    }
+    rewards.forEach(itemChance -> {
+      try {
+        giveReward(player, itemChance);
+      } catch (NoPokemonStoreException e) {
+        e.printStackTrace();
+      }
+    });
+    return rewards;
   }
 
   /**
