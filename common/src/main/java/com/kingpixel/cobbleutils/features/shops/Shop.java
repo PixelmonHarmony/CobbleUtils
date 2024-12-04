@@ -255,6 +255,12 @@ public class Shop {
       }
 
       products.forEach(product -> {
+        if (!shopConfig.getShop().isViewItemsWithOptionPermission()) {
+          if (product.getPermission() != null) {
+            if (LuckPermsUtil.checkPermission(player, product.getPermission()) && product.getNotCanBuyWithPermission() != null && product.getNotCanBuyWithPermission())
+              return;
+          }
+        }
         BigDecimal buy = product.getBuy();
         BigDecimal sell = product.getSell();
 
@@ -267,14 +273,13 @@ public class Shop {
           itemStack = getViewItemStack(product, 1);
         } else {
           if (CobbleUtils.shopLang.isChangeItemError()) {
-            itemStack = product.getItemchance().getItemStack();
+            itemStack = getViewItemStack(product, 1);
           } else {
             itemStack = Utils.parseItemId("minecraft:barrier");
           }
         }
         int defaultamount;
-        if (product.getItemchance().getType() == ItemChance.ItemChanceType.MONEY ||
-          product.getItemchance().getType() == ItemChance.ItemChanceType.COMMAND) {
+        if (product.getItemchance().getType() == ItemChance.ItemChanceType.MONEY || product.getItemchance().getType() == ItemChance.ItemChanceType.COMMAND) {
           defaultamount = 1;
         } else {
           defaultamount = 0;
@@ -289,9 +294,19 @@ public class Shop {
           )))
           .onClick(action -> {
             if (typeError == TypeError.NONE) {
-              if (product.getPermission() != null) {
-                if (LuckPermsUtil.checkPermission(player, product.getPermission()) && product.getNotCanBuyWithPermission() != null && product.getNotCanBuyWithPermission())
-                  return;
+              if (shopConfig.getShop().isViewItemsWithOptionPermission()) {
+                if (product.getPermission() != null) {
+                  if (LuckPermsUtil.checkPermission(player, product.getPermission()) && product.getNotCanBuyWithPermission() != null && product.getNotCanBuyWithPermission()) {
+                    PlayerUtils.sendMessage(
+                      player,
+                      CobbleUtils.shopLang.getMessageYouCantBuyThisProduct()
+                        .replace("%product%", ItemUtils.getTranslatedName(product.getItemchance().getItemStack()))
+                        .replace("%permission%", product.getPermission()),
+                      CobbleUtils.shopLang.getPrefix()
+                    );
+                    return;
+                  }
+                }
               }
               switch (getShopAction(product)) {
                 case BUY:
@@ -932,28 +947,7 @@ public class Shop {
   }
 
   private ItemStack getViewItemStack(Product product, int amount) {
-    ItemStack viewProduct;
-    ItemChance.ItemChanceType itemChanceType = product.getItemchance().getType();
-    if (itemChanceType == ItemChance.ItemChanceType.COMMAND
-      || itemChanceType == ItemChance.ItemChanceType.MONEY) {
-      viewProduct = product.getItemchance().getItemStack();
-
-      if (product.getDisplay() != null && !product.getDisplay().isEmpty()) {
-        viewProduct = new ItemChance(product.getDisplay(), 100).getItemStack();
-      }
-
-      if (product.getDisplayname() != null && !product.getDisplayname().isEmpty()) {
-        viewProduct.setCustomName(
-          AdventureTranslator.toNative(
-            product.getDisplayname()
-          )
-        );
-      }
-    } else {
-      viewProduct = product.getItemchance().getItemStack();
-    }
-    viewProduct.setCount(amount);
-    return viewProduct;
+    return product.getItemStack(amount);
   }
 
   private void createCloseButton(ChestTemplate template, ShopConfig shopConfig,

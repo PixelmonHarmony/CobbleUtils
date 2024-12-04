@@ -107,11 +107,13 @@ public class CommandTree {
         RewardsReload.register(dispatcher, base);
       }
     }
-    
+
 
     if (CobbleUtils.breedconfig.isActive()) {
       for (String literal : CobbleUtils.breedconfig.getEggcommand()) {
-        LiteralArgumentBuilder<ServerCommandSource> base = CommandManager.literal(literal);
+        LiteralArgumentBuilder<ServerCommandSource> base = CommandManager.literal(literal)
+          .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.admin", "cobbleutils.user",
+            "cobbleutils.daycare")));
 
         // /cobbleutils egg <pokemon>
         BreedCommand.register(dispatcher, base);

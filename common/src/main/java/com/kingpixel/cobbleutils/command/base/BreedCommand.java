@@ -34,14 +34,17 @@ public class BreedCommand implements Command<ServerCommandSource> {
     dispatcher.register(
       base.executes(BreedCommand::executeDefault)
         .then(CommandManager.literal("other")
-          .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.breedother", "cobbleutils.admin")))
+          .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.daycare.breedother",
+            "cobbleutils.admin")))
           .then(CommandManager.argument("player", EntityArgumentType.players())
-            .executes(BreedCommand::executeForOtherPlayer)))
+            .executes(BreedCommand::executeForOtherPlayer))
+        )
         .then(CommandManager.argument("male", PartySlotArgumentType.Companion.partySlot())
-          .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.breedpokemons", "cobbleutils.admin")))
+          .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.daycare.breedpokemons", "cobbleutils.admin")))
           .then(CommandManager.argument("female", PartySlotArgumentType.Companion.partySlot())
             .executes(BreedCommand::executeBreeding)
             .then(CommandManager.argument("player", EntityArgumentType.players())
+              .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.daycare.breedother", "cobbleutils.admin")))
               .executes(BreedCommand::executeBreedingForOtherPlayer))))
     );
   }

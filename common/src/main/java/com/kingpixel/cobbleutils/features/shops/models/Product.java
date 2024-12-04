@@ -1,9 +1,10 @@
 package com.kingpixel.cobbleutils.features.shops.models;
 
+import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.ItemChance;
+import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import lombok.*;
 import net.minecraft.item.ItemStack;
-import net.minecraft.text.Text;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -77,19 +78,28 @@ public class Product {
 
   public ItemStack getItemStack(int amount) {
     ItemStack itemStack = getItemchance().getItemStack();
+
     if (getDisplay() != null && !getDisplay().isEmpty()) {
+      if (CobbleUtils.config.isDebug()) {
+        CobbleUtils.LOGGER.info("Display: " + getDisplay());
+      }
       itemStack = new ItemChance(getDisplay(), 100).getItemStack();
     }
+
     itemStack.setCount(amount);
+
     if (getDisplayname() != null && !getDisplayname().isEmpty()) {
-      itemStack.setCustomName(Text.literal(getDisplayname()));
+      itemStack.setCustomName(AdventureTranslator.toNative(getDisplayname()));
     }
+
     if (getLore() != null && !getLore().isEmpty()) {
 
     }
-    if (getCustomModelData() != null) {
+
+    if (getCustomModelData() != null && getCustomModelData() > 0 && !itemStack.getOrCreateNbt().contains("CustomModelData")) {
       itemStack.getOrCreateNbt().putLong("CustomModelData", getCustomModelData());
     }
+
     return itemStack;
   }
 

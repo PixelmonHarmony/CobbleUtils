@@ -223,4 +223,9 @@ public class PlotBreeding {
       return obtainFemale();
     }
   }
+
+  public Pokemon getFirstEgg() {
+    if (eggs.isEmpty()) return null;
+    return Pokemon.Companion.loadFromJSON(eggs.get(0));
+  }
 }

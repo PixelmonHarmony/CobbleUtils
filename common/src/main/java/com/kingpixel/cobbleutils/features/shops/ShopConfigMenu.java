@@ -34,6 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Data
 @ToString
 public class ShopConfigMenu {
+  private boolean viewItemsWithOptionPermission;
   private String logg;
   private String title;
   private String soundopen;
@@ -102,6 +103,7 @@ public class ShopConfigMenu {
   }
 
   public ShopConfigMenu() {
+    this.viewItemsWithOptionPermission = true;
     this.logg = "config/cobbleutils/shop/transactions";
     this.title = "Test";
     this.rowsBuySellMenu = 6;

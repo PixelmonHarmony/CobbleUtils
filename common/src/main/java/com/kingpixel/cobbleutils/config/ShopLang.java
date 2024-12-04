@@ -38,6 +38,7 @@ public class ShopLang {
   private String messageShopWeekly;
   private String messageNotHavePermission;
   private String notPermission;
+  private String messageYouCantBuyThisProduct;
   private List<String> loreProduct;
   private ItemModel balance;
   private ItemModel add1;
@@ -82,6 +83,7 @@ public class ShopLang {
     this.messageSellErrorInvalidQuantity = "%prefix% &7You can't sell %amount% %product% &7because it's not a multiple of %packageSize%";
     this.messageShopWeekly = "%prefix% &7You can enter the shop again in: %days%";
     this.notPermission = "%prefix% &7You don't have permission to buy/sell %product%";
+    this.messageYouCantBuyThisProduct = "%prefix% &7You can't buy this product because you have the permission %permission%";
     this.messageAddMoney = "%prefix% &7You added %amount% &7to your balance";
     this.messageRemoveMoney = "%prefix% &7You removed %amount% &7from your balance";
     this.loreProduct = List.of(
@@ -158,6 +160,7 @@ public class ShopLang {
         this.messageBought = lang.getMessageBought();
         this.messageNotHaveMoney = lang.getMessageNotHaveMoney();
         this.messageAddMoney = lang.getMessageAddMoney();
+        this.messageYouCantBuyThisProduct = lang.getMessageYouCantBuyThisProduct();
         this.messageRemoveMoney = lang.getMessageRemoveMoney();
         this.messageShopWeekly = lang.getMessageShopWeekly();
         this.notPermission = lang.getNotPermission();

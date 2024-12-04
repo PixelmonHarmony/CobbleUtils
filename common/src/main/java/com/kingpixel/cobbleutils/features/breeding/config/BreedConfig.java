@@ -134,7 +134,7 @@ public class BreedConfig {
     this.percentagespawnegg = 5;
     this.cooldowninstaBreedInSeconds = 60;
     this.cooldowninstaHatchInSeconds = 60;
-    this.maxIvsRandom = 25;
+    this.maxIvsRandom = 31;
     this.haveMaxNumberIvsForRandom = false;
     this.successItems = new SuccessItems();
     this.plotItem = new ItemModel(0, "minecraft:turtle_egg", "<#82d448>Plot", List.of(
@@ -286,6 +286,8 @@ public class BreedConfig {
         eggSpecialForms = config.getEggSpecialForms();
         pokemonRareMechanics = config.getPokemonRareMechanics();
         maxIvsRandom = config.getMaxIvsRandom();
+        if (maxIvsRandom < 0) maxIvsRandom = 0;
+        if (maxIvsRandom > 31) maxIvsRandom = 31;
         haveMaxNumberIvsForRandom = config.isHaveMaxNumberIvsForRandom();
         successItems = config.getSuccessItems();
         defaultNumberPlots = config.getDefaultNumberPlots();
