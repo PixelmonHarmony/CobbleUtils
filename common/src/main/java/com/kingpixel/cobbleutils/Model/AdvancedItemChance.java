@@ -84,13 +84,12 @@ public class AdvancedItemChance {
 
   public void giveRewards(ServerPlayerEntity player) {
     if (checker(player)) return;
-    List<ItemChance> itemChances = getList(player);
-    List<ItemChance> rewards;
+    List<ItemChance> rewards = getList(player);
+
     if (giveAll) {
-      ItemChance.getAllRewards(itemChances, player);
-      rewards = itemChances;
+      ItemChance.getAllRewards(rewards, player);
     } else {
-      rewards = ItemChance.getRewards(itemChances, player, amountReward);
+      ItemChance.getRewards(rewards, player, amountReward);
     }
 
     if (sound != null && !sound.isEmpty()) {
@@ -103,7 +102,7 @@ public class AdvancedItemChance {
 
 
     if (CobbleUtils.config.isDebug()) {
-      switch (Animations.NONE) {
+      switch (animation) {
         case CSGO:
           csgoAnimation(player, rewards);
           break;
@@ -280,9 +279,7 @@ public class AdvancedItemChance {
   private List<ItemChance> getList(ServerPlayerEntity player) {
     List<ItemChance> itemChances = new ArrayList<>();
     lootTable.forEach((key, value) -> {
-      if (player != null && PermissionApi.hasPermission(player, key, 2)) {
-        itemChances.addAll(value);
-      } else {
+      if (PermissionApi.hasPermission(player, key, 2)) {
         itemChances.addAll(value);
       }
     });

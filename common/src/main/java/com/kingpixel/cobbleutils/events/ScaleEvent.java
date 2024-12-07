@@ -54,6 +54,7 @@ public class ScaleEvent {
   }
 
   public static void solveScale(Pokemon pokemon) {
+    if (!CobbleUtils.config.isRandomsize()) return;
     ScalePokemonData scalePokemonData = ScalePokemonData.getScalePokemonData(pokemon);
     if (scalePokemonData.existSize(pokemon)) {
       SizeChanceWithoutItem size = scalePokemonData.getSize(pokemon);

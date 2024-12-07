@@ -89,9 +89,11 @@ public class Particle {
   }
 
   public void sendParticlesNearPlayers(@NotNull Entity entity) {
-    entity.getWorld().getEntitiesByClass(ServerPlayerEntity.class,
-        Box.from(entity.getPos()).expand(radius == null ? 32 : radius), entity1 -> false)
-      .forEach(player -> sendParticles(player, entity));
+    List<ServerPlayerEntity> players = entity.getWorld().getEntitiesByClass(ServerPlayerEntity.class,
+      Box.from(entity.getPos()).expand(radius == null ? 32 : radius), entity1 -> true);
+    if (players != null && !players.isEmpty()) {
+      players.forEach(player -> sendParticles(player, entity));
+    }
   }
 
   // Privates

@@ -7,6 +7,7 @@ import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.api.PermissionApi;
 import com.kingpixel.cobbleutils.util.LuckPermsUtil;
 import com.kingpixel.cobbleutils.util.RewardsUtils;
 import lombok.Getter;
@@ -118,23 +119,28 @@ public class PlotBreeding {
   }
 
   private Pokemon getPokemonMale() {
+    if (male == null) return null;
     return Pokemon.Companion.loadFromJSON(male);
   }
 
   private Pokemon getPokemonFemale() {
+    if (female == null) return null;
     return Pokemon.Companion.loadFromJSON(female);
   }
 
   public boolean checking(ServerPlayerEntity player) {
     if (!CobbleUtils.breedconfig.isActive()) return false;
     boolean banPokemon = false;
-    if (CobbleUtils.breedconfig.getBlacklist().contains((male == null ? "null" : getPokemonMale().showdownId()))) {
+    if (CobbleUtils.breedconfig.getBlacklist().contains((male == null ? "null" : getPokemonMale().showdownId()))
+      || CobbleUtils.breedconfig.getBlacklistForm().contains((male == null ? "null" : getPokemonMale().getForm().getName()))) {
       Cobblemon.INSTANCE.getStorage().getParty(player).add(getPokemonMale());
       male = null;
       banPokemon = true;
     }
 
-    if (CobbleUtils.breedconfig.getBlacklist().contains((female == null ? "null" : getPokemonFemale().showdownId()))) {
+    if (CobbleUtils.breedconfig.getBlacklist().contains((female == null ? "null" : getPokemonFemale().showdownId()))
+      || CobbleUtils.breedconfig.getBlacklistForm().contains((female == null ? "null" :
+      getPokemonFemale().getForm().getName()))) {
       Cobblemon.INSTANCE.getStorage().getParty(player).add(getPokemonFemale());
       female = null;
       banPokemon = true;
@@ -170,14 +176,12 @@ public class PlotBreeding {
 
           cooldown = currentTime + playerCooldownMillis;
 
-          if (CobbleUtils.breedconfig.isAutoclaim() && LuckPermsUtil.checkPermission(player, "cobbleutils.breeding" +
-            ".autoclaim")) {
+          if (PermissionApi.hasPermission(player, "cobbleutils.breeding.autoclaim", 4)) {
             RewardsUtils.saveRewardPokemon(player, pokemon);
-            return true;
           } else {
             eggs.add(pokemon.saveToJSON(new JsonObject()));
-            return true;
           }
+          return true;
         }
       } catch (NoPokemonStoreException e) {
         e.printStackTrace();

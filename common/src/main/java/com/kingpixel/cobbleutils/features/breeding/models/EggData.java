@@ -24,6 +24,7 @@ import com.kingpixel.cobbleutils.Model.CobbleUtilsTags;
 import com.kingpixel.cobbleutils.Model.PokemonChance;
 import com.kingpixel.cobbleutils.Model.PokemonData;
 import com.kingpixel.cobbleutils.Model.ScalePokemonData;
+import com.kingpixel.cobbleutils.events.ScaleEvent;
 import com.kingpixel.cobbleutils.features.breeding.events.HatchEggEvent;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.PlayerUtils;
@@ -244,7 +245,8 @@ public class EggData {
     // Aplicar la lógica de mecánicas y tamaño
     mechanicsLogic(male, female, usePokemonToEgg, egg);
 
-    ScalePokemonData.getScalePokemonData(usePokemonToEgg).getRandomPokemonSize().apply(egg);
+    ScaleEvent.solveScale(egg);
+
 
     // Enviar mensaje al jugador
     PlayerUtils.sendMessage(player, PokemonUtils.replace(CobbleUtils.breedconfig.getCreateEgg()
@@ -408,8 +410,8 @@ public class EggData {
       applyDestinyKnot(male, female, egg);
     } else {
       if (maleItem == DESTINY_KNOT) {
-        logicIvs(male, female, female, femaleItem, egg);
         applyDestinyKnot(male, female, egg);
+        logicIvs(male, female, female, femaleItem, egg);
       } else if (femaleItem == DESTINY_KNOT) {
         logicIvs(male, female, male, maleItem, egg);
         applyDestinyKnot(male, female, egg);
@@ -526,30 +528,15 @@ public class EggData {
     String id;
     short count = 0;
 
-    // Initial debug message
-    if (CobbleUtils.config.isDebug()) {
-      CobbleUtils.LOGGER.info("Starting evolution check between: " + male.getSpecies().showdownId() + " and " + female.getSpecies().showdownId());
-    }
-
     while (count < 6) {
       if (nextEvolution == null) {
-        if (CobbleUtils.config.isDebug()) {
-          CobbleUtils.LOGGER.info("No more evolutions. End of check.");
-        }
         return false;
       }
       count++;
       id = nextEvolution.getSpecies().showdownId();
 
-      // Debug message for the current evolution
-      if (CobbleUtils.config.isDebug()) {
-        CobbleUtils.LOGGER.info("Checking evolution: " + id + " (count: " + count + ")");
-      }
 
       if (id.equalsIgnoreCase(male.getSpecies().showdownId())) {
-        if (CobbleUtils.config.isDebug()) {
-          CobbleUtils.LOGGER.info("Evolution found! " + id + " matches " + male.getSpecies().showdownId() + " or " + female.getSpecies().showdownId());
-        }
         return true;
       }
 
@@ -557,22 +544,10 @@ public class EggData {
         nextEvolution = evolution.getResult().create();
         id = nextEvolution.getSpecies().showdownId();
 
-        // Debug message inside the for loop
-        if (CobbleUtils.config.isDebug()) {
-          CobbleUtils.LOGGER.info("Checking evolution in loop: " + id + " (count: " + count + ")");
-        }
-
         if (id.equalsIgnoreCase(male.getSpecies().showdownId())) {
-          if (CobbleUtils.config.isDebug()) {
-            CobbleUtils.LOGGER.info("Evolution found! " + id + " matches " + male.getSpecies().showdownId() + " or " + female.getSpecies().showdownId());
-          }
           return true;
         }
       }
-    }
-
-    if (CobbleUtils.config.isDebug()) {
-      CobbleUtils.LOGGER.info("No evolution found between " + male.getSpecies().showdownId() + " and " + female.getSpecies().showdownId());
     }
     return false;
   }
@@ -674,9 +649,9 @@ public class EggData {
       .ifPresent(eggSpecialForm -> configForm.set(eggSpecialForm.getForm()));
 
     if (configForm.get() != null) {
-      if (CobbleUtils.config.isDebug()) {
+      /*if (CobbleUtils.config.isDebug()) {
         CobbleUtils.LOGGER.info("Egg Form: " + configForm.get());
-      }
+      }*/
       if (CobbleUtils.breedconfig.getBlacklistForm().contains(configForm.get())) configForm.set("");
       return configForm.get();
     }
@@ -694,10 +669,6 @@ public class EggData {
 
     if (lastUnderscoreIndex != -1) {
       form = form.substring(0, lastUnderscoreIndex) + "=" + form.substring(lastUnderscoreIndex + 1);
-    }
-
-    if (CobbleUtils.config.isDebug()) {
-      CobbleUtils.LOGGER.info("Egg Form: " + form);
     }
 
     if (CobbleUtils.breedconfig.getBlacklistForm().contains(form)) form = "";

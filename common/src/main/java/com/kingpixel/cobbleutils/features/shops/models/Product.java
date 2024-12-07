@@ -106,4 +106,33 @@ public class Product {
   public ItemStack getItemStack() {
     return getItemStack(1);
   }
+
+  public ItemStack getItemStack(int amount, boolean setAmount) {
+    ItemStack itemStack = getItemchance().getItemStack();
+
+    if (getDisplay() != null && !getDisplay().isEmpty()) {
+      if (CobbleUtils.config.isDebug()) {
+        CobbleUtils.LOGGER.info("Display: " + getDisplay());
+      }
+      itemStack = new ItemChance(getDisplay(), 100).getItemStack();
+    }
+
+    if (setAmount) {
+      itemStack.setCount(amount);
+    }
+
+    if (getDisplayname() != null && !getDisplayname().isEmpty()) {
+      itemStack.setCustomName(AdventureTranslator.toNative(getDisplayname()));
+    }
+
+    if (getLore() != null && !getLore().isEmpty()) {
+
+    }
+
+    if (getCustomModelData() != null && getCustomModelData() > 0 && !itemStack.getOrCreateNbt().contains("CustomModelData")) {
+      itemStack.getOrCreateNbt().putLong("CustomModelData", getCustomModelData());
+    }
+
+    return itemStack;
+  }
 }

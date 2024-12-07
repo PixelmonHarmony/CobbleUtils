@@ -100,8 +100,8 @@ public class PlotBreedingManagerUI {
     GooeyButton egg = GooeyButton.builder()
       .display(PokemonItem.from(pokemonegg,
         plotBreeding.getEggs().size()))
-      .title(plotBreeding.getEggs().isEmpty() ? "" :
-        PokemonUtils.getTranslatedName(plotBreeding.getFirstEgg()))
+      .title(AdventureTranslator.toNative(plotBreeding.getEggs().isEmpty() ? "" :
+        PokemonUtils.getTranslatedName(plotBreeding.getFirstEgg())))
       .onClick(action -> {
         if (!plotBreeding.getEggs().isEmpty()) {
           plotBreeding.getEggs().forEach(pokemon -> {
@@ -122,8 +122,10 @@ public class PlotBreedingManagerUI {
     CobbleUtils.breedconfig.getEggSlots().forEach(slot -> {
       template.set(slot, GooeyButton.builder()
         .display(CobbleUtils.breedconfig.getEmptySlots().getItemStack())
-        .title(plotBreeding.getEggs().isEmpty() ? "" :
-          PokemonUtils.getTranslatedName(plotBreeding.getFirstEgg()))
+        .title(AdventureTranslator.toNative(
+          plotBreeding.getEggs().isEmpty() ? "" :
+            PokemonUtils.getTranslatedName(plotBreeding.getFirstEgg())
+        ))
         .onClick(action -> {
           if (!plotBreeding.getEggs().isEmpty()) {
             plotBreeding.getEggs().forEach(pokemon -> {

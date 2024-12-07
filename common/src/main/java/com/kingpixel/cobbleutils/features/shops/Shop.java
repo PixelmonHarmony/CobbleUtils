@@ -270,10 +270,10 @@ public class Shop {
 
         ItemStack itemStack;
         if (typeError == TypeError.NONE) {
-          itemStack = getViewItemStack(product, 1);
+          itemStack = product.getItemStack(1, false);
         } else {
           if (CobbleUtils.shopLang.isChangeItemError()) {
-            itemStack = getViewItemStack(product, 1);
+            itemStack = product.getItemStack(1, false);
           } else {
             itemStack = Utils.parseItemId("minecraft:barrier");
           }

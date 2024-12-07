@@ -29,7 +29,6 @@ public class BreedConfig {
   private boolean active;
   private boolean changeuipasture;
   private boolean shifttoopen;
-  private boolean autoclaim;
   private boolean obtainAspect;
   private boolean methodmasuda;
   private boolean ditto;
@@ -72,6 +71,9 @@ public class BreedConfig {
   private String notditto;
   private String notCompatible;
   private String blacklisted;
+  private List<String> blacklist;
+  private List<String> whitelist;
+  private List<String> blacklistForm;
 
   private List<EggData.EggForm> eggForms;
   private List<EggData.EggSpecialForm> eggSpecialForms;
@@ -81,15 +83,13 @@ public class BreedConfig {
   private ItemModel plotThereAreEggs;
   private ItemModel maleSelectItem;
   private ItemModel femaleSelectItem;
+  private ItemModel infoItem;
   private List<Integer> plotSlots;
   // Menu donde seleccionar el pokemon y recoges
   private ItemModel emptySlots;
   private List<Integer> maleSlots;
-  private List<Integer> femaleSlots;
   private List<Integer> eggSlots;
-  private List<String> blacklist;
-  private List<String> whitelist;
-  private List<String> blacklistForm;
+  private List<Integer> femaleSlots;
   private List<Incense> incenses;
   private FilterPokemons pokemonsForDoubleDitto;
   //private List<String> nationalities;
@@ -103,7 +103,6 @@ public class BreedConfig {
     this.titleemptyplot = "<#82d448>Plot";
     this.titleselectpokemon = "<#82d448>Select Pokemon";
     this.active = true;
-    this.autoclaim = false;
     this.obtainAspect = false;
     this.changeuipasture = true;
     this.methodmasuda = true;
@@ -143,7 +142,14 @@ public class BreedConfig {
       "&7Eggs: &6%eggs%",
       "&7Cooldown: &6%cooldown%"
     ), 0);
-
+    this.infoItem = new ItemModel(4, "minecraft:book", "<#82d448>Info", List.of(
+      "&7Ah: &6%ah%",
+      "&7Destiny Knot: &6%destinyknot%",
+      "&7Power Item: &6%poweritem%",
+      "&7Ever Stone: &6%everstone%",
+      "&7Masuda: &6%masuda% &7Multiplier: &6%multipliermasuda%",
+      "&7Max Ivs Random: &6%maxivs%"
+    ), 0);
     this.plotSlots = List.of(
       10,
       12,
@@ -241,7 +247,6 @@ public class BreedConfig {
         tickstocheck = config.getTickstocheck();
         maxplots = config.getMaxplots();
         notcancreateEgg = config.getNotcancreateEgg();
-        autoclaim = config.isAutoclaim();
         titleemptyplot = config.getTitleemptyplot();
         notdoubleditto = config.getNotdoubleditto();
         cooldowns = config.getCooldowns();
@@ -259,6 +264,7 @@ public class BreedConfig {
         nameEgg = config.getNameEgg();
         obtainAspect = config.isObtainAspect();
         rowmenuplot = config.getRowmenuplot();
+        infoItem = config.getInfoItem();
         rowmenuselectplot = config.getRowmenuselectplot();
         rowmenuselectpokemon = config.getRowmenuselectpokemon();
         methodmasuda = config.isMethodmasuda();

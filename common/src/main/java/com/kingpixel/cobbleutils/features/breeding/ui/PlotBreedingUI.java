@@ -6,7 +6,9 @@ import ca.landonjw.gooeylibs2.api.page.GooeyPage;
 import ca.landonjw.gooeylibs2.api.template.types.ChestTemplate;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.Model.ItemModel;
 import com.kingpixel.cobbleutils.database.DatabaseClientFactory;
+import com.kingpixel.cobbleutils.features.breeding.config.BreedConfig;
 import com.kingpixel.cobbleutils.features.breeding.models.PlotBreeding;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.LuckPermsUtil;
@@ -37,6 +39,34 @@ public class PlotBreedingUI {
 
     if (max > size) max = size;
     if (max < CobbleUtils.breedconfig.getDefaultNumberPlots()) max = CobbleUtils.breedconfig.getDefaultNumberPlots();
+
+    ItemModel info = CobbleUtils.breedconfig.getInfoItem();
+
+    BreedConfig.SuccessItems successItems = CobbleUtils.breedconfig.getSuccessItems();
+
+    List<String> infoLore = new ArrayList<>(info.getLore());
+    infoLore.replaceAll(s ->
+      s.replace("%ah%", String.format("%.2f%%", successItems.getPercentageTransmitAH()))
+        .replace("%destinyknot%", String.format("%.2f%%", successItems.getPercentageDestinyKnot()))
+        .replace("%everstone%", String.format("%.2f%%", successItems.getPercentageEverStone()))
+        .replace("%poweritem%", String.format("%.2f%%", successItems.getPercentagePowerItem()))
+        .replace("%masuda%", CobbleUtils.breedconfig.isMethodmasuda() ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
+        .replace("%multipliermasuda%", String.valueOf(CobbleUtils.breedconfig.getMultipliermasuda()))
+        .replace("%maxivs%", String.valueOf(CobbleUtils.breedconfig.getMaxIvsRandom()))
+    );
+
+    if (!CobbleUtils.breedconfig.isHaveMaxNumberIvsForRandom()) {
+      infoLore.removeIf(s -> s.contains("%maxivs%"));
+    }
+
+    if (info.getSlot() > 0) {
+      GooeyButton button = GooeyButton.builder()
+        .display(info.getItemStack())
+        .title(AdventureTranslator.toNative(info.getDisplayname()))
+        .lore(Text.class, AdventureTranslator.toNativeL(infoLore))
+        .build();
+      template.set(info.getSlot(), button);
+    }
 
     List<PlotBreeding> plots = DatabaseClientFactory.databaseClient.getPlots(player);
     for (int i = 0; i < max; i++) {

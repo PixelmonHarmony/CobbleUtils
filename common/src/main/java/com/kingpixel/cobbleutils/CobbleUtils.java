@@ -1,6 +1,8 @@
 package com.kingpixel.cobbleutils;
 
+import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.properties.CustomPokemonProperty;
+import com.cobblemon.mod.common.api.storage.NoPokemonStoreException;
 import com.kingpixel.cobbleutils.Model.RewardsData;
 import com.kingpixel.cobbleutils.command.CommandTree;
 import com.kingpixel.cobbleutils.config.*;
@@ -8,6 +10,7 @@ import com.kingpixel.cobbleutils.database.DatabaseClientFactory;
 import com.kingpixel.cobbleutils.events.BlockRightClickEvents;
 import com.kingpixel.cobbleutils.events.DropItemEvent;
 import com.kingpixel.cobbleutils.events.ItemRightClickEvents;
+import com.kingpixel.cobbleutils.events.ScaleEvent;
 import com.kingpixel.cobbleutils.events.features.FeaturesRegister;
 import com.kingpixel.cobbleutils.features.Features;
 import com.kingpixel.cobbleutils.features.breeding.config.BreedConfig;
@@ -272,6 +275,18 @@ public class CobbleUtils extends ShopExtend {
         }
       }), 0, CobbleUtils.config.getAlertreward(), TimeUnit.MINUTES);
 
+    ScheduledFuture<?> fixSize =
+      scheduler.scheduleAtFixedRate(() -> server.getPlayerManager().getPlayerList().forEach(
+        player -> {
+          Cobblemon.INSTANCE.getStorage().getParty(player).forEach(ScaleEvent::solveScale);
+          try {
+            Cobblemon.INSTANCE.getStorage().getPC(player.getUuid()).forEach(ScaleEvent::solveScale);
+          } catch (NoPokemonStoreException e) {
+            throw new RuntimeException(e);
+          }
+        }
+      ), 0, 30, TimeUnit.MINUTES);
+
     ScheduledFuture<?> fixnbt =
       scheduler.scheduleAtFixedRate(
         () -> server.getPlayerManager().getPlayerList().forEach(CobbleUtils::fixInventory),
@@ -279,6 +294,7 @@ public class CobbleUtils extends ShopExtend {
 
     scheduledTasks.add(alertreward);
     scheduledTasks.add(fixnbt);
+    scheduledTasks.add(fixSize);
 
     setEconomyType();
   }

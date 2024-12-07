@@ -76,6 +76,7 @@ public abstract class LuckPermsUtil {
   }
 
   private static boolean checkFabricPermissions(ServerCommandSource source, int level, List<String> permissions) {
+    if (permissions == null || permissions.isEmpty()) return true;
     for (String permission : permissions) {
       if (permission.isEmpty()) return true;
       if (Permissions.check(source, permission, level)) return true;
@@ -94,7 +95,6 @@ public abstract class LuckPermsUtil {
 
     for (String permission : permissions) {
       if (permission == null || permission.isEmpty()) return true;
-      //addPermission(permission);
       return user.getCachedData().getPermissionData().checkPermission(permission).asBoolean();
     }
     return false;
