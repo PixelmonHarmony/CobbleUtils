@@ -452,7 +452,7 @@ public abstract class EconomyUtil {
       if (currency == null || currency.isEmpty()) {
         return impactorService.currencies().primary();
       }
-      if (!currency.contains("impactor:")) {
+      if (!currency.contains(":")) {
         currency = "impactor:" + currency;
       }
       return impactorService.currencies().currency(Key.key(currency)).orElseGet(() -> impactorService.currencies().primary());
@@ -460,8 +460,7 @@ public abstract class EconomyUtil {
       e.printStackTrace();
       return impactorService.currencies().primary();
     } catch (InvalidKeyException e) {
-      CobbleUtils.LOGGER.info("Currency -> " + currency);
-      CobbleUtils.LOGGER.info("Key -> " + Key.key(currency).asString());
+      CobbleUtils.LOGGER.error("Currency -> " + currency + "| Key -> " + Key.key(currency).asString());
       return impactorService.currencies().primary();
     }
   }

@@ -34,22 +34,22 @@ public class BreedCommand implements Command<ServerCommandSource> {
     dispatcher.register(
       base.executes(BreedCommand::executeDefault)
         .then(CommandManager.literal("other")
-          .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.breeding_breedother",
+          .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.daycare_breedother",
             "cobbleutils.admin")))
           .then(CommandManager.argument("player", EntityArgumentType.players())
-            .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.breeding_breedother",
+            .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.daycare_breedother",
               "cobbleutils.admin")))
             .executes(BreedCommand::executeForOtherPlayer))
         )
         .then(CommandManager.argument("male", PartySlotArgumentType.Companion.partySlot())
-          .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.breeding_breedpokemons",
+          .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.daycare_breedpokemons",
             "cobbleutils.admin")))
           .then(CommandManager.argument("female", PartySlotArgumentType.Companion.partySlot())
-            .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.breeding_breedpokemons"
+            .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.daycare_breedpokemons"
               , "cobbleutils.admin")))
             .executes(BreedCommand::executeBreeding)
             .then(CommandManager.argument("player", EntityArgumentType.players())
-              .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.breeding_breedpokemons_other", "cobbleutils.admin")))
+              .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.daycare_breedpokemons_other", "cobbleutils.admin")))
               .executes(BreedCommand::executeBreedingForOtherPlayer))))
     );
   }

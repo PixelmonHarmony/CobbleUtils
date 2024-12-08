@@ -39,6 +39,7 @@ import net.minecraft.text.Text;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.cobblemon.mod.common.CobblemonItems.*;
@@ -189,7 +190,6 @@ public class EggData {
   public static Pokemon createEgg(
     Pokemon male, Pokemon female, ServerPlayerEntity player) throws NoPokemonStoreException {
 
-
     // Intercambiar posiciones si Ditto está en la posición female
     if (female.getSpecies().showdownId().equalsIgnoreCase("ditto")) {
       Pokemon temp = male;
@@ -279,74 +279,22 @@ public class EggData {
     Pokemon firstEvolution =
       PokemonProperties.Companion.parse(eggSpecie.getSpecies().showdownId() + " " + form).create();
 
-    // IVS
+    // IVS and Gender
     egg.createPokemonProperties(List.of(PokemonPropertyExtractor.IVS, PokemonPropertyExtractor.GENDER)).apply(egg);
-
     applyInitialIvs(egg, male, female);
 
-    boolean isDoubleEverStone = (male.heldItem().getItem() == EVERSTONE
-      && female.heldItem().getItem() == EVERSTONE);
 
     // Nature (Done)
-    if (Utils.RANDOM.nextDouble(100) < CobbleUtils.breedconfig.getSuccessItems().getPercentageEverStone()) {
-      if (isDoubleEverStone) {
-        List<Pokemon> parents = List.of(male, female);
-        egg.setNature(parents.get(Utils.RANDOM.nextInt(parents.size())).getNature());
-      } else if (male.heldItem().getItem() == EVERSTONE) {
-        egg.setNature(male.getNature());
-      } else if (female.heldItem().getItem() == EVERSTONE) {
-        egg.setNature(female.getNature());
-      } else {
-        egg.setNature(Natures.INSTANCE.getRandomNature());
-      }
-    } else {
-      egg.setNature(Natures.INSTANCE.getRandomNature());
-    }
+    applyNature(male, female, egg);
 
-    // Ability
+    // Ability (Done)
     applyAbility(male, female, firstEvolution, egg);
 
-    // Shiny Rate
-    float shinyrate = Cobblemon.INSTANCE.getConfig().getShinyRate();
-    float multiplier = CobbleUtils.breedconfig.getMultiplierShiny();
+    // Shiny Rate (Done)
+    applyShinyRate(male, female, egg);
 
-    if (multiplier > 0) {
-      if (male.getShiny())
-        shinyrate /= multiplier;
-      if (female.getShiny())
-        shinyrate /= multiplier;
-    }
-
-    if (CobbleUtils.breedconfig.isMethodmasuda()) {
-      String maleCountry = male.getPersistentData().getString(CobbleUtilsTags.COUNTRY_TAG);
-      String femaleCountry = female.getPersistentData().getString(CobbleUtilsTags.COUNTRY_TAG);
-      if (!maleCountry.isEmpty() && !femaleCountry.isEmpty()) {
-        if (!maleCountry.equalsIgnoreCase(femaleCountry)) {
-          shinyrate /= CobbleUtils.breedconfig.getMultipliermasuda();
-        }
-      }
-    }
-
-    if (shinyrate <= 1) {
-      egg.setShiny(true);
-    } else {
-      if (Utils.RANDOM.nextInt((int) shinyrate) == 0) {
-        egg.setShiny(true);
-      }
-    }
-
-    // PokeBall
-    if (CobbleUtils.breedconfig.isObtainPokeBallFromMother()) {
-      if (female.getSpecies().showdownId().equalsIgnoreCase(male.getSpecies().showdownId())) {
-        if (Utils.RANDOM.nextBoolean()) {
-          egg.setCaughtBall(male.getCaughtBall());
-        } else {
-          egg.setCaughtBall(female.getCaughtBall());
-        }
-      } else {
-        egg.setCaughtBall(female.getCaughtBall());
-      }
-    }
+    // PokeBall (Done)
+    applyPokeBall(male, female, egg);
 
     // Size
     ScalePokemonData.getScalePokemonData(usePokemonToEgg).getRandomPokemonSize().apply(egg);
@@ -378,117 +326,125 @@ public class EggData {
     }
   }
 
-
-  private static void applyInitialIvs(Pokemon egg, Pokemon male, Pokemon female) {
-    CobblemonItem maleItem = null;
-    CobblemonItem femaleItem = null;
-    boolean sameItem = false;
-
-    if (male != null) {
-      male.heldItem();
-      if (male.heldItem().getItem() instanceof CobblemonItem cobblemonItem) {
-        maleItem = cobblemonItem;
-      }
-    }
-    if (female != null) {
-      female.heldItem();
-      if (female.heldItem().getItem() instanceof CobblemonItem cobblemonItem) {
-        femaleItem = cobblemonItem;
-      }
-    }
-
-    if (maleItem != null && femaleItem != null && maleItem.equals(femaleItem)) {
-      sameItem = true;
-    }
-
-    // Put Limit Ivs for randoms Ivs
-    applyMaxIvs(egg);
-
-    if (maleItem == null && femaleItem == null) {
-      logicIvs(male, female, female, null, egg);
-    } else if (sameItem && maleItem == DESTINY_KNOT) {
-      applyDestinyKnot(male, female, egg);
-    } else {
-      if (maleItem == DESTINY_KNOT) {
-        applyDestinyKnot(male, female, egg);
-        logicIvs(male, female, female, femaleItem, egg);
-      } else if (femaleItem == DESTINY_KNOT) {
-        logicIvs(male, female, male, maleItem, egg);
-        applyDestinyKnot(male, female, egg);
+  private static void applyPokeBall(Pokemon male, Pokemon female, Pokemon egg) {
+    if (CobbleUtils.breedconfig.isObtainPokeBallFromMother()) {
+      if (female.getSpecies().showdownId().equalsIgnoreCase(male.getSpecies().showdownId())) {
+        if (Utils.RANDOM.nextBoolean()) {
+          egg.setCaughtBall(male.getCaughtBall());
+        } else {
+          egg.setCaughtBall(female.getCaughtBall());
+        }
       } else {
-        if (isPowerItem(maleItem) && isPowerItem(femaleItem)) {
-          logicIvs(male, female, male, maleItem, egg);
-          logicIvs(male, female, female, femaleItem, egg);
-        } else if (isPowerItem(maleItem)) {
-          logicIvs(male, female, female, femaleItem, egg);
-          logicIvs(male, female, male, maleItem, egg);
-        } else if (isPowerItem(femaleItem)) {
-          logicIvs(male, female, male, maleItem, egg);
-          logicIvs(male, female, female, femaleItem, egg);
-        } else {
-          logicIvs(male, female, null, null, egg);
+        egg.setCaughtBall(female.getCaughtBall());
+      }
+    }
+  }
+
+  private static void applyShinyRate(Pokemon male, Pokemon female, Pokemon egg) {
+    float shinyrate = Cobblemon.INSTANCE.getConfig().getShinyRate();
+    float multiplier = CobbleUtils.breedconfig.getMultiplierShiny();
+
+    if (multiplier > 0) {
+      if (male.getShiny())
+        shinyrate /= multiplier;
+      if (female.getShiny())
+        shinyrate /= multiplier;
+    }
+
+    if (CobbleUtils.breedconfig.isMethodmasuda()) {
+      String maleCountry = male.getPersistentData().getString(CobbleUtilsTags.COUNTRY_TAG);
+      String femaleCountry = female.getPersistentData().getString(CobbleUtilsTags.COUNTRY_TAG);
+      if (!maleCountry.isEmpty() && !femaleCountry.isEmpty()) {
+        if (!maleCountry.equalsIgnoreCase(femaleCountry)) {
+          shinyrate /= CobbleUtils.breedconfig.getMultipliermasuda();
         }
       }
     }
 
+    if (shinyrate <= 1) {
+      egg.setShiny(true);
+    } else {
+      if (Utils.RANDOM.nextInt((int) shinyrate) == 0) {
+        egg.setShiny(true);
+      }
+    }
+  }
+
+  private static void applyNature(Pokemon male, Pokemon female, Pokemon egg) {
+    boolean isDoubleEverStone = (male.heldItem().getItem() == EVERSTONE
+      && female.heldItem().getItem() == EVERSTONE);
+    if (Utils.RANDOM.nextDouble(100) < CobbleUtils.breedconfig.getSuccessItems().getPercentageEverStone()) {
+      if (isDoubleEverStone) {
+        List<Pokemon> parents = List.of(male, female);
+        egg.setNature(parents.get(Utils.RANDOM.nextInt(parents.size())).getNature());
+      } else if (male.heldItem().getItem() == EVERSTONE) {
+        egg.setNature(male.getNature());
+      } else if (female.heldItem().getItem() == EVERSTONE) {
+        egg.setNature(female.getNature());
+      } else {
+        egg.setNature(Natures.INSTANCE.getRandomNature());
+      }
+    } else {
+      egg.setNature(Natures.INSTANCE.getRandomNature());
+    }
   }
 
 
-  private static void logicIvs(Pokemon male, Pokemon female, Pokemon select, CobblemonItem itemPokemon, Pokemon egg) {
-    if (itemPokemon == null) {
-      List<Stats> stats = new ArrayList<>(Arrays.stream(Stats.values()).toList());
-      stats.remove(Stats.EVASION);
-      stats.remove(Stats.ACCURACY);
+  /**
+   * Apply the initial IVs to the egg
+   *
+   * @param egg    The egg
+   * @param male   The male pokemon
+   * @param female The female pokemon
+   */
+  private static void applyInitialIvs(Pokemon egg, Pokemon male, Pokemon female) {
+    List<Pokemon> pokemons = new ArrayList<>();
+    List<Pokemon> bracalets = new ArrayList<>();
+    List<Pokemon> destinyKnots = new ArrayList<>();
+    List<Stats> stats = new ArrayList<>(Arrays.asList(Stats.values()));
+    stats.remove(Stats.EVASION);
+    stats.remove(Stats.ACCURACY);
+    pokemons.add(male);
+    pokemons.add(female);
 
-      for (int i = 0; i < 2; i++) {
-        Stats stat = stats.remove(Utils.RANDOM.nextInt(stats.size()));
-        if (CobbleUtils.breedconfig.isHaveMaxNumberIvsForRandom()) {
-          egg.setIV(stat, Utils.RANDOM.nextInt(CobbleUtils.breedconfig.getMaxIvsRandom() + 1));
-        } else {
-          egg.setIV(stat, Utils.RANDOM.nextInt(32));
+    AtomicInteger count = new AtomicInteger();
+    pokemons.forEach(pokemon -> {
+      if (pokemon.heldItem().getItem() instanceof CobblemonItem item) {
+        if (isPowerItem(item)) {
+          bracalets.add(pokemon);
+        } else if (item.equals(DESTINY_KNOT)) {
+          destinyKnots.add(pokemon);
+          count.getAndIncrement();
         }
       }
-    } else if (itemPokemon.equals(DESTINY_KNOT)) {
-      applyDestinyKnot(male, female, egg);
-    } else if (isPowerItem(itemPokemon)) {
-      applyIvsPower(select, egg, itemPokemon);
+    });
+
+    if (count.get() > 1) {
+      destinyKnots.remove(Utils.RANDOM.nextInt(destinyKnots.size()));
     }
-  }
 
-  private static boolean isPowerItem(CobblemonItem item) {
-    if (item == null) return false;
-    return item.equals(POWER_WEIGHT) || item.equals(POWER_BRACER) || item.equals(POWER_BELT) || item.equals(POWER_ANKLET) || item.equals(POWER_LENS) || item.equals(POWER_BAND);
-  }
 
-  private static void applyIvsPower(Pokemon select, Pokemon egg, CobblemonItem itemSame) {
-    if (Utils.RANDOM.nextDouble(100) >= CobbleUtils.breedconfig.getSuccessItems().getPercentagePowerItem()) return;
-    if (itemSame.equals(POWER_WEIGHT)) {
-      egg.setIV(Stats.HP, select.getIvs().getOrDefault(Stats.HP));
-    } else if (itemSame.equals(POWER_BRACER)) {
-      egg.setIV(Stats.ATTACK, select.getIvs().getOrDefault(Stats.ATTACK));
-    } else if (itemSame.equals(POWER_BELT)) {
-      egg.setIV(Stats.DEFENCE, select.getIvs().getOrDefault(Stats.DEFENCE));
-    } else if (itemSame.equals(POWER_ANKLET)) {
-      egg.setIV(Stats.SPEED, select.getIvs().getOrDefault(Stats.SPEED));
-    } else if (itemSame.equals(POWER_LENS)) {
-      egg.setIV(Stats.SPECIAL_ATTACK, select.getIvs().getOrDefault(Stats.SPECIAL_ATTACK));
-    } else if (itemSame.equals(POWER_BAND)) {
-      egg.setIV(Stats.SPECIAL_DEFENCE, select.getIvs().getOrDefault(Stats.SPECIAL_DEFENCE));
+    if (!pokemons.isEmpty() && destinyKnots.isEmpty()) {
+      applyIvs(male, female, egg, 3, stats);
     }
+
+
+    bracalets.forEach(pBracalet -> applyIvsPower(pBracalet, egg, (CobblemonItem) pBracalet.heldItem().getItem(), stats));
+    destinyKnots.forEach(pDestinyKnot -> {
+      applyIvs(male, female, egg, CobbleUtils.breedconfig.getNumberIvsDestinyKnot(), stats);
+      if (!bracalets.isEmpty()) {
+        for (Pokemon bracalet : bracalets) {
+          applyIvsPower(bracalet, egg, (CobblemonItem) bracalet.heldItem().getItem(), stats);
+        }
+      }
+    });
+
+    stats.forEach(stats1 -> egg.setIV(stats1, Utils.RANDOM.nextInt(32)));
   }
 
-  private enum Family {
-    MALE, FEMALE
-  }
-
-  private static void applyDestinyKnot(Pokemon male, Pokemon female, Pokemon egg) {
+  private static void applyIvs(Pokemon male, Pokemon female, Pokemon egg, int amount, List<Stats> stats) {
     if (Utils.RANDOM.nextDouble(100) >= CobbleUtils.breedconfig.getSuccessItems().getPercentageDestinyKnot()) return;
-
-    List<Stats> stats = new ArrayList<>(Arrays.stream(Stats.values())
-      .filter(stat -> stat != Stats.EVASION && stat != Stats.ACCURACY)
-      .toList());
-
-    for (int i = 0; i < CobbleUtils.breedconfig.getNumberIvsDestinyKnot(); i++) {
+    for (int i = 0; i < amount; i++) {
       Stats stat = stats.remove(Utils.RANDOM.nextInt(stats.size()));
       Pokemon selectedParent = Utils.RANDOM.nextBoolean() ? male : female;
       egg.setIV(stat, selectedParent.getIvs().getOrDefault(stat));
@@ -496,6 +452,37 @@ public class EggData {
   }
 
 
+  private static boolean isPowerItem(CobblemonItem item) {
+    if (item == null) return false;
+    return item.equals(POWER_WEIGHT) || item.equals(POWER_BRACER) || item.equals(POWER_BELT) || item.equals(POWER_ANKLET) || item.equals(POWER_LENS) || item.equals(POWER_BAND);
+  }
+
+  private static void applyIvsPower(Pokemon select, Pokemon egg, CobblemonItem bracalet, List<Stats> stats) {
+    if (bracalet == null) return;
+    if (Utils.RANDOM.nextDouble(100) >= CobbleUtils.breedconfig.getSuccessItems().getPercentagePowerItem()) return;
+    Stats stat = null;
+    if (bracalet.equals(POWER_WEIGHT)) {
+      stat = Stats.HP;
+      egg.setIV(Stats.HP, select.getIvs().getOrDefault(stat));
+    } else if (bracalet.equals(POWER_BRACER)) {
+      stat = Stats.ATTACK;
+      egg.setIV(Stats.ATTACK, select.getIvs().getOrDefault(stat));
+    } else if (bracalet.equals(POWER_BELT)) {
+      stat = Stats.DEFENCE;
+      egg.setIV(Stats.DEFENCE, select.getIvs().getOrDefault(stat));
+    } else if (bracalet.equals(POWER_ANKLET)) {
+      stat = Stats.SPEED;
+      egg.setIV(Stats.SPEED, select.getIvs().getOrDefault(stat));
+    } else if (bracalet.equals(POWER_LENS)) {
+      stat = Stats.SPECIAL_ATTACK;
+      egg.setIV(Stats.SPECIAL_ATTACK, select.getIvs().getOrDefault(stat));
+    } else if (bracalet.equals(POWER_BAND)) {
+      stat = Stats.SPECIAL_DEFENCE;
+      egg.setIV(Stats.SPECIAL_DEFENCE, select.getIvs().getOrDefault(stat));
+    }
+    stats.remove(stat);
+  }
+  
   private static void applyAbility(Pokemon male, Pokemon female, Pokemon firstEvolution, Pokemon egg) {
     boolean maleHiddenAbility = PokemonUtils.isAH(male);
     boolean femaleHiddenAbility = PokemonUtils.isAH(female);

@@ -51,15 +51,18 @@ public abstract class Utils {
   private static final Charset charset = StandardCharsets.UTF_8;
 
   public static Gson newGson() {
-    return addAdapters(new GsonBuilder()
+    return adapters()
       .setPrettyPrinting()
-      .disableHtmlEscaping())
       .create();
   }
 
-  public static Gson newWithoutSpacingGson() {
+  private static GsonBuilder adapters() {
     return addAdapters(new GsonBuilder()
-      .disableHtmlEscaping())
+      .disableHtmlEscaping());
+  }
+
+  public static Gson newWithoutSpacingGson() {
+    return adapters()
       .create();
   }
 

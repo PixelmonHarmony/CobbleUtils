@@ -96,6 +96,7 @@ public class Lang {
   private ItemModel itemConfirm;
   private ItemModel itemCancel;
   private ItemModel itemCommand;
+  private ItemModel itemAdvancedRewardsInfo;
 
   private Map<String, ItemModel> itemsEconomy;
 
@@ -248,6 +249,9 @@ public class Lang {
     this.itemsEconomy = new HashMap<>();
     itemsEconomy.put("dollars", new ItemModel("minecraft:emerald", "<gradient:#00ff00:#00ff00><bold>Common", List.of(
       "§aCommon")));
+    itemAdvancedRewardsInfo = new ItemModel(4, "minecraft:book", "<gradient:#00ff00:#00ff00><bold>Info", List.of(
+      "&7AmountRewards: &e%amount%",
+      "&7Get all: %getall%"), 0);
   }
 
   /**
@@ -339,6 +343,7 @@ public class Lang {
         impactorSymbols = lang.getImpactorSymbols();
         titleLoot = lang.getTitleLoot();
         itemsEconomy = lang.getItemsEconomy();
+        itemAdvancedRewardsInfo = lang.getItemAdvancedRewardsInfo();
         String data = gson.toJson(this);
         CompletableFuture<Boolean> futureWrite = Utils.writeFileAsync(CobbleUtils.PATH_LANG, CobbleUtils.config.getLang() +
             ".json",
