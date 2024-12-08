@@ -6,16 +6,21 @@ import com.kingpixel.cobbleutils.Model.FilterPokemons;
 import com.kingpixel.cobbleutils.Model.ItemModel;
 import com.kingpixel.cobbleutils.Model.PokemonChance;
 import com.kingpixel.cobbleutils.Model.PokemonData;
+import com.kingpixel.cobbleutils.api.PermissionApi;
 import com.kingpixel.cobbleutils.features.breeding.models.EggData;
 import com.kingpixel.cobbleutils.features.breeding.models.Incense;
 import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Data;
 import lombok.Getter;
 import lombok.ToString;
+import net.minecraft.server.network.ServerPlayerEntity;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
@@ -45,8 +50,8 @@ public class BreedConfig {
   private String nameRandomEgg;
   private float multipliermasuda;
   private float multiplierShiny;
-  private boolean haveMaxNumberIvsForRandom;
   private SuccessItems successItems;
+  private int defaultNumIvsToTransfer;
   private int maxIvsRandom;
   private int numberIvsDestinyKnot;
   private int checkEggToBreedInSeconds;
@@ -133,8 +138,8 @@ public class BreedConfig {
     this.percentagespawnegg = 5;
     this.cooldowninstaBreedInSeconds = 60;
     this.cooldowninstaHatchInSeconds = 60;
+    this.defaultNumIvsToTransfer = 3;
     this.maxIvsRandom = 31;
-    this.haveMaxNumberIvsForRandom = false;
     this.successItems = new SuccessItems();
     this.plotItem = new ItemModel(0, "minecraft:turtle_egg", "<#82d448>Plot", List.of(
       "&9male: &6%pokemon1% &f(&b%form1%&f) &f(&b%item1%&f)",
@@ -143,12 +148,21 @@ public class BreedConfig {
       "&7Cooldown: &6%cooldown%"
     ), 0);
     this.infoItem = new ItemModel(4, "minecraft:book", "<#82d448>Info", List.of(
-      "&7Ah: &6%ah%",
+      "<#82d448>--- Info ---",
+      "&7Transmit Ah: &6%ah%",
+      "<#82d448>---- Items ----",
       "&7Destiny Knot: &6%destinyknot%",
       "&7Power Item: &6%poweritem%",
       "&7Ever Stone: &6%everstone%",
+      "<#82d448>---- Shiny ----",
       "&7Masuda: &6%masuda% &7Multiplier: &6%multipliermasuda%",
-      "&7Max Ivs Random: &6%maxivs%"
+      "&7Shiny Multiplier: &6%multipliershiny%",
+      "&7ShinyRate: &6%shinyrate%",
+      "<#82d448>---- Egg ----",
+      "&7Egg Moves: &6%eggmoves%",
+      "",
+      "&7Max Ivs Random: &6%maxivs%",
+      "&7Cooldown: &6%cooldown%"
     ), 0);
     this.plotSlots = List.of(
       10,
@@ -220,12 +234,14 @@ public class BreedConfig {
     private double percentageDestinyKnot;
     private double percentagePowerItem;
     private double percentageEverStone;
+    private double percentageEggMoves;
 
     public SuccessItems() {
       this.percentageTransmitAH = 70.0;
       this.percentageDestinyKnot = 100.0;
       this.percentagePowerItem = 100.0;
       this.percentageEverStone = 100.0;
+      this.percentageEggMoves = 100.0;
     }
 
   }
@@ -294,13 +310,13 @@ public class BreedConfig {
         maxIvsRandom = config.getMaxIvsRandom();
         if (maxIvsRandom < 0) maxIvsRandom = 0;
         if (maxIvsRandom > 31) maxIvsRandom = 31;
-        haveMaxNumberIvsForRandom = config.isHaveMaxNumberIvsForRandom();
         successItems = config.getSuccessItems();
         defaultNumberPlots = config.getDefaultNumberPlots();
         plotItem = config.getPlotItem();
         plotSlots = config.getPlotSlots();
         permissionAutoClaim = config.getPermissionAutoClaim();
         pokemonsForDoubleDitto = config.getPokemonsForDoubleDitto();
+        defaultNumIvsToTransfer = config.getDefaultNumIvsToTransfer();
 
         checker(this);
 
@@ -324,6 +340,18 @@ public class BreedConfig {
       }
     }
 
+  }
+
+  public Date getCooldown(ServerPlayerEntity player) {
+    AtomicInteger cooldown = new AtomicInteger(CobbleUtils.breedconfig.getCooldown());
+    CobbleUtils.breedconfig.getCooldowns().forEach((permission, time) -> {
+      if (player != null && PermissionApi.hasPermission(player, permission, 2)) {
+        if (time < cooldown.get()) {
+          cooldown.set(time);
+        }
+      }
+    });
+    return new Date(TimeUnit.MINUTES.toMillis(cooldown.get()));
   }
 
   private void checker(BreedConfig breedConfig) {

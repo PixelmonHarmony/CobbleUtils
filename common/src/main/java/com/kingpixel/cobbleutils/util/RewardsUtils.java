@@ -8,9 +8,7 @@ import com.google.gson.JsonObject;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.ItemObject;
 import com.kingpixel.cobbleutils.Model.RewardsData;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtHelper;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.ArrayList;
@@ -40,7 +38,6 @@ public class RewardsUtils {
         return newRewardsData;
       });
     saveItemToRewardsData(player, rewardsData, itemStack);
-
     rewardsData.writeInfo();
     return true;
   }
@@ -63,7 +60,6 @@ public class RewardsUtils {
     for (ItemStack itemStack : itemStacks) {
       saveItemToRewardsData(player, rewardsData, itemStack);
     }
-
     rewardsData.writeInfo();
   }
 
@@ -75,39 +71,38 @@ public class RewardsUtils {
    * @param itemStack   ItemStack to save
    */
   private static void saveItemToRewardsData(ServerPlayerEntity player, RewardsData rewardsData, ItemStack itemStack) {
-    boolean added = player.giveItemStack(itemStack);
-    if (added)
-      return;
-
+    // Intentar dar el objeto directamente al jugador
     if (!CobbleUtils.config.isRewards() || CobbleUtils.config.isDirectreward()) {
-      CobbleUtils.server.execute(() -> player.dropItem(itemStack, true));
+      if (!player.giveItemStack(itemStack)) {
+        CobbleUtils.server.execute(() -> player.dropItem(itemStack, true));
+      }
       return;
     }
 
+    // Intentar dar el objeto al jugador
+    if (player.giveItemStack(itemStack)) {
+      return; // Objeto entregado, no es necesario procesar más
+    }
+
     int remainingCount = itemStack.getCount();
-    int maxStackSize = itemStack.getMaxCount();
+    int maxStackSize = itemStack.getItem().getMaxCount();
 
     // Add to rewards data
     for (ItemObject item : rewardsData.getItems()) {
       if (remainingCount <= 0)
         break;
 
-      try {
-        ItemStack existingItemStack = ItemStack.fromNbt(NbtHelper.fromNbtProviderString(item.getItem()));
-        if (existingItemStack.isOf(itemStack.getItem())) {
-          int existingCount = existingItemStack.getCount();
-          int spaceAvailable = maxStackSize - existingCount;
+      ItemStack existingItemStack = item.toItemStack();
+      if (ItemStack.canCombine(itemStack, existingItemStack)) {
+        int existingCount = existingItemStack.getCount();
+        int spaceAvailable = maxStackSize - existingCount;
 
-          if (spaceAvailable > 0) {
-            int toAdd = Math.min(remainingCount, spaceAvailable);
-            existingItemStack.setCount(existingCount + toAdd);
-            assert existingItemStack.getNbt() != null;
-            item.setItem(NbtHelper.toFormattedString(existingItemStack.getNbt()));
-            remainingCount -= toAdd;
-          }
+        if (spaceAvailable > 0) {
+          int toAdd = Math.min(remainingCount, spaceAvailable);
+          existingItemStack.setCount(existingCount + toAdd);
+          item.setItem(ItemObject.fromItemStack(existingItemStack));
+          remainingCount -= toAdd;
         }
-      } catch (CommandSyntaxException e) {
-        e.printStackTrace();
       }
     }
 
@@ -115,10 +110,11 @@ public class RewardsUtils {
       int toAdd = Math.min(remainingCount, maxStackSize);
       ItemStack newItemStack = itemStack.copy();
       newItemStack.setCount(toAdd);
-      rewardsData.getItems().add(ItemObject.fromItemStack(newItemStack));
+      rewardsData.getItems().add(ItemObject.createItemObject(newItemStack));
       remainingCount -= toAdd;
     }
   }
+
 
   /**
    * Saves a Pokémon into the player's rewards inventory.

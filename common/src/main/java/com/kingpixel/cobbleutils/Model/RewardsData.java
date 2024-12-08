@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ import java.util.concurrent.CompletableFuture;
  * @author Carlos Varas Alonso - 28/06/2024 9:41
  */
 @Getter
+@Setter
 @ToString
 public class RewardsData {
   private String playername;
@@ -86,5 +88,9 @@ public class RewardsData {
     if (!futureWrite.join()) {
       CobbleUtils.LOGGER.fatal("Could not write userinfo file for PokedexRewards.");
     }
+  }
+
+  public int getAmount() {
+    return getCommands().size() + getItems().size() + getPokemons().size();
   }
 }

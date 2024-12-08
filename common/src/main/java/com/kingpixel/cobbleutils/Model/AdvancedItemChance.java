@@ -23,6 +23,8 @@ import net.minecraft.text.Text;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 /**
@@ -34,22 +36,20 @@ public class AdvancedItemChance {
   private String title;
   // Options for the rewards
   private boolean giveAll;
-  private int amountReward;
-  private Map<String, Integer> amountRewardsPermission;
+  private final Map<String, Integer> amountRewardsPermission;
   // Effects and animations
   private Sound newSound;
   private Particle particle;
   private Animations animation;
   // Rewards
 
-  private Map<String, List<ItemChance>> lootTable;
+  private final Map<String, List<ItemChance>> lootTable;
 
   public AdvancedItemChance() {
     this.title = "";
     this.giveAll = false;
-    this.amountReward = 3;
     this.amountRewardsPermission = Map.of(
-      "", amountReward,
+      "", 3,
       "group.vip", 5
     );
     //this.sound = "minecraft:block.note_block.harp";
@@ -69,20 +69,22 @@ public class AdvancedItemChance {
   }
 
   public boolean checker(ServerPlayerEntity player) {
-    boolean error = false;
-    TypeError typeError = TypeError.NONE;
+    AtomicBoolean error = new AtomicBoolean(false);
+    AtomicReference<TypeError> typeError = new AtomicReference<>(TypeError.NONE);
 
-    if (amountReward < 1) {
-      error = true;
-      typeError = TypeError.AMOUNTREWARD;
-    }
+    amountRewardsPermission.forEach((key, value) -> {
+      if (value < 1) {
+        error.set(true);
+        typeError.set(TypeError.AMOUNTREWARD);
+      }
+    });
 
     if (lootTable == null || lootTable.isEmpty()) {
-      error = true;
-      typeError = TypeError.LOOTTABLE;
+      error.set(true);
+      typeError.set(TypeError.LOOTTABLE);
     }
 
-    switch (typeError) {
+    switch (typeError.get()) {
       case AMOUNTREWARD:
         PlayerUtils.sendMessage(player,
           "%prefix% &cplease notify the administrator of the error in the configuration in the amountReward",
@@ -97,18 +99,16 @@ public class AdvancedItemChance {
         break;
     }
 
-    if (error) {
+    if (error.get()) {
       PlayerUtils.sendMessage(player,
         "%prefix% please notify the administrator of the error in the configuration",
         "[ERROR]");
     }
-    return error;
+    return error.get();
   }
 
   private int getAmountReward(ServerPlayerEntity player) {
-    if (amountRewardsPermission == null || amountRewardsPermission.isEmpty()) return amountReward;
-
-    int amount = amountReward;
+    int amount = 1;
     for (Map.Entry<String, Integer> entry : amountRewardsPermission.entrySet()) {
       if (PermissionApi.hasPermission(player, entry.getKey(), 2)) {
         if (entry.getValue() > amount) {

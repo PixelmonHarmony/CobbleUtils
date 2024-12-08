@@ -14,6 +14,7 @@ import java.util.concurrent.CompletableFuture;
 @Getter
 public class Lang {
   private String prefixShop;
+  private String prefixStorageRewards;
   // Messages
   private String formatMoney;
 
@@ -105,6 +106,7 @@ public class Lang {
    */
   public Lang() {
     prefixShop = "&7[<gradient:#34ff00:#ade37e><bold>Shop&7] &8» &a";
+    prefixStorageRewards = "&7[<gradient:#34ff00:#ade37e><bold>Storage&7] &8» &a";
     formatMoney = "#,##0.00 ¤";
     soundopen = "cobblemon:pc.on";
     soundclose = "cobblemon:pc.off";
@@ -131,7 +133,7 @@ public class Lang {
     none = "&cNone";
     coloritem = "<gradient:#cc7435:#e3ab84>";
     pokemonnameformat = "&e%pokemon%%shiny% %gender% &f(&b%form%&f) &f(&b%level%&f) %ah%";
-    messageHaveRewards = "&aYou have rewards %amount%.";
+    messageHaveRewards = "%prefix% &aYou have rewards %amount%.";
     titleLoot = "&eLoot";
     // Messages
     messagerandomitem = "&aYou get a &e%type% &arandomitem &f%item% &6%amount%&a!";
@@ -262,9 +264,10 @@ public class Lang {
       el -> {
         Gson gson = Utils.newGson();
         Lang lang = gson.fromJson(el, Lang.class);
+        prefixShop = lang.getPrefixShop();
+        prefixStorageRewards = lang.getPrefixStorageRewards();
         confirm = lang.getConfirm();
         formatMoney = lang.getFormatMoney();
-        prefixShop = lang.getPrefixShop();
 
         cancel = lang.getCancel();
         close = lang.getClose();

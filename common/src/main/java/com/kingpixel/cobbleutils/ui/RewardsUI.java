@@ -13,10 +13,12 @@ import ca.landonjw.gooeylibs2.api.template.types.ChestTemplate;
 import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.storage.NoPokemonStoreException;
 import com.cobblemon.mod.common.pokemon.Pokemon;
+import com.google.gson.JsonObject;
 import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.Model.ItemObject;
 import com.kingpixel.cobbleutils.Model.RewardsData;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
-import com.kingpixel.cobbleutils.util.CobbleUtilities;
+import com.kingpixel.cobbleutils.util.PlayerUtils;
 import com.kingpixel.cobbleutils.util.UIUtils;
 import com.kingpixel.cobbleutils.util.Utils;
 import com.mojang.brigadier.CommandDispatcher;
@@ -58,10 +60,8 @@ public class RewardsUI {
         })));
 
       rewardsData.getItems().forEach(item -> {
-        ItemStack itemStack = CobbleUtilities.getItem(item.getItem());
+        ItemStack itemStack = ItemObject.toItemStack(item.getItem());
         buttons.add(UIUtils.createButtonItem(itemStack, action -> {
-          if (player.getInventory().getEmptySlot() == -1)
-            return;
           if (action.getPlayer().getInventory().insertStack(itemStack)) {
             rewardsData.getItems().remove(item);
             rewardsData.writeInfo();
@@ -91,6 +91,40 @@ public class RewardsUI {
       });
 
       buttons.removeIf(Objects::isNull);
+
+      GooeyButton getAllRewards = GooeyButton.builder()
+        .display(Utils.parseItemId("minecraft:chest"))
+        .title(AdventureTranslator.toNative("&7Get all rewards"))
+        .onClick(action -> {
+          List<ItemObject> itemsToRemove = new ArrayList<>();
+          for (ItemObject item : rewardsData.getItems()) {
+            ItemStack itemStack = ItemObject.toItemStack(item.getItem());
+            if (action.getPlayer().getInventory().insertStack(itemStack)) {
+              itemsToRemove.add(item);
+            }
+          }
+          rewardsData.getItems().removeAll(itemsToRemove);
+
+          List<JsonObject> pokemonsToRemove = new ArrayList<>();
+          for (JsonObject pokemon : rewardsData.getPokemons()) {
+            try {
+              if (Cobblemon.INSTANCE.getStorage().getParty(action.getPlayer().getUuid())
+                .add(Pokemon.Companion.loadFromJSON(pokemon))) {
+                pokemonsToRemove.add(pokemon);
+              }
+            } catch (NoPokemonStoreException e) {
+              throw new RuntimeException(e);
+            }
+          }
+          rewardsData.getPokemons().removeAll(pokemonsToRemove);
+
+          rewardsData.getCommands().removeIf(command -> PlayerUtils.executeCommand(command, action.getPlayer()));
+          rewardsData.writeInfo();
+          UIManager.openUIForcefully(action.getPlayer(), getRewards(player));
+        })
+        .build();
+
+      template.set(47, getAllRewards);
 
       LinkedPageButton previus = LinkedPageButton.builder()
         .display(Utils.parseItemId("minecraft:arrow"))

@@ -316,11 +316,19 @@ public class PokemonUtils {
   }
 
   public static Pokemon getFirstEvolution(Pokemon pokemon) {
-    return getFirstEvolution(pokemon.getSpecies());
-  }
-
-  public static Pokemon getFirstEvolution(Species currentSpecies) {
-    return getFirstPreEvolution(currentSpecies).create(1);
+    if (CobbleUtils.config.isDebug()) {
+      CobbleUtils.LOGGER.info("getFirstEvolution(Pokemon pokemon) -> " + pokemon.showdownId());
+    }
+    Pokemon firstEvolution = pokemon;
+    while (firstEvolution.getPreEvolution() != null) {
+      firstEvolution = firstEvolution.getPreEvolution().getSpecies().create(1);
+      firstEvolution.setForm(firstEvolution.getForm());
+      firstEvolution.updateForm();
+    }
+    if (CobbleUtils.config.isDebug()) {
+      CobbleUtils.LOGGER.info("getFirstEvolution() First evolution: " + firstEvolution.showdownId());
+    }
+    return firstEvolution;
   }
 
   public static Pokemon getEvolutionPokemonEgg(Pokemon pokemon) {

@@ -34,6 +34,10 @@ public class UtilsLogger {
     logger = LogManager.getLogger(CobbleUtils.MOD_NAME);
   }
 
+  public UtilsLogger(String name) {
+    logger = LogManager.getLogger(name);
+  }
+
   /**
    * Info log method.
    *

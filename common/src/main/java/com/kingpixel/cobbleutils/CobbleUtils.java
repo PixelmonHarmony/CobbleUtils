@@ -268,10 +268,11 @@ public class CobbleUtils extends ShopExtend {
       scheduler.scheduleAtFixedRate(() -> server.getPlayerManager().getPlayerList().forEach(player -> {
         RewardsData rewardsData = rewardsManager.getRewardsData().get(player.getUuid());
         if (RewardsUtils.hasRewards(player)) {
-          int amount = rewardsData.getCommands().size() + rewardsData.getItems().size() + rewardsData.getPokemons().size();
-          player.sendMessage(AdventureTranslator.toNative(
-            language.getMessageHaveRewards().replace("%amount%", String.valueOf(amount))
-          ));
+          int amount = rewardsData.getAmount();
+          PlayerUtils.sendMessage(player,
+            language.getMessageHaveRewards()
+              .replace("%amount%", String.valueOf(amount)),
+            CobbleUtils.language.getPrefixStorageRewards());
         }
       }), 0, CobbleUtils.config.getAlertreward(), TimeUnit.MINUTES);
 
@@ -290,7 +291,7 @@ public class CobbleUtils extends ShopExtend {
     ScheduledFuture<?> fixnbt =
       scheduler.scheduleAtFixedRate(
         () -> server.getPlayerManager().getPlayerList().forEach(CobbleUtils::fixInventory),
-        0, 15, TimeUnit.SECONDS);
+        0, 1, TimeUnit.MINUTES);
 
     scheduledTasks.add(alertreward);
     scheduledTasks.add(fixnbt);

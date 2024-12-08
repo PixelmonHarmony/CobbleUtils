@@ -4,14 +4,15 @@ import ca.landonjw.gooeylibs2.api.UIManager;
 import ca.landonjw.gooeylibs2.api.button.GooeyButton;
 import ca.landonjw.gooeylibs2.api.page.GooeyPage;
 import ca.landonjw.gooeylibs2.api.template.types.ChestTemplate;
+import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.ItemModel;
+import com.kingpixel.cobbleutils.api.PermissionApi;
 import com.kingpixel.cobbleutils.database.DatabaseClientFactory;
 import com.kingpixel.cobbleutils.features.breeding.config.BreedConfig;
 import com.kingpixel.cobbleutils.features.breeding.models.PlotBreeding;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
-import com.kingpixel.cobbleutils.util.LuckPermsUtil;
 import com.kingpixel.cobbleutils.util.PlayerUtils;
 import com.kingpixel.cobbleutils.util.PokemonUtils;
 import net.minecraft.item.ItemStack;
@@ -34,7 +35,7 @@ public class PlotBreedingUI {
     int max = 1;
 
     for (int i = 0; i < size; i++) {
-      if (LuckPermsUtil.checkPermission(player, CobbleUtils.breedconfig.getPermissionplot(i + 1))) max = i;
+      if (PermissionApi.hasPermission(player, CobbleUtils.breedconfig.getPermissionplot(i + 1), 2)) max = i;
     }
 
     if (max > size) max = size;
@@ -50,14 +51,14 @@ public class PlotBreedingUI {
         .replace("%destinyknot%", String.format("%.2f%%", successItems.getPercentageDestinyKnot()))
         .replace("%everstone%", String.format("%.2f%%", successItems.getPercentageEverStone()))
         .replace("%poweritem%", String.format("%.2f%%", successItems.getPercentagePowerItem()))
+        .replace("%eggmoves%", String.format("%.2f%%", CobbleUtils.breedconfig.getSuccessItems().getPercentageEggMoves()))
         .replace("%masuda%", CobbleUtils.breedconfig.isMethodmasuda() ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())
         .replace("%multipliermasuda%", String.valueOf(CobbleUtils.breedconfig.getMultipliermasuda()))
         .replace("%maxivs%", String.valueOf(CobbleUtils.breedconfig.getMaxIvsRandom()))
+        .replace("%shinyrate%", String.valueOf(Cobblemon.INSTANCE.getConfig().getShinyRate()))
+        .replace("%multipliershiny%", String.valueOf(CobbleUtils.breedconfig.getMultiplierShiny()))
+        .replace("%cooldown%", PlayerUtils.getCooldown(CobbleUtils.breedconfig.getCooldown(player)))
     );
-
-    if (!CobbleUtils.breedconfig.isHaveMaxNumberIvsForRandom()) {
-      infoLore.removeIf(s -> s.contains("%maxivs%"));
-    }
 
     if (info.getSlot() > 0) {
       GooeyButton button = GooeyButton.builder()
