@@ -130,7 +130,7 @@ public class CobbleUtils extends ShopExtend {
     LOGGER.info("§e| §6Fishing: &cUnimplemented");
     LOGGER.info("§e| §6Shop: " + isActive(CobbleUtils.config.isShops()));
     LOGGER.info("§e| §6Party: " + isActive(CobbleUtils.config.isParty()));
-    LOGGER.info("§e| §6Rewards: " + isActive(CobbleUtils.config.isRewards()));
+    LOGGER.info("§e| §Storage Rewards: " + isActive(CobbleUtils.config.isStorageRewards()));
     LOGGER.info("§e| §6Pokerus: " + isActive(CobbleUtils.config.getPokerus().isActive()));
     LOGGER.info("§e| §6Breeding: " + isActive(CobbleUtils.breedconfig.isActive()));
     LOGGER.info("§e| §6Bosses: " + isActive(CobbleUtils.config.getBosses().isActive()));
@@ -219,7 +219,7 @@ public class CobbleUtils extends ShopExtend {
         ShopTransactions.transactions.remove(player.getUuid());
       }
       // Remove unnecesary data from rewards
-      if (config.isRewards()) {
+      if (config.isStorageRewards()) {
         rewardsManager.getRewardsData().remove(player.getUuid());
       }
     });
@@ -235,6 +235,7 @@ public class CobbleUtils extends ShopExtend {
     });
 
     InteractionEvent.RIGHT_CLICK_ITEM.register(ItemRightClickEvents::register);
+
 
     // ? Add the event for fishing a pokemon
     FeaturesRegister.register();

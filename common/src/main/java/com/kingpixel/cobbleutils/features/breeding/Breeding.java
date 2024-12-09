@@ -47,12 +47,6 @@ public class Breeding {
       active = true;
     }
 
-    if (CobbleUtils.server != null) {
-      CobbleUtils.server.getPlayerManager().getPlayerList().forEach(player -> {
-        DatabaseClientFactory.databaseClient.checkDaycarePlots(player);
-      });
-    }
-
     for (ScheduledFuture<?> task : scheduledTasks) {
       task.cancel(true);
     }
@@ -124,20 +118,7 @@ public class Breeding {
       } catch (InterruptedException ex) {
         scheduler.shutdownNow(); // Interrupción forzada
       }
-      //CobbleUtils.LOGGER.info("Writing info breeding");
-      /*if (CobbleUtils.breedconfig.getDataBaseConfig().getType() == DataBaseType.JSON){
-        managerPlotEggs.getEggs().forEach((key, value) -> managerPlotEggs.writeInfo(key));
-      } else {
-        managerPlotEggs.getEggs().forEach((key, value) -> {
-          try {
-            managerPlotEggs.writeInfo(key).get();
-          } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-          }
-        });
-      }*/
     });
-
 
     PlayerEvent.ATTACK_ENTITY.register((player, level, target, hand, result) -> egg(target, PlayerUtils.castPlayer(player)));
 

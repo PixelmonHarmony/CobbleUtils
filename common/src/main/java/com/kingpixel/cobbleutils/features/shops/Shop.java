@@ -18,10 +18,7 @@ import com.kingpixel.cobbleutils.Model.ItemChance;
 import com.kingpixel.cobbleutils.Model.ItemModel;
 import com.kingpixel.cobbleutils.config.ShopConfig;
 import com.kingpixel.cobbleutils.features.shops.models.Product;
-import com.kingpixel.cobbleutils.features.shops.models.types.ShopType;
-import com.kingpixel.cobbleutils.features.shops.models.types.ShopTypeDynamic;
-import com.kingpixel.cobbleutils.features.shops.models.types.ShopTypeDynamicWeekly;
-import com.kingpixel.cobbleutils.features.shops.models.types.ShopTypePermanent;
+import com.kingpixel.cobbleutils.features.shops.models.types.*;
 import com.kingpixel.cobbleutils.util.*;
 import lombok.*;
 import net.minecraft.item.ItemStack;
@@ -52,6 +49,7 @@ public class Shop {
   private ShopType shopType;
   private Rectangle rectangle;
   private ItemModel display;
+  private ItemModel itemInfoShop;
   private short slotbalance;
   private int globalDiscount;
   private String soundopen;
@@ -77,6 +75,7 @@ public class Shop {
     this.templateType = TemplateType.CHEST;
     this.rectangle = new Rectangle();
     this.display = new ItemModel("cobblemon:poke_ball");
+    this.itemInfoShop = display;
     this.slotbalance = 47;
     this.globalDiscount = 0;
     this.soundopen = "cobblemon:pc.on";
@@ -116,6 +115,7 @@ public class Shop {
     this.display = new ItemModel("cobblemon:poke_ball");
     display.setDisplayname(title);
     display.setLore(lore);
+    this.itemInfoShop = display;
     this.products = getDefaultProducts();
     this.fillItems = new ArrayList<>();
     this.fillItems.add(new FillItems());
@@ -133,7 +133,6 @@ public class Shop {
         setShopType(new ShopTypePermanent());
         break;
     }
-
   }
 
   @Getter
@@ -219,7 +218,7 @@ public class Shop {
     }
   }
 
-  public void open(ServerPlayerEntity player, ShopConfig shopConfig, String mod_id, boolean byCommand) {
+  public void open(ServerPlayerEntity player, ShopConfig shopConfig, String mod_id, boolean byCommand, Shop shop) {
     if (!LuckPermsUtil.checkPermission(player, mod_id + ".shop." + this.getId())) {
       player.sendMessage(
         AdventureTranslator.toNative(
@@ -312,25 +311,25 @@ public class Shop {
                 case BUY:
                   if (buy.compareTo(BigDecimal.ZERO) > 0) {
                     SoundUtil.playSound(getSoundopen(), player);
-                    openBuySellMenu(player, shopConfig, product, TypeMenu.BUY, defaultamount, mod_id, byCommand);
+                    openBuySellMenu(player, shopConfig, product, TypeMenu.BUY, defaultamount, mod_id, byCommand, shop);
                   }
                   break;
                 case SELL:
                   if (sell.compareTo(BigDecimal.ZERO) > 0) {
                     SoundUtil.playSound(getSoundopen(), player);
-                    openBuySellMenu(player, shopConfig, product, TypeMenu.SELL, defaultamount, mod_id, byCommand);
+                    openBuySellMenu(player, shopConfig, product, TypeMenu.SELL, defaultamount, mod_id, byCommand, shop);
                   }
                   break;
                 case BUY_SELL:
                   if (action.getClickType() == ButtonClick.LEFT_CLICK || action.getClickType() == ButtonClick.SHIFT_LEFT_CLICK) {
                     if (buy.compareTo(BigDecimal.ZERO) > 0) {
                       SoundUtil.playSound(getSoundopen(), player);
-                      openBuySellMenu(player, shopConfig, product, TypeMenu.BUY, defaultamount, mod_id, byCommand);
+                      openBuySellMenu(player, shopConfig, product, TypeMenu.BUY, defaultamount, mod_id, byCommand, shop);
                     }
                   } else if (action.getClickType() == ButtonClick.RIGHT_CLICK || action.getClickType() == ButtonClick.SHIFT_RIGHT_CLICK) {
                     if (sell.compareTo(BigDecimal.ZERO) > 0) {
                       SoundUtil.playSound(getSoundopen(), player);
-                      openBuySellMenu(player, shopConfig, product, TypeMenu.SELL, defaultamount, mod_id, byCommand);
+                      openBuySellMenu(player, shopConfig, product, TypeMenu.SELL, defaultamount, mod_id, byCommand, shop);
                     }
                   }
                   break;
@@ -366,17 +365,56 @@ public class Shop {
         getRectangle().getWidth(),
         new PlaceholderButton());
 
+      // Item Show Cooldown and Amount Products
+      ItemModel itemInfoShop = shop.getItemInfoShop();
+
+      if (UIUtils.isInside(itemInfoShop)) {
+        List<String> lore = new ArrayList<>(itemInfoShop.getLore());
+        switch (shop.getShopType().getTypeShop()) {
+          case DYNAMIC:
+            ShopTypeDynamic shopTypeDynamic = ((ShopTypeDynamic) shop.getShopType()).updateShop(shop);
+            lore.replaceAll(
+              s -> s
+                .replace("%cooldown%", PlayerUtils.getCooldown(shopTypeDynamic.getCooldown(shop)))
+                .replace("%amountProducts%", String.valueOf(shopTypeDynamic.getAmountProducts()))
+            );
+            break;
+          case WEEKLY:
+            ShopTypeWeekly shopTypeWeekly = (ShopTypeWeekly) shop.getShopType();
+            lore.replaceAll(
+              s -> s
+                .replace("%days%", shopTypeWeekly.getDayOfWeek().toString())
+            );
+            break;
+          case DYNAMIC_WEEKLY:
+            ShopTypeDynamicWeekly shopTypeDynamicWeekly = ((ShopTypeDynamicWeekly) shop.getShopType()).updateShop(shop);
+            lore.replaceAll(
+              s -> s
+                .replace("%cooldown%", PlayerUtils.getCooldown(shopTypeDynamicWeekly.getCooldown(shop)))
+                .replace("%amountProducts%", String.valueOf(shopTypeDynamicWeekly.getAmountProducts()))
+                .replace("%days%", shopTypeDynamicWeekly.getDayOfWeek().toString())
+            );
+            break;
+          default:
+            break;
+        }
+
+        template.set(itemInfoShop.getSlot(), GooeyButton.builder()
+          .display(itemInfoShop.getItemStack())
+          .title(AdventureTranslator.toNative(itemInfoShop.getDisplayname()))
+          .lore(Text.class, AdventureTranslator.toNativeL(lore))
+          .build());
+      }
 
       // Balance
-      ItemModel balance = CobbleUtils.shopLang.getBalance();
-      List<String> lorebalance = new ArrayList<>(balance.getLore());
+      if (UIUtils.isInside(CobbleUtils.shopLang.getBalance())) {
+        ItemModel balance = CobbleUtils.shopLang.getBalance();
+        List<String> lorebalance = new ArrayList<>(balance.getLore());
 
-      lorebalance.replaceAll(s -> s
-        .replace("%balance%", EconomyUtil.getBalance(player, getCurrency(), EconomyUtil.getDecimals(getCurrency())))
-        .replace("%currency%", getCurrency())
-        .replace("%symbol%", symbol));
-
-      if (slotbalance > 0 && slotbalance < 54) {
+        lorebalance.replaceAll(s -> s
+          .replace("%balance%", EconomyUtil.getBalance(player, getCurrency(), EconomyUtil.getDecimals(getCurrency())))
+          .replace("%currency%", getCurrency())
+          .replace("%symbol%", symbol));
         template.set(this.slotbalance, GooeyButton.builder()
           .display(balance.getItemStack())
           .title(AdventureTranslator.toNative(balance.getDisplayname()))
@@ -599,7 +637,7 @@ public class Shop {
 
   private void openBuySellMenu(ServerPlayerEntity player, ShopConfig shopConfig,
                                Product product, TypeMenu typeMenu,
-                               int amount, String mod_id, boolean byCommand) {
+                               int amount, String mod_id, boolean byCommand, Shop shop) {
     ChestTemplate template = ChestTemplate
       .builder(shopConfig.getShop().getRowsBuySellMenu())
       .build();
@@ -612,24 +650,25 @@ public class Shop {
     // Botones de cantidad
     if (maxStack != 1) {
       createAmountButton(shopConfig, template, player, product, typeMenu, CobbleUtils.shopLang.getAdd1(),
-        CobbleUtils.shopLang.getRemove1(), 1, amount, mod_id, byCommand);
+        CobbleUtils.shopLang.getRemove1(), 1, amount, mod_id, byCommand, shop);
 
       if (maxStack == 16) {
         createAmountButton(shopConfig, template, player, product, typeMenu, CobbleUtils.shopLang.getAdd8(),
-          CobbleUtils.shopLang.getRemove8(), 8, amount, mod_id, byCommand);
+          CobbleUtils.shopLang.getRemove8(), 8, amount, mod_id, byCommand, shop);
         createAmountButton(shopConfig, template, player, product, typeMenu, CobbleUtils.shopLang.getAdd16(),
-          CobbleUtils.shopLang.getRemove16(), 16, amount, mod_id, byCommand);
+          CobbleUtils.shopLang.getRemove16(), 16, amount, mod_id, byCommand, shop);
       }
       if (maxStack == 64) {
         createAmountButton(shopConfig, template, player, product, typeMenu, CobbleUtils.shopLang.getAdd10(),
-          CobbleUtils.shopLang.getRemove10(), 10, amount, mod_id, byCommand);
+          CobbleUtils.shopLang.getRemove10(), 10, amount, mod_id, byCommand, shop);
         createAmountButton(shopConfig, template, player, product, typeMenu, CobbleUtils.shopLang.getAdd64(),
-          CobbleUtils.shopLang.getRemove64(), 64, amount, mod_id, byCommand);
+          CobbleUtils.shopLang.getRemove64(), 64, amount, mod_id, byCommand, shop);
       }
     }
 
     // Botón de ver producto
-    createViewProductButton(shopConfig, mod_id, player, template, product, typeMenu, amount, price, symbol, byCommand);
+    createViewProductButton(shopConfig, mod_id, player, template, product, typeMenu, amount, price, symbol, byCommand
+      , shop);
 
     // Botón de confirmar
     ItemModel confirm = CobbleUtils.shopLang.getConfirm();
@@ -639,7 +678,7 @@ public class Shop {
       if (typeMenu == TypeMenu.BUY) {
         if (buyProduct(player, product, finalamount, price)) {
           ShopTransactions.addTransaction(player.getUuid(), this, ShopTransactions.ShopAction.BUY, product, BigDecimal.valueOf(finalamount), price);
-          open(player, shopConfig, mod_id, false);
+          open(player, shopConfig, mod_id, false, shop);
           ShopTransactions.updateTransaction(player.getUuid(), shopConfig.getShop());
         }
       }
@@ -647,7 +686,7 @@ public class Shop {
         if (sellProduct(player, product, finalamount)) {
           ShopTransactions.addTransaction(player.getUuid(), this, ShopTransactions.ShopAction.SELL, product,
             BigDecimal.valueOf(finalamount), price);
-          open(player, shopConfig, mod_id, false);
+          open(player, shopConfig, mod_id, false, shop);
           ShopTransactions.updateTransaction(player.getUuid(), shopConfig.getShop());
         }
       }
@@ -658,12 +697,12 @@ public class Shop {
     //createMaxStackButton(template, player, product, typeMenu, maxStack);
 
     // Botón de cancelar
-    createCancelButton(template, shopConfig, mod_id, player, byCommand);
+    createCancelButton(template, shopConfig, mod_id, player, byCommand, shop);
 
     // Relleno y botón de cerrar
     template.fill(GooeyButton.of(Utils.parseItemId(CobbleUtils.config.getFill())));
 
-    createCloseButton(template, shopConfig, mod_id, player, byCommand);
+    createCloseButton(template, shopConfig, mod_id, player, byCommand, shop);
 
     GooeyPage page = GooeyPage.builder()
       .title(AdventureTranslator.toNative(title))
@@ -671,7 +710,7 @@ public class Shop {
       .build();
 
     page.subscribe(amount, () -> {
-      createViewProductButton(shopConfig, mod_id, player, template, product, typeMenu, amount, price, symbol, byCommand);
+      createViewProductButton(shopConfig, mod_id, player, template, product, typeMenu, amount, price, symbol, byCommand, shop);
     });
 
     UIManager.openUIPassively(player, page, 10, TimeUnit.MILLISECONDS);
@@ -834,7 +873,7 @@ public class Shop {
                                   Product product, TypeMenu typeMenu,
                                   ItemModel addModel, ItemModel removeModel,
                                   int increment, int amount,
-                                  String mod_id, boolean byCommand) {
+                                  String mod_id, boolean byCommand, Shop shop) {
     if (product.getItemchance().getType() == ItemChance.ItemChanceType.MONEY || product.getItemchance().getType() == ItemChance.ItemChanceType.COMMAND)
       return;
     template.set(addModel.getSlot(), GooeyButton.builder()
@@ -843,7 +882,7 @@ public class Shop {
       .lore(Text.class, AdventureTranslator.toNativeL(addModel.getLore()))
       .onClick(action -> {
         SoundUtil.playSound(CobbleUtils.shopLang.getSoundAdd(), player);
-        openBuySellMenu(player, shopConfig, product, typeMenu, amount + increment, mod_id, byCommand);
+        openBuySellMenu(player, shopConfig, product, typeMenu, amount + increment, mod_id, byCommand, shop);
       })
       .build());
 
@@ -854,7 +893,7 @@ public class Shop {
       .lore(Text.class, AdventureTranslator.toNativeL(removeModel.getLore()))
       .onClick(action -> {
         SoundUtil.playSound(CobbleUtils.shopLang.getSoundRemove(), player);
-        openBuySellMenu(player, shopConfig, product, typeMenu, Math.max(amount - increment, 1), mod_id, byCommand);
+        openBuySellMenu(player, shopConfig, product, typeMenu, Math.max(amount - increment, 1), mod_id, byCommand, shop);
       })
       .build());
 
@@ -865,7 +904,7 @@ public class Shop {
                                        ServerPlayerEntity player, ChestTemplate template,
                                        Product product, TypeMenu typeMenu,
                                        int amount, BigDecimal price,
-                                       String symbol, boolean byCommand) {
+                                       String symbol, boolean byCommand, Shop shop) {
 
 
     ItemStack viewProduct = getViewItemStack(product, (amount == 0 ? 1 : amount));
@@ -901,12 +940,12 @@ public class Shop {
           if (action.getClickType() == ButtonClick.LEFT_CLICK || action.getClickType() == ButtonClick.SHIFT_LEFT_CLICK) {
             if (product.getBuy().compareTo(BigDecimal.ZERO) > 0) {
               SoundUtil.playSound(getSoundopen(), player);
-              openBuySellMenu(player, shopConfig, product, TypeMenu.BUY, 0, mod_id, byCommand);
+              openBuySellMenu(player, shopConfig, product, TypeMenu.BUY, 0, mod_id, byCommand, shop);
             }
           } else if (action.getClickType() == ButtonClick.RIGHT_CLICK || action.getClickType() == ButtonClick.SHIFT_RIGHT_CLICK) {
             if (product.getSell().compareTo(BigDecimal.ZERO) > 0) {
               SoundUtil.playSound(getSoundopen(), player);
-              openBuySellMenu(player, shopConfig, product, TypeMenu.SELL, 0, mod_id, byCommand);
+              openBuySellMenu(player, shopConfig, product, TypeMenu.SELL, 0, mod_id, byCommand, shop);
             }
           }
         } else {
@@ -941,9 +980,9 @@ public class Shop {
   }
 
   private void createCancelButton(ChestTemplate template, ShopConfig shopConfig,
-                                  String mod_id, ServerPlayerEntity player, boolean byCommand) {
+                                  String mod_id, ServerPlayerEntity player, boolean byCommand, Shop shop) {
     ItemModel cancel = CobbleUtils.shopLang.getCancel();
-    template.set(cancel.getSlot(), cancel.getButton(action -> open(player, shopConfig, mod_id, byCommand)));
+    template.set(cancel.getSlot(), cancel.getButton(action -> open(player, shopConfig, mod_id, byCommand, shop)));
   }
 
   private ItemStack getViewItemStack(Product product, int amount) {
@@ -951,9 +990,9 @@ public class Shop {
   }
 
   private void createCloseButton(ChestTemplate template, ShopConfig shopConfig,
-                                 String mod_id, ServerPlayerEntity player, boolean byCommand) {
+                                 String mod_id, ServerPlayerEntity player, boolean byCommand, Shop shop) {
     template.set((shopConfig.getShop().getRowsBuySellMenu() * 9) - 5, UIUtils.getCloseButton(action -> open(player,
-      shopConfig, mod_id, byCommand)));
+      shopConfig, mod_id, byCommand, shop)));
   }
 
 }

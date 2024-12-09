@@ -4,6 +4,7 @@ import com.kingpixel.cobbleutils.util.SoundUtil;
 import lombok.Getter;
 import net.minecraft.entity.Entity;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.math.Box;
 
@@ -17,14 +18,28 @@ public class Sound {
   private boolean variousPlayers;
   private String sound;
   private double range;
+  private float volume;
+  private float pitch;
 
   public Sound() {
     this.variousPlayers = false;
     this.sound = "minecraft:entity.fox.death";
     this.range = 16.0;
+    this.volume = 1.0F;
+    this.pitch = 1.0F;
+  }
+
+  public Sound(String sound) {
+    this.variousPlayers = false;
+    this.sound = sound;
+    this.range = 16.0;
+    this.volume = 1.0F;
+    this.pitch = 1.0F;
   }
 
   public void start(Entity entity) {
+    if (sound == null || sound.isEmpty()) return;
+
     if (variousPlayers) {
       playSoundNearPlayers(entity);
     } else {
@@ -39,13 +54,11 @@ public class Sound {
       new Box(entity.getBlockPos()).expand(getRange()), player -> true);
     SoundEvent sound = SoundUtil.getSound(getSound());
     if (players != null && !players.isEmpty()) {
-      players.forEach(player -> {
-        SoundUtil.playSound(sound, player);
-      });
+      players.forEach(player -> player.playSound(sound, SoundCategory.PLAYERS, getVolume(), getPitch()));
     }
   }
 
   public void playSoundPlayer(ServerPlayerEntity player) {
-    SoundUtil.playSound(getSound(), player);
+    player.playSound(SoundUtil.getSound(sound), SoundCategory.PLAYERS, getVolume(), getPitch());
   }
 }

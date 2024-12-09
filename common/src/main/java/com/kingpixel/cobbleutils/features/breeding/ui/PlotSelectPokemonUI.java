@@ -128,7 +128,7 @@ public class PlotSelectPokemonUI {
       || (pokemon.getSpecies().showdownId().equalsIgnoreCase("ditto") && !CobbleUtils.breedconfig.isDitto())
       || !PokemonUtils.isBreedable(pokemon)
       || CobbleUtils.breedconfig.getBlacklist().contains(pokemon.showdownId())
-      || CobbleUtils.breedconfig.getBlacklistForm().contains(pokemon.getForm().getName());
+      || CobbleUtils.breedconfig.getBlacklistForm().contains(pokemon.getForm().formOnlyShowdownId());
 
     if (isNotBreedable && notify) {
       sendMessageIfNeeded(player, notify, CobbleUtils.breedconfig.getNotbreedable(), pokemon);

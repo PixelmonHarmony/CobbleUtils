@@ -72,7 +72,7 @@ public class RewardsUtils {
    */
   private static void saveItemToRewardsData(ServerPlayerEntity player, RewardsData rewardsData, ItemStack itemStack) {
     // Intentar dar el objeto directamente al jugador
-    if (!CobbleUtils.config.isRewards() || CobbleUtils.config.isDirectreward()) {
+    if (!CobbleUtils.config.isStorageRewards() || CobbleUtils.config.isDirectreward()) {
       if (!player.giveItemStack(itemStack)) {
         CobbleUtils.server.execute(() -> player.dropItem(itemStack, true));
       }

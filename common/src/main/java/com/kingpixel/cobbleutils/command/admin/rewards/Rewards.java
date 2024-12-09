@@ -30,8 +30,9 @@ public class Rewards implements Command<ServerCommandSource> {
         .executes(new Rewards())
         .then(
           CommandManager.literal("other")
-            .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.rewards", "cobbleutils" +
-              ".admin")))
+            .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.storage_rewards",
+              "cobbleutils" +
+                ".admin")))
             .then(
               CommandManager.argument("player", EntityArgumentType.player())
                 .executes(new Rewards())))

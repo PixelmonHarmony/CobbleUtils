@@ -41,8 +41,8 @@ public class Config {
   private boolean shinyparticle;
   private boolean pickup;
   private boolean party;
-  private boolean rewards;
   private boolean activeshinytoken;
+  private boolean storageRewards;
   private boolean directreward;
   private boolean solveSizeRandom;
   private int alertreward;
@@ -69,7 +69,7 @@ public class Config {
     lang = "en";
     fill = "minecraft:gray_stained_glass_pane";
     commandparty = List.of("party", "cuparty");
-    commandrewards = List.of("rewards", "curewards");
+    commandrewards = List.of("storagerewards", "storage");
     commmandplugin = List.of("cobbleutils", "pokeutils");
     commandshop = List.of("shop", "cushop");
     shops = true;
@@ -80,8 +80,8 @@ public class Config {
     pickup = true;
     shinyparticle = true;
     party = true;
-    rewards = true;
-    directreward = true;
+    storageRewards = true;
+    directreward = false;
     activeshinytoken = true;
     alertreward = 15;
     pokeshout = "pokeshoutplus";
@@ -144,7 +144,7 @@ public class Config {
         pokeshoutall = config.getPokeshoutall();
         pokerus = config.getPokerus();
         party = config.isParty();
-        rewards = config.isRewards();
+        storageRewards = config.isStorageRewards();
         commandparty = config.getCommandparty();
         commandrewards = config.getCommandrewards();
         commmandplugin = config.getCommmandplugin();

@@ -62,6 +62,22 @@ public class UIUtils {
       .build();
   }
 
+
+  public static boolean isInside(ItemModel itemModel) {
+    return itemModel.getSlot() >= 0 && itemModel.getSlot() <= 53;
+  }
+
+  /**
+   * Check if the slot is inside the inventory
+   *
+   * @param slot The slot to check
+   *
+   * @return If the slot is inside the inventory
+   */
+  public static boolean isInside(int slot) {
+    return slot >= 0 && slot <= 53;
+  }
+
   /**
    * Create a button with the pokemon data
    *

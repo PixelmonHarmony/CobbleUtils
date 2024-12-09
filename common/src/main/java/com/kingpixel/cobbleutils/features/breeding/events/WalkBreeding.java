@@ -9,6 +9,10 @@ import com.kingpixel.cobbleutils.features.breeding.models.EggData;
 import com.kingpixel.cobbleutils.util.PlayerUtils;
 import dev.architectury.event.events.common.TickEvent;
 import net.minecraft.entity.EntityPose;
+import net.minecraft.entity.passive.DonkeyEntity;
+import net.minecraft.entity.passive.HorseEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.Map;
@@ -27,8 +31,9 @@ public class WalkBreeding {
   public static void register() {
 
     TickEvent.PLAYER_POST.register(player -> {
-      if (!player.isInPose(EntityPose.FALL_FLYING) &&
-        !player.isInPose(EntityPose.SLEEPING) && !player.hasVehicle()) {
+      if (!player.isInPose(EntityPose.FALL_FLYING)
+        && !player.isInPose(EntityPose.SLEEPING)
+        && (!player.hasVehicle() || getPermitedVehicle(player))) {
 
         ticks.compute(player.getUuid(), (uuid, integer) -> integer == null ? 1 : integer + 1);
         if (ticks.get(player.getUuid()) % CobbleUtils.breedconfig.getTickstocheck() != 0)
@@ -73,7 +78,10 @@ public class WalkBreeding {
               return;
             int distance = distanceMoved.get();
             if (duplicate) {
-              distance = distance * 2;
+              distance /= distance * 2;
+            }
+            if (player.getVehicle() instanceof BoatEntity) {
+              distance /= 4;
             }
             eggData.steps(PlayerUtils.castPlayer(player), pokemon, distance);
           });
@@ -83,5 +91,11 @@ public class WalkBreeding {
       }
     });
 
+  }
+
+  private static boolean getPermitedVehicle(PlayerEntity player) {
+    return player.getVehicle() instanceof BoatEntity
+      || player.getVehicle() instanceof HorseEntity
+      || player.getVehicle() instanceof DonkeyEntity;
   }
 }

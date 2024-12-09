@@ -133,7 +133,7 @@ public class Lang {
     none = "&cNone";
     coloritem = "<gradient:#cc7435:#e3ab84>";
     pokemonnameformat = "&e%pokemon%%shiny% %gender% &f(&b%form%&f) &f(&b%level%&f) %ah%";
-    messageHaveRewards = "%prefix% &aYou have rewards %amount%.";
+    messageHaveRewards = "%prefix% &aYou have rewards &6%amount%&a. Use &e/storage &ato claim the rewards.";
     titleLoot = "&eLoot";
     // Messages
     messagerandomitem = "&aYou get a &e%type% &arandomitem &f%item% &6%amount%&a!";

@@ -27,7 +27,7 @@ public class RewardsCommand implements Command<ServerCommandSource> {
       base
         .then(
           CommandManager.literal("save")
-            .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.rewards.save", "cobbleutils" +
+            .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.storage_rewards.save", "cobbleutils" +
               ".admin")))
             .then(
               CommandManager.argument("player", EntityArgumentType.player())

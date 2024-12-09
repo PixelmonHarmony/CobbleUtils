@@ -25,7 +25,7 @@ public class RewardsRemove implements Command<ServerCommandSource> {
       base
         .then(
           CommandManager.literal("remove")
-            .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.rewards.remove",
+            .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.storage_rewards.remove",
               "cobbleutils" +
                 ".admin")))
             .executes(context -> {
@@ -37,7 +37,7 @@ public class RewardsRemove implements Command<ServerCommandSource> {
               RewardsUtils.removeRewards(player);
               return 1;
             })
-            .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.rewards.remove",
+            .requires(source -> LuckPermsUtil.checkPermission(source, 2, List.of("cobbleutils.storage_rewards.remove",
               "cobbleutils" +
                 ".admin")))
             .then(CommandManager.argument("player", EntityArgumentType.player())

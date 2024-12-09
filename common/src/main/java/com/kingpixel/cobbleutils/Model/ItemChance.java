@@ -210,14 +210,10 @@ public class ItemChance {
       } else if (item.startsWith("command:")) {
         String command = item.replace("command:", "");
         String[] parts = command.split("#");
-        if (parts.length > 1) {
-          for (String part : parts) {
-            RewardsUtils.saveRewardCommand(player, part);
-          }
-          return true;
-        } else {
-          return RewardsUtils.saveRewardCommand(player, command);
+        for (String part : parts) {
+          RewardsUtils.saveRewardCommand(player, part);
         }
+        return true;
       } else if (item.startsWith("money:")) {
         return handleMoneyReward(player, item);
       } else if (item.startsWith("item:")) {

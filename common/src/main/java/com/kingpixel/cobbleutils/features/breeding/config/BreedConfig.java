@@ -2,10 +2,7 @@ package com.kingpixel.cobbleutils.features.breeding.config;
 
 import com.google.gson.Gson;
 import com.kingpixel.cobbleutils.CobbleUtils;
-import com.kingpixel.cobbleutils.Model.FilterPokemons;
-import com.kingpixel.cobbleutils.Model.ItemModel;
-import com.kingpixel.cobbleutils.Model.PokemonChance;
-import com.kingpixel.cobbleutils.Model.PokemonData;
+import com.kingpixel.cobbleutils.Model.*;
 import com.kingpixel.cobbleutils.api.PermissionApi;
 import com.kingpixel.cobbleutils.features.breeding.models.EggData;
 import com.kingpixel.cobbleutils.features.breeding.models.Incense;
@@ -32,6 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class BreedConfig {
   private String prefix;
   private boolean active;
+  private boolean showIvs;
   private boolean changeuipasture;
   private boolean shifttoopen;
   private boolean obtainAspect;
@@ -48,20 +46,19 @@ public class BreedConfig {
   private String nameAbandonedEgg;
   private String nameEgg;
   private String nameRandomEgg;
-  private float multipliermasuda;
-  private float multiplierShiny;
-  private SuccessItems successItems;
+  private String permissionAutoClaim;
   private int defaultNumIvsToTransfer;
   private int maxIvsRandom;
   private int numberIvsDestinyKnot;
+  private SuccessItems successItems;
+  private float multipliermasuda;
+  private float multiplierShiny;
   private int checkEggToBreedInSeconds;
   private int tickstocheck;
-  private String permissionAutoClaim;
   private int cooldown;
-  private int defaultNumberPlots;
   private Map<String, Integer> cooldowns;
+  private int defaultNumberPlots;
   private int maxeggperplot;
-  private int maxplots;
   private int rowmenuselectplot;
   private int rowmenuplot;
   private int rowmenuselectpokemon;
@@ -69,6 +66,8 @@ public class BreedConfig {
   private int steps;
   private int cooldowninstaBreedInSeconds;
   private int cooldowninstaHatchInSeconds;
+
+  private Sound soundCreateEgg;
   private String createEgg;
   private String notcancreateEgg;
   private String notbreedable;
@@ -76,38 +75,39 @@ public class BreedConfig {
   private String notditto;
   private String notCompatible;
   private String blacklisted;
+
+  private List<Integer> plotSlots;
   private List<String> blacklist;
   private List<String> whitelist;
   private List<String> blacklistForm;
-
-  private List<EggData.EggForm> eggForms;
-  private List<EggData.EggSpecialForm> eggSpecialForms;
-  private List<EggData.PokemonRareMecanic> pokemonRareMechanics;
 
   private ItemModel plotItem;
   private ItemModel plotThereAreEggs;
   private ItemModel maleSelectItem;
   private ItemModel femaleSelectItem;
   private ItemModel infoItem;
-  private List<Integer> plotSlots;
-  // Menu donde seleccionar el pokemon y recoges
   private ItemModel emptySlots;
+
   private List<Integer> maleSlots;
   private List<Integer> eggSlots;
   private List<Integer> femaleSlots;
-  private List<Incense> incenses;
+
   private FilterPokemons pokemonsForDoubleDitto;
-  //private List<String> nationalities;
+  private List<Incense> incenses;
+  private List<EggData.EggForm> eggForms;
+  private List<EggData.EggSpecialForm> eggSpecialForms;
+  private List<EggData.PokemonRareMecanic> pokemonRareMechanics;
 
 
   public BreedConfig() {
     this.prefix = "&7[<#82d448>Breeding&7] &8»";
+    this.active = true;
+    this.showIvs = true;
     this.eggcommand = List.of("daycare", "pokebreed", "breed");
     this.titleselectplot = "<#82d448>Select Plot";
     this.titleplot = "<#82d448>Plot";
     this.titleemptyplot = "<#82d448>Plot";
     this.titleselectpokemon = "<#82d448>Select Pokemon";
-    this.active = true;
     this.obtainAspect = false;
     this.changeuipasture = true;
     this.methodmasuda = true;
@@ -129,7 +129,6 @@ public class BreedConfig {
     );
     this.defaultNumberPlots = 1;
     this.maxeggperplot = 3;
-    this.maxplots = 3;
     this.steps = 256;
     this.checkEggToBreedInSeconds = 15;
     this.rowmenuselectplot = 3;
@@ -180,6 +179,7 @@ public class BreedConfig {
     this.femaleSlots = List.of();
     this.eggSlots = List.of();
     this.emptySlots = new ItemModel(0, "minecraft:paper", "", List.of(""), 0);
+    this.soundCreateEgg = new Sound("minecraft:entity.player.levelup");
     this.createEgg = "%prefix% <#ecca18>%pokemon1% %shiny1% &f(%form1%&f) <#64de7c>and <#ecca18>%pokemon2% %shiny2% &f(%form2%&f) <#64de7c>have created an egg <#ecca18>%egg%<#64de7c>!";
     this.notcancreateEgg = "%prefix% <#ecca18>%pokemon1% %shiny1% &f(%form1%&f) <#d65549>and <#ecca18>%pokemon2% %shiny2% &f(%form2%&f) <#d65549>can't create an egg!";
     this.notdoubleditto = "%prefix% <#d65549>you can't use two dittos!";
@@ -188,7 +188,7 @@ public class BreedConfig {
     this.notbreedable = "%prefix% <#ecca18>%pokemon% <#d65549>is not breedable!";
     this.blacklist = List.of("pokestop", "egg", "manaphy");
     this.whitelist = List.of("manaphy");
-    this.nameEgg = "Egg";
+    this.nameEgg = "%pokemon% Egg";
     this.nameRandomEgg = "Random Egg";
     this.nameAbandonedEgg = "Abandoned Egg";
     this.notCompatible = "%prefix% <#d65549>%pokemon1% and %pokemon2% is not compatible!";
@@ -224,9 +224,6 @@ public class BreedConfig {
 
   }
 
-  public String getPermissionplot(int i) {
-    return "cobbleutils.breeding.plot." + i;
-  }
 
   @Data
   public static class SuccessItems {
@@ -261,7 +258,6 @@ public class BreedConfig {
         maxeggperplot = config.getMaxeggperplot();
         numberIvsDestinyKnot = config.getNumberIvsDestinyKnot();
         tickstocheck = config.getTickstocheck();
-        maxplots = config.getMaxplots();
         notcancreateEgg = config.getNotcancreateEgg();
         titleemptyplot = config.getTitleemptyplot();
         notdoubleditto = config.getNotdoubleditto();
@@ -317,7 +313,8 @@ public class BreedConfig {
         permissionAutoClaim = config.getPermissionAutoClaim();
         pokemonsForDoubleDitto = config.getPokemonsForDoubleDitto();
         defaultNumIvsToTransfer = config.getDefaultNumIvsToTransfer();
-
+        soundCreateEgg = config.getSoundCreateEgg();
+        showIvs = config.isShowIvs();
         checker(this);
 
         String data = gson.toJson(this);
@@ -351,10 +348,22 @@ public class BreedConfig {
         }
       }
     });
-    return new Date(TimeUnit.MINUTES.toMillis(cooldown.get()));
+    return new Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(cooldown.get()));
   }
 
   private void checker(BreedConfig breedConfig) {
     if (breedConfig.getPokemonsForDoubleDitto() == null) breedConfig.setPokemonsForDoubleDitto(new FilterPokemons());
+  }
+
+  public int getNeedRows() {
+    int rows = rowmenuplot;
+    for (Integer plotSlot : plotSlots) {
+      int currentRow = (plotSlot + 8) / 9;
+      if (currentRow > rows) {
+        rows = currentRow;
+      }
+    }
+    if (rows >= 6) return 6;
+    return rowmenuplot >= rows ? rowmenuselectplot : rows;
   }
 }

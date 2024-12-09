@@ -131,24 +131,25 @@ public class PlotBreeding {
   public boolean checking(ServerPlayerEntity player) {
     if (!CobbleUtils.breedconfig.isActive()) return false;
     boolean banPokemon = false;
-    if (CobbleUtils.breedconfig.getBlacklist().contains((male == null ? "null" : getPokemonMale().showdownId()))
-      || CobbleUtils.breedconfig.getBlacklistForm().contains((male == null ? "null" : getPokemonMale().getForm().getName()))) {
-      Cobblemon.INSTANCE.getStorage().getParty(player).add(getPokemonMale());
-      male = null;
-      banPokemon = true;
+    if (male != null) {
+      if (CobbleUtils.breedconfig.getBlacklist().contains(getPokemonMale().showdownId())
+        || CobbleUtils.breedconfig.getBlacklistForm().contains(getPokemonMale().getForm().formOnlyShowdownId())) {
+        Cobblemon.INSTANCE.getStorage().getParty(player).add(getPokemonMale());
+        male = null;
+        banPokemon = true;
+      }
     }
 
-    if (CobbleUtils.breedconfig.getBlacklist().contains((female == null ? "null" : getPokemonFemale().showdownId()))
-      || CobbleUtils.breedconfig.getBlacklistForm().contains((female == null ? "null" :
-      getPokemonFemale().getForm().getName()))) {
-      Cobblemon.INSTANCE.getStorage().getParty(player).add(getPokemonFemale());
-      female = null;
-      banPokemon = true;
+    if (female != null) {
+      if (CobbleUtils.breedconfig.getBlacklist().contains(getPokemonFemale().showdownId())
+        || CobbleUtils.breedconfig.getBlacklistForm().contains(getPokemonFemale().getForm().formOnlyShowdownId())) {
+        Cobblemon.INSTANCE.getStorage().getParty(player).add(getPokemonFemale());
+        female = null;
+        banPokemon = true;
+      }
     }
 
-    if (banPokemon) {
-      return true;
-    }
+    if (banPokemon) return true;
 
     long playerCooldownMillis = applyCooldown(player);
 
@@ -181,6 +182,7 @@ public class PlotBreeding {
           } else {
             eggs.add(pokemon.saveToJSON(new JsonObject()));
           }
+          CobbleUtils.breedconfig.getSoundCreateEgg().start(player);
           return true;
         }
       } catch (NoPokemonStoreException e) {

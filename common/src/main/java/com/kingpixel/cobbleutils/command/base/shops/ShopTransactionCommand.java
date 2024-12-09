@@ -14,8 +14,6 @@ import com.kingpixel.cobbleutils.features.shops.ShopConfigMenu;
 import com.kingpixel.cobbleutils.features.shops.ShopTransactions;
 import com.kingpixel.cobbleutils.util.*;
 import com.mojang.brigadier.Command;
-import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.item.ItemStack;
@@ -31,10 +29,6 @@ import java.util.stream.Collectors;
  * @author Carlos Varas Alonso - 28/08/2024 5:04
  */
 public class ShopTransactionCommand implements Command<ServerCommandSource> {
-
-  public static void register(CommandDispatcher<ServerCommandSource> dispatcher,
-                              LiteralArgumentBuilder<ServerCommandSource> base) {
-  }
 
   static GooeyPage getTransactionsPlayers(ServerPlayerEntity viewer, ShopConfigMenu shop) {
     viewer.sendMessage(AdventureTranslator.toNative("&7This command is still in development."));

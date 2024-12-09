@@ -108,7 +108,7 @@ public class PlotBreedingManagerUI {
             try {
               RewardsUtils.saveRewardPokemon(action.getPlayer(), Pokemon.Companion.loadFromJSON(pokemon));
             } catch (NoPokemonStoreException e) {
-              throw new RuntimeException(e);
+              e.printStackTrace();
             }
           });
           plotBreeding.getEggs().clear();

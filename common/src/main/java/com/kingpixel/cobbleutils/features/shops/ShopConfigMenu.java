@@ -186,7 +186,7 @@ public class ShopConfigMenu {
 
       getShopsMod(mod_id).forEach(shop -> {
         ItemModel itemModelShop = shop.getDisplay();
-        if (itemModelShop.getSlot() < 0) return;
+        if (!UIUtils.isInside(itemModelShop)) return;
 
         List<String> lore = new ArrayList<>(itemModelShop.getLore());
         switch (shop.getShopType().getTypeShop()) {
@@ -226,15 +226,15 @@ public class ShopConfigMenu {
               if (shop.getShopType() == null) shop.setShopType(new ShopTypePermanent());
               if (shop.getShopType().getTypeShop() == ShopType.TypeShop.WEEKLY) {
                 ShopTypeWeekly shopTypeWeekly = (ShopTypeWeekly) shop.getShopType();
-                isDay(player, shopConfig, mod_id, shop, shopTypeWeekly);
+                isDay(player, shopConfig, mod_id, shop, shopTypeWeekly, shop);
               } else if (shop.getShopType().getTypeShop() == ShopType.TypeShop.DYNAMIC) {
                 ((ShopTypeDynamic) shop.getShopType()).updateShop(shop);
-                shop.open(player, shopConfig, mod_id, byCommand);
+                shop.open(player, shopConfig, mod_id, byCommand, shop);
               } else if (shop.getShopType().getTypeShop() == ShopType.TypeShop.DYNAMIC_WEEKLY) {
                 ShopTypeDynamicWeekly shopTypeDynamicWeekly = ((ShopTypeDynamicWeekly) shop.getShopType()).updateShop(shop);
-                isDay(player, shopConfig, mod_id, shop, shopTypeDynamicWeekly);
+                isDay(player, shopConfig, mod_id, shop, shopTypeDynamicWeekly, shop);
               } else {
-                shop.open(player, shopConfig, mod_id, byCommand);
+                shop.open(player, shopConfig, mod_id, byCommand, shop);
               }
             } else {
               SoundUtil.playSound(CobbleUtils.shopLang.getSoundError(), player);
@@ -284,7 +284,7 @@ public class ShopConfigMenu {
   }
 
 
-  private static void isDay(ServerPlayerEntity player, ShopConfig shopConfig, String mod_id, Shop shop, ShopType shopType) {
+  private static void isDay(ServerPlayerEntity player, ShopConfig shopConfig, String mod_id, Shop shop, ShopType shopType, Shop shop1) {
     List<DayOfWeek> dayOfWeek = new ArrayList<>();
     if (shopType.getTypeShop() == ShopType.TypeShop.WEEKLY) {
       dayOfWeek = ((ShopTypeWeekly) shopType).getDayOfWeek();
@@ -293,7 +293,7 @@ public class ShopConfigMenu {
     }
 
     if (dayOfWeek.contains(LocalDate.now().getDayOfWeek())) {
-      shop.open(player, shopConfig, mod_id, false);
+      shop.open(player, shopConfig, mod_id, false, shop);
     } else {
       String message = CobbleUtils.shopLang.getMessageShopWeekly()
         .replace("%prefix%", CobbleUtils.shopLang.getPrefix())
@@ -325,7 +325,7 @@ public class ShopConfigMenu {
     Shop shop = getShop(mod_id, shopId);
 
     if (shop != null) {
-      shop.open(player, shopConfig, mod_id, b);
+      shop.open(player, shopConfig, mod_id, b, shop);
     } else {
       player.sendMessage(Text.literal("Shop not found"));
     }

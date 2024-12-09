@@ -29,17 +29,24 @@ import java.util.List;
 public class PlotBreedingUI {
   public static void open(ServerPlayerEntity player) {
     DatabaseClientFactory.CheckDaycarePlots(player);
-    ChestTemplate template = ChestTemplate.builder(CobbleUtils.breedconfig.getRowmenuselectplot()).build();
+    ChestTemplate template = ChestTemplate.builder(CobbleUtils.breedconfig.getNeedRows()).build();
 
-    int size = CobbleUtils.breedconfig.getMaxplots();
-    int max = 1;
 
-    for (int i = 0; i < size; i++) {
-      if (PermissionApi.hasPermission(player, CobbleUtils.breedconfig.getPermissionplot(i + 1), 2)) max = i;
+    int size = CobbleUtils.breedconfig.getPlotSlots().size();
+    int max = CobbleUtils.breedconfig.getDefaultNumberPlots();
+
+    for (int i = 0; i < size + 1; i++) {
+      int n = i + 1;
+      if (PermissionApi.hasPermission(player, "cobbleutils.breeding.plot." + (n), 2)) {
+        if (max < n) {
+          max = n;
+        }
+      }
     }
 
-    if (max > size) max = size;
-    if (max < CobbleUtils.breedconfig.getDefaultNumberPlots()) max = CobbleUtils.breedconfig.getDefaultNumberPlots();
+    if (max > size) {
+      max = size;
+    }
 
     ItemModel info = CobbleUtils.breedconfig.getInfoItem();
 

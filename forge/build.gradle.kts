@@ -39,7 +39,7 @@ dependencies {
 
     modImplementation("com.cobblemon:forge:${property("cobblemon_version")}")
 
-    implementation("thedarkcolour:kotlinforforge:4.4.0")
+    //implementation("thedarkcolour:kotlinforforge:4.4.0")
 
     // Kyori Adventure
     shadowCommon("net.kyori:adventure-text-serializer-gson:${property("kyori_version")}")
@@ -93,24 +93,25 @@ tasks {
     shadowJar {
         exclude("fabric.mod.json")
         exclude("architectury.common.json")
-        exclude("com/google/gson/**/*")
-        exclude("org/intellij/**/*")
-        exclude("org/jetbrains/**/*")
-        exclude("generations/gg/generations/core/generationscore/forge/datagen/**")
-
+        exclude("com/google/gson/**")
+        exclude("org/intellij/**")
+        exclude("org/jetbrains/**")
         // Vault
-        exclude("org/bukkit/**/*")
-        exclude("org/apache/**/*")
-        exclude("org/yaml/**/*")
-        exclude("org/junit/**/*")
-        exclude("org/java_websocket/**/*")
-        exclude("org/hamcrest/**/*")
-        exclude("com/google/**/*")
+        exclude("org/bukkit/**")
+        exclude("org/apache/**")
+        exclude("org/yaml/**")
+        exclude("org/junit/**")
+        exclude("org/java_websocket/**")
+        exclude("org/hamcrest/**")
+        exclude("com/google/**")
+        exclude("kotlin/**")
+        exclude("org/slf4j/**")
 
+        relocate("org.json", "com.kingpixel.cobbleutils.json")
         relocate("com.mongodb", "com.kingpixel.cobbleutils.mongodb")
         relocate("org.bson", "com.kingpixel.cobbleutils.bson")
         relocate("net.kyori", "com.kingpixel.cobbleutils.kyori") {
-            exclude("net/kyori/adventure/key/**/*")
+            exclude("net/kyori/adventure/key/**")
         }
         transformers.add(ServiceFileTransformer())
 
