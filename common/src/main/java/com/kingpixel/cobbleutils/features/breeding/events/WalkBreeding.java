@@ -34,7 +34,6 @@ public class WalkBreeding {
       if (!player.isInPose(EntityPose.FALL_FLYING)
         && !player.isInPose(EntityPose.SLEEPING)
         && (!player.hasVehicle() || getPermitedVehicle(player))) {
-
         ticks.compute(player.getUuid(), (uuid, integer) -> integer == null ? 1 : integer + 1);
         if (ticks.get(player.getUuid()) % CobbleUtils.breedconfig.getTickstocheck() != 0)
           return;
@@ -78,10 +77,7 @@ public class WalkBreeding {
               return;
             int distance = distanceMoved.get();
             if (duplicate) {
-              distance /= distance * 2;
-            }
-            if (player.getVehicle() instanceof BoatEntity) {
-              distance /= 4;
+              distance *= 2;
             }
             eggData.steps(PlayerUtils.castPlayer(player), pokemon, distance);
           });

@@ -301,7 +301,8 @@ public class EggData {
       .anyMatch(eggGroup -> male.getForm().getEggGroups().contains(eggGroup));
   }
 
-  private static boolean isDitto(Pokemon pokemon) {
+  public static boolean isDitto(Pokemon pokemon) {
+    if (pokemon == null) return false;
     return pokemon.getSpecies().showdownId().equalsIgnoreCase("ditto");
   }
 
@@ -394,15 +395,11 @@ public class EggData {
       }
     }
 
+    shinyrate = (int) Math.min(0, shinyrate);
     if (shinyrate <= 1) {
       egg.setShiny(true);
     } else {
-      if (CobbleUtils.config.isDebug()) {
-        CobbleUtils.LOGGER.info("[DAYCARE] Shiny Rate: " + shinyrate);
-      }
-      if (Utils.RANDOM.nextInt((int) shinyrate) == 0) {
-        egg.setShiny(true);
-      }
+      egg.setShiny(Utils.RANDOM.nextInt((int) shinyrate) == 0);
     }
   }
 

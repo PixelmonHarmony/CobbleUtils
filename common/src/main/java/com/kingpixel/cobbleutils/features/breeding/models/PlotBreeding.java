@@ -131,9 +131,11 @@ public class PlotBreeding {
   public boolean checking(ServerPlayerEntity player) {
     if (!CobbleUtils.breedconfig.isActive()) return false;
     boolean banPokemon = false;
+    boolean haveDoubleDitto = EggData.isDitto(getPokemonMale()) && EggData.isDitto(getPokemonFemale());
     if (male != null) {
       if (CobbleUtils.breedconfig.getBlacklist().contains(getPokemonMale().showdownId())
-        || CobbleUtils.breedconfig.getBlacklistForm().contains(getPokemonMale().getForm().formOnlyShowdownId())) {
+        || CobbleUtils.breedconfig.getBlacklistForm().contains(getPokemonMale().getForm().formOnlyShowdownId())
+        || (haveDoubleDitto && !CobbleUtils.breedconfig.isDoubleditto())) {
         Cobblemon.INSTANCE.getStorage().getParty(player).add(getPokemonMale());
         male = null;
         banPokemon = true;
@@ -142,7 +144,8 @@ public class PlotBreeding {
 
     if (female != null) {
       if (CobbleUtils.breedconfig.getBlacklist().contains(getPokemonFemale().showdownId())
-        || CobbleUtils.breedconfig.getBlacklistForm().contains(getPokemonFemale().getForm().formOnlyShowdownId())) {
+        || CobbleUtils.breedconfig.getBlacklistForm().contains(getPokemonFemale().getForm().formOnlyShowdownId())
+        || (haveDoubleDitto && !CobbleUtils.breedconfig.isDoubleditto())) {
         Cobblemon.INSTANCE.getStorage().getParty(player).add(getPokemonFemale());
         female = null;
         banPokemon = true;

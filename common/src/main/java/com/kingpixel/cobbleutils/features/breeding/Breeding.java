@@ -1,18 +1,15 @@
 package com.kingpixel.cobbleutils.features.breeding;
 
-import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.storage.NoPokemonStoreException;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.kingpixel.cobbleutils.CobbleUtils;
-import com.kingpixel.cobbleutils.Model.CobbleUtilsTags;
 import com.kingpixel.cobbleutils.database.DatabaseClientFactory;
 import com.kingpixel.cobbleutils.features.breeding.events.*;
 import com.kingpixel.cobbleutils.features.breeding.manager.ManagerPlotEggs;
 import com.kingpixel.cobbleutils.util.PlayerUtils;
-import com.kingpixel.cobbleutils.util.PokemonUtils;
 import com.kingpixel.cobbleutils.util.RewardsUtils;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.InteractionEvent;
@@ -62,28 +59,6 @@ public class Breeding {
       } catch (Exception e) {
         e.printStackTrace();
       }
-
-      CobbleUtils.server.getPlayerManager().getPlayerList().forEach(player -> {
-        UserInfo userinfo = playerCountry.get(player.getUuid());
-        if (userinfo == null) return;
-        try {
-          Cobblemon.INSTANCE.getStorage().getParty(player.getUuid()).forEach(pokemon -> {
-            PokemonUtils.isLegalAbility(player, pokemon);
-            if (pokemon.getPersistentData().getString(CobbleUtilsTags.COUNTRY_TAG).isEmpty()) {
-              pokemon.getPersistentData().putString(CobbleUtilsTags.COUNTRY_TAG, userinfo.country());
-            }
-          });
-          Cobblemon.INSTANCE.getStorage().getPC(player.getUuid()).forEach(pokemon -> {
-            PokemonUtils.isLegalAbility(player, pokemon);
-            if (pokemon.getPersistentData().getString(CobbleUtilsTags.COUNTRY_TAG).isEmpty()) {
-              pokemon.getPersistentData().putString(CobbleUtilsTags.COUNTRY_TAG, userinfo.country());
-            }
-          });
-
-        } catch (NoPokemonStoreException e) {
-          e.printStackTrace();
-        }
-      });
     }, 0, CobbleUtils.breedconfig.getCheckEggToBreedInSeconds(), TimeUnit.SECONDS);
 
     scheduledTasks.add(checkegg);

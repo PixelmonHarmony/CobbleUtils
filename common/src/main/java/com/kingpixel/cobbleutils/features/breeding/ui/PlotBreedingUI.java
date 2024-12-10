@@ -15,6 +15,7 @@ import com.kingpixel.cobbleutils.features.breeding.models.PlotBreeding;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.PlayerUtils;
 import com.kingpixel.cobbleutils.util.PokemonUtils;
+import com.kingpixel.cobbleutils.util.UIUtils;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -44,9 +45,7 @@ public class PlotBreedingUI {
       }
     }
 
-    if (max > size) {
-      max = size;
-    }
+    if (max > size) max = size;
 
     ItemModel info = CobbleUtils.breedconfig.getInfoItem();
 
@@ -67,7 +66,7 @@ public class PlotBreedingUI {
         .replace("%cooldown%", PlayerUtils.getCooldown(CobbleUtils.breedconfig.getCooldown(player)))
     );
 
-    if (info.getSlot() > 0) {
+    if (UIUtils.isInside(info)) {
       GooeyButton button = GooeyButton.builder()
         .display(info.getItemStack())
         .title(AdventureTranslator.toNative(info.getDisplayname()))
@@ -87,6 +86,7 @@ public class PlotBreedingUI {
       lore.replaceAll(s -> PokemonUtils.replace(s, pokemons)
         .replace("%cooldown%", PlayerUtils.getCooldown(new Date(plotBreeding.getCooldown())))
         .replace("%eggs%", String.valueOf(amount)));
+      
       ItemStack itemStack;
       if (plotBreeding.getEggs().isEmpty()) {
         itemStack = CobbleUtils.breedconfig.getPlotItem().getItemStack();

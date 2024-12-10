@@ -129,7 +129,7 @@ public class BreedConfig {
     );
     this.defaultNumberPlots = 1;
     this.maxeggperplot = 3;
-    this.steps = 256;
+    this.steps = 128;
     this.checkEggToBreedInSeconds = 15;
     this.rowmenuselectplot = 3;
     this.rowmenuplot = 3;
