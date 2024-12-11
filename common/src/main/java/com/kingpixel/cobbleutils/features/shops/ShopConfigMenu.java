@@ -25,6 +25,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.kingpixel.cobbleutils.config.ShopConfig.createDefaultShops;
+import static com.kingpixel.cobbleutils.config.ShopConfig.saveShopsToPath;
+
 /**
  * @author Carlos Varas Alonso - 06/08/2024 11:10
  */
@@ -174,6 +177,10 @@ public class ShopConfigMenu {
           }
         }
       }
+    } else {
+      CobbleUtils.LOGGER.info("No shops found in " + path);
+      shopList = createDefaultShops();
+      saveShopsToPath(CobbleUtils.MOD_ID, path, shopList);
     }
     return shopList;
   }

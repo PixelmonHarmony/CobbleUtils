@@ -71,10 +71,16 @@ public class Particle {
   }
 
   public void sendParticles(@NotNull ServerPlayerEntity player, @NotNull Entity entity) {
-    DefaultParticleType particleType;
+    player.networkHandler.sendPacket(getParticleS2CPacket(entity, getParticleType()));
+  }
+
+  private @NotNull DefaultParticleType getParticleType() {
+    if (getParticle() == null || getParticle().isEmpty()) return null;
+
     String[] split = this.getParticle().split(":");
     Identifier identifier = new Identifier(split[0], split[1]);
 
+    DefaultParticleType particleType;
     try {
       if (Registries.PARTICLE_TYPE.get(identifier) instanceof DefaultParticleType) {
         particleType = (DefaultParticleType) Registries.PARTICLE_TYPE.get(identifier);
@@ -84,8 +90,7 @@ public class Particle {
     } catch (Exception e) {
       particleType = ParticleTypes.LAVA;
     }
-
-    player.networkHandler.sendPacket(getParticleS2CPacket(entity, particleType));
+    return particleType;
   }
 
   public void sendParticlesNearPlayers(@NotNull Entity entity) {

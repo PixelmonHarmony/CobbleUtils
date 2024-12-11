@@ -2,7 +2,6 @@ package com.kingpixel.cobbleutils.command.admin.boss;
 
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
-import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.options.BossChance;
 import com.kingpixel.cobbleutils.events.features.PokemonBoss;
@@ -14,6 +13,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import kotlin.Unit;
 import net.minecraft.command.argument.DimensionArgumentType;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.command.argument.Vec3ArgumentType;
@@ -86,16 +86,14 @@ public class SpawnBoss implements Command<ServerCommandSource> {
     if (bossChance == null)
       return;
 
-    PokemonEntity pokemonEntity;
 
     int n = bossChance.getPokemons().getPokemon().size() == 1 ? 0 : Utils.RANDOM.nextInt(bossChance.getPokemons().getPokemon().size());
-    pokemonEntity = PokemonProperties.Companion
+    PokemonEntity pokemonEntity = PokemonProperties.Companion
       .parse(bossChance.getPokemons().getPokemon().get(n) + " " + bossChance.getPokemons().getFormsoraspects() + " uncatchable=yes")
-      .createEntity(level);
+      .create().sendOut(level.getServer().getOverworld(), pos, null, e -> Unit.INSTANCE);
 
-    Pokemon pokemon = pokemonEntity.getPokemon();
-    PokemonBoss.apply(pokemon, bossChance, CobbleUtils.config.getBosses().getPokemonDataBoss(pokemon));
-    pokemonEntity.setPos(pos.x, pos.y, pos.z);
+    PokemonBoss.apply(pokemonEntity, bossChance,
+      CobbleUtils.config.getBosses().getPokemonDataBoss(pokemonEntity.getPokemon()));
     level.spawnEntity(pokemonEntity);
   }
 

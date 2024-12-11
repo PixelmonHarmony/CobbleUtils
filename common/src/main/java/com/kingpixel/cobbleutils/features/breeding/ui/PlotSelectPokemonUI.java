@@ -89,11 +89,19 @@ public class PlotSelectPokemonUI {
 
   private static void handlePokemonSelection(Pokemon pokemon, ServerPlayerEntity player,
                                              PlotBreeding plotBreeding, Gender gender, int finalI) {
+    boolean pc = false, party = false;
     try {
-      Cobblemon.INSTANCE.getStorage().getPC(player.getUuid()).remove(pokemon);
-      Cobblemon.INSTANCE.getStorage().getParty(player).remove(pokemon);
+      pc = Cobblemon.INSTANCE.getStorage().getPC(player.getUuid()).remove(pokemon);
+      party = Cobblemon.INSTANCE.getStorage().getParty(player).remove(pokemon);
     } catch (NoPokemonStoreException e) {
       e.printStackTrace();
+      CobbleUtils.LOGGER.error("Error while removing pokemon from player's storage");
+    }
+    if (CobbleUtils.config.isDebug()) {
+      CobbleUtils.LOGGER.info("Pokemon removed from storage");
+      CobbleUtils.LOGGER.info("Pokemon: " + pokemon.getSpecies().showdownId());
+      CobbleUtils.LOGGER.info("PC: " + pc);
+      CobbleUtils.LOGGER.info("Party: " + party);
     }
     plotBreeding.add(pokemon, gender);
     List<PlotBreeding> plots = DatabaseClientFactory.databaseClient.getPlots(player);
@@ -168,24 +176,20 @@ public class PlotSelectPokemonUI {
     boolean isOtherDitto = otherGender.getSpecies().showdownId().equalsIgnoreCase("ditto");
     boolean areCompatible = EggData.isCompatible(otherGender, pokemon);
 
-    return isDittoCompatibility(pokemon, isOtherDitto, areCompatible, notify, player)
-      || (areCompatible && isGenderMatching(pokemon, gender))
+    if (!isDittoCompatibility(pokemon, isOtherDitto, areCompatible, notify, player)) return false;
+
+    return (areCompatible && isGenderMatching(pokemon, gender))
       || (isInWhitelist && isGenderMatching(pokemon, gender));
   }
 
   private static boolean isDittoCompatibility(Pokemon pokemon, boolean isOtherDitto, boolean areCompatible,
                                               boolean notify, ServerPlayerEntity player) {
     if (pokemon.getSpecies().showdownId().equalsIgnoreCase("ditto")) {
-      if (isOtherDitto) {
-        return CobbleUtils.breedconfig.isDoubleditto();
-      } else {
-        return areCompatible || CobbleUtils.breedconfig.isDitto();
-      }
+      if (isOtherDitto && !CobbleUtils.breedconfig.isDoubleditto()) {
+        return false;
+      } else return areCompatible || CobbleUtils.breedconfig.isDitto();
     }
-    if (isOtherDitto) {
-      return areCompatible || CobbleUtils.breedconfig.getWhitelist().contains(pokemon.getSpecies().showdownId());
-    }
-    return false;
+    return true;
   }
 
   public static boolean arePokemonsCompatible(Pokemon malePokemon, Pokemon femalePokemon, ServerPlayerEntity player, boolean notify) {

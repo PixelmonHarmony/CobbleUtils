@@ -395,7 +395,7 @@ public class EggData {
       }
     }
 
-    shinyrate = (int) Math.min(0, shinyrate);
+    shinyrate = (int) Math.max(1, shinyrate);
     if (shinyrate <= 1) {
       egg.setShiny(true);
     } else {

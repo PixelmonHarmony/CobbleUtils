@@ -45,7 +45,8 @@ public class Boss {
     String showdownId = pokemon.showdownId();
     return bossChances.stream()
       .map(BossChance::getPokemons)
-      .filter(pokemonDataBoss -> pokemonDataBoss.getPokemon().contains(showdownId))
+      .filter(pokemonDataBoss -> pokemonDataBoss.getPokemon().contains(showdownId)
+        || pokemonDataBoss.getPokemon().contains("*"))
       .findFirst()
       .orElse(null);
   }
@@ -53,7 +54,8 @@ public class Boss {
   public BossChance getBossChanceByRarity(Pokemon pokemon) {
     String showdownId = pokemon.showdownId();
     return bossChances.stream()
-      .filter(bossChance -> bossChance.getPokemons().getPokemon().contains(showdownId))
+      .filter(bossChance -> bossChance.getPokemons().getPokemon().contains(showdownId)
+        || bossChance.getPokemons().getPokemon().contains("*"))
       .findFirst()
       .orElse(null);
   }

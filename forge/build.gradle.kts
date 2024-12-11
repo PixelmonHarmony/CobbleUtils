@@ -111,8 +111,9 @@ tasks {
         relocate("com.mongodb", "com.kingpixel.cobbleutils.mongodb")
         relocate("org.bson", "com.kingpixel.cobbleutils.bson")
         relocate("net.kyori", "com.kingpixel.cobbleutils.kyori") {
-            exclude("net/kyori/adventure/key/**")
+            exclude("net/kyori/adventure/key/**/*")
         }
+        
         transformers.add(ServiceFileTransformer())
 
         configurations = listOf(project.configurations.getByName("shadowCommon"))

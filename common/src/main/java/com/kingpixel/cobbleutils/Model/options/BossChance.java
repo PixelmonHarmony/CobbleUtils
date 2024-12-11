@@ -1,6 +1,8 @@
 package com.kingpixel.cobbleutils.Model.options;
 
 import com.kingpixel.cobbleutils.Model.ItemChance;
+import com.kingpixel.cobbleutils.Model.Particle;
+import com.kingpixel.cobbleutils.Model.Sound;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,6 +26,8 @@ public class BossChance {
   private float maxsize;
   private int amountrewards;
   private boolean allrewards;
+  private Sound sound;
+  private Particle particle;
   private PokemonDataBoss pokemons;
   private List<ItemChance> rewards;
 
@@ -36,6 +40,8 @@ public class BossChance {
     this.maxsize = 2.0f;
     this.amountrewards = 1;
     this.allrewards = false;
+    this.sound = new Sound();
+    this.particle = new Particle();
     this.pokemons = new PokemonDataBoss();
     this.rewards = ItemChance.defaultItemChances();
   }
@@ -49,6 +55,8 @@ public class BossChance {
     this.maxsize = 2.0f;
     this.amountrewards = 1;
     this.allrewards = false;
+    this.sound = new Sound();
+    this.particle = new Particle();
     this.pokemons = new PokemonDataBoss();
     this.rewards = ItemChance.defaultItemChances();
   }
@@ -64,6 +72,8 @@ public class BossChance {
     this.rewards = ItemChance.defaultItemChances();
     this.pokemons = new PokemonDataBoss();
     this.allrewards = false;
+    this.sound = new Sound();
+    this.particle = new Particle();
   }
 
 }

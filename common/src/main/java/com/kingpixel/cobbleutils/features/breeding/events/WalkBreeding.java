@@ -3,7 +3,6 @@ package com.kingpixel.cobbleutils.features.breeding.events;
 import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.storage.NoPokemonStoreException;
 import com.cobblemon.mod.common.api.storage.party.PlayerPartyStore;
-import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.features.breeding.models.EggData;
 import com.kingpixel.cobbleutils.util.PlayerUtils;
@@ -16,6 +15,7 @@ import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -53,20 +53,13 @@ public class WalkBreeding {
             lastPosition.put(player.getUuid(), currentPosition);
           }
           PlayerPartyStore playerPartyStore = Cobblemon.INSTANCE.getStorage().getParty(player.getUuid());
-          if (playerPartyStore.size() == 0)
-            return;
-          Pokemon firstplace = playerPartyStore.get(0);
-          boolean duplicate;
-          if (firstplace != null) {
-            if (firstplace.getAbility().getName().equalsIgnoreCase("flamebody")
-              || firstplace.getAbility().getName().equalsIgnoreCase("magmaarmor")) {
-              duplicate = true;
-            } else {
-              duplicate = false;
-            }
-          } else {
-            duplicate = false;
-          }
+          if (playerPartyStore.size() == 0) return;
+
+          boolean duplicate = playerPartyStore.toGappyList().stream().filter(Objects::nonNull).anyMatch(pokemon -> {
+            String name = pokemon.getAbility().getName();
+            return name.equalsIgnoreCase("flamebody") ||
+              name.equalsIgnoreCase("magmaarmor");
+          });
 
           playerPartyStore.forEach(pokemon -> {
             if (!pokemon.showdownId().equalsIgnoreCase("egg"))

@@ -42,8 +42,8 @@ public class Product {
     this.permission = null;
     this.discount = null;
     this.product = "minecraft:stone";
-    this.buy = BigDecimal.valueOf(100);
-    this.sell = BigDecimal.valueOf(25);
+    this.buy = BigDecimal.valueOf(500000);
+    this.sell = BigDecimal.ZERO;
   }
 
   public Product(boolean optional) {
@@ -67,8 +67,25 @@ public class Product {
       this.discount = null;
     }
     this.product = "minecraft:stone";
-    this.buy = BigDecimal.valueOf(100);
-    this.sell = BigDecimal.valueOf(25);
+    this.buy = BigDecimal.valueOf(500000);
+    this.sell = BigDecimal.ZERO;
+  }
+
+  public Product(ItemStack defaultStack) {
+    this.notCanBuyWithPermission = null;
+    this.display = null;
+    this.color = null;
+    this.displayname = null;
+    this.lore = null;
+    this.CustomModelData = null;
+    this.permission = null;
+    this.discount = null;
+    this.product = defaultStack.getItem().getTranslationKey()
+      .replace("item.", "")
+      .replace("block.", "")
+      .replace(".", ":");
+    this.buy = BigDecimal.valueOf(500000);
+    this.sell = BigDecimal.ZERO;
   }
 
 

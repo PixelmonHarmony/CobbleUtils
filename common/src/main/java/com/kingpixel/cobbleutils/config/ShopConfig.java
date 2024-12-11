@@ -1,10 +1,12 @@
 package com.kingpixel.cobbleutils.config;
 
+import com.cobblemon.mod.common.CobblemonItems;
 import com.google.gson.Gson;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.ItemModel;
 import com.kingpixel.cobbleutils.features.shops.Shop;
 import com.kingpixel.cobbleutils.features.shops.ShopConfigMenu;
+import com.kingpixel.cobbleutils.features.shops.models.Product;
 import com.kingpixel.cobbleutils.features.shops.models.types.ShopTypeDynamic;
 import com.kingpixel.cobbleutils.features.shops.models.types.ShopTypeDynamicWeekly;
 import com.kingpixel.cobbleutils.features.shops.models.types.ShopTypePermanent;
@@ -16,6 +18,7 @@ import lombok.ToString;
 
 import java.io.File;
 import java.time.DayOfWeek;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -79,34 +82,48 @@ public class ShopConfig {
     return shopList;
   }
 
-  private static List<Shop> createDefaultShops() {
-    List<Shop> shopArrayList = List.of(
-      new Shop("permanent", "Permanent", new ShopTypePermanent(), (short) 6, List.of()),
-      new Shop("dynamic", "Dynamic", new ShopTypeDynamic(), (short) 6, List.of(
-        "%cooldown%",
-        "%amountProducts%"
-      )),
-      new Shop("weekly", "Weekly", new ShopTypeWeekly(), (short) 6, List.of(
-        "%days%"
-      )),
-      new Shop("dynamicweekly", "DynamicWeekly", new ShopTypeDynamicWeekly(), (short) 6, List.of(
-        "%cooldown%",
-        "%amountProducts%",
-        "%days%"
-      ))
-    );
+  public static List<Shop> createDefaultShops() {
+    List<Shop> shopArrayList = new ArrayList<>();
+    shopArrayList.add(new Shop("permanent", "Permanent", new ShopTypePermanent(), (short) 6, List.of()));
+    shopArrayList.add(new Shop("dynamic", "Dynamic", new ShopTypeDynamic(), (short) 6, List.of(
+      "%cooldown%",
+      "%amountProducts%"
+    )));
+    shopArrayList.add(new Shop("weekly", "Weekly", new ShopTypeWeekly(), (short) 6, List.of(
+      "%days%"
+    )));
+    shopArrayList.add(new Shop("dynamicweekly", "DynamicWeekly", new ShopTypeDynamicWeekly(), (short) 6, List.of(
+      "%cooldown%",
+      "%amountProducts%",
+      "%days%"
+    )));
+    /*
+    try {
+      shopArrayList.add(getPokeballs());
+    } catch (NoClassDefFoundError | ExceptionInInitializerError |
+             Exception ignored) {
+    }*/
     for (int i = 0; i < shopArrayList.size(); i++) {
       shopArrayList.get(i).getDisplay().setSlot(i);
     }
     return shopArrayList;
   }
 
-  private static void saveShopsToPath(String mod_id, String path, List<Shop> shopList) {
+  private static Shop getPokeballs() {
+    Shop shop = new Shop("pokeballs", "Pokeballs", new ShopTypePermanent(), (short) 6, List.of());
+    shop.getProducts().clear();
+    CobblemonItems.pokeBalls.forEach(pokeBallItem -> shop.getProducts().add(new Product(pokeBallItem.getDefaultStack())));
+    return shop;
+  }
+
+  public static void saveShopsToPath(String mod_id, String path, List<Shop> shopList) {
     Gson gson = Utils.newGson();
     File directory = Utils.getAbsolutePath(path);
     if (!directory.exists()) {
       directory.mkdirs();
     }
+
+    if (shopList == null || shopList.isEmpty()) shopList = createDefaultShops();
 
     for (Shop shop : shopList) {
       String json = gson.toJson(shop);

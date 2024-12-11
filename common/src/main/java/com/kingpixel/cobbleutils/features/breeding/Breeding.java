@@ -102,6 +102,7 @@ public class Breeding {
     WalkBreeding.register();
     EggThrow.register();
     PastureUI.register();
+
     NationalityPokemon.register();
   }
 

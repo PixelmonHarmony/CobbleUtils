@@ -161,13 +161,13 @@ public class ItemChance {
   public static List<ItemChance> defaultItemChances() {
     List<ItemChance> itemChances = new ArrayList<>();
     itemChances.add(new ItemChance("minecraft:dirt", 100));
-    itemChances.add(new ItemChance("item:8:minecraft:dirt", 100));
-    itemChances.add(new ItemChance("item:8:minecraft:dirt#{CustomModelData:1}", 100));
-    itemChances.add(new ItemChance("pokemon:zorua hisuian", 100));
+    itemChances.add(new ItemChance("item:1:minecraft:dirt", 100));
+    itemChances.add(new ItemChance("item:1:minecraft:dirt#{CustomModelData:1}", 100));
+    itemChances.add(new ItemChance("pokemon:rattata alola", 100));
     itemChances.add(new ItemChance("command:lp user %player% permission set a", 100, "minecraft:emerald", "Give permission a"));
     itemChances.add(new ItemChance("command:lp user %player% permission set a#lp user %player% permission set b", 100, "minecraft:emerald", "Give permission a and b"));
-    itemChances.add(new ItemChance("money:100", 100));
-    itemChances.add(new ItemChance("money:tokens:100", 100));
+    itemChances.add(new ItemChance("money:1", 100));
+    itemChances.add(new ItemChance("money:tokens:1", 100));
     itemChances.add(new ItemChance("mod:cobblehunt:radar", 100));
     return itemChances;
   }

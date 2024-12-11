@@ -1,5 +1,6 @@
 package com.kingpixel.cobbleutils.events.features;
 
+import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.Priority;
 import com.cobblemon.mod.common.api.events.CobblemonEvents;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
@@ -10,13 +11,18 @@ import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.options.BossChance;
 import com.kingpixel.cobbleutils.Model.options.PokemonDataBoss;
+import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.ArraysPokemons;
 import com.kingpixel.cobbleutils.util.PokemonUtils;
 import com.kingpixel.cobbleutils.util.Utils;
 import kotlin.Unit;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.mob.MobEntity;
-import net.minecraft.text.Text;
+import net.minecraft.scoreboard.Scoreboard;
+import net.minecraft.scoreboard.Team;
+import net.minecraft.util.Formatting;
 
 import static com.kingpixel.cobbleutils.Model.CobbleUtilsTags.*;
 
@@ -67,9 +73,9 @@ public class PokemonBoss {
 
         if (CobbleUtils.config.getBosses().isForceAspectBoss()) {
           if (pokemonDataBoss == null) return Unit.INSTANCE;
-          apply(pokemon, bossChanceByRarity, pokemonDataBoss);
+          apply(pokemonEntity, bossChanceByRarity, pokemonDataBoss);
         } else if (!CobbleUtils.config.getBosses().getBlacklist().contains(pokemon.showdownId())) {
-          apply(pokemon, bossChance, pokemonDataBoss);
+          apply(pokemonEntity, bossChance, pokemonDataBoss);
         }
       } catch (Exception e) {  // Reemplaza con excepciones específicas
         e.printStackTrace();
@@ -85,6 +91,17 @@ public class PokemonBoss {
       }
       return Unit.INSTANCE;
     });
+
+    /*InteractionEvent.INTERACT_ENTITY.register((playerEntity, entity, hand) -> {
+      if (!CobbleUtils.config.getBosses().isActive()) return EventResult.pass();
+      if (entity instanceof PokemonEntity pokemonEntity) {
+        String bossRarity = pokemonEntity.getPokemon().getPersistentData().getString(BOSS_RARITY_TAG);
+        if (!bossRarity.isEmpty()) {
+          // Todo: Advanced System Rewards show Boss Rewards
+        }
+      }
+      return EventResult.pass();
+    });*/
 
     CobblemonEvents.BATTLE_VICTORY.subscribe(Priority.HIGH, (evt) -> {
       if (!CobbleUtils.config.getBosses().isActive()) {
@@ -109,20 +126,26 @@ public class PokemonBoss {
     });
   }
 
-  public static void apply(Pokemon pokemon, BossChance bossChance, PokemonDataBoss pokemonDataBoss) {
-    String form = "";
+  private static Integer oldLevel = Cobblemon.INSTANCE.getConfig().getMaxPokemonLevel();
 
+  public static void apply(PokemonEntity pokemonEntity, BossChance bossChance, PokemonDataBoss pokemonDataBoss) {
+    String form = "";
+    int level = 0;
     if (pokemonDataBoss != null) form = pokemonDataBoss.getFormsoraspects();
 
+    Pokemon pokemon = pokemonEntity.getPokemon();
     PokemonProperties.Companion.parse("uncatchable=yes " + form).apply(pokemon);
+    Cobblemon.INSTANCE.getConfig().setMaxPokemonLevel(bossChance.getMaxlevel());
     if (bossChance.getMinlevel() != bossChance.getMaxlevel()) {
-      pokemon.setLevel(Utils.RANDOM.nextInt(bossChance.getMinlevel(), bossChance.getMaxlevel()));
+      level = Utils.RANDOM.nextInt(bossChance.getMinlevel(), bossChance.getMaxlevel());
+      pokemon.setLevel(level);
     } else {
-      pokemon.setLevel(bossChance.getMinlevel());
+      level = bossChance.getMinlevel();
+      pokemon.setLevel(level);
     }
+    Cobblemon.INSTANCE.getConfig().setMaxPokemonLevel(oldLevel);
     pokemon.getPersistentData().putString(BOSS_RARITY_TAG, bossChance.getRarity());
     pokemon.getPersistentData().putBoolean(BOSS_TAG, true);
-    pokemon.setNickname(Text.literal(bossChance.getRarity()));
     pokemon.setShiny(CobbleUtils.config.getBosses().isShiny());
     pokemon.getPersistentData().putString(SIZE_TAG, SIZE_CUSTOM_TAG);
     if (bossChance.getMinsize() != bossChance.getMaxsize()) {
@@ -131,5 +154,25 @@ public class PokemonBoss {
       pokemon.setScaleModifier(bossChance.getMinsize());
     }
     spawnboss = false;
+    if (pokemonEntity != null) {
+      Scoreboard scoreboard = pokemonEntity.getWorld().getScoreboard();
+      Team team = scoreboard.getTeam("glowing_team");
+      if (team == null) {
+        team = scoreboard.addTeam("glowing_team");
+        team.setColor(Formatting.GOLD); // Set the color to blue
+      }
+      // Add the PokemonEntity to the team
+      scoreboard.addPlayerToTeam(pokemonEntity.getEntityName(), team);
+      // Set the glowing effect
+      pokemonEntity.setGlowing(true);
+      pokemonEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, Integer.MAX_VALUE, 0x333333, false,
+        false));
+
+      pokemonEntity.setCustomName(AdventureTranslator.toNative(
+        "§9§lBoss " + PokemonUtils.getTranslatedName(pokemon)));
+      bossChance.getSound().start(pokemonEntity);
+      bossChance.getParticle().sendParticlesNearPlayers(pokemonEntity);
+    }
+
   }
 }
