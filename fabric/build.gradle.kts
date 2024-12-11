@@ -104,6 +104,7 @@ tasks {
         exclude("org/java_websocket/**/*")
         exclude("org/hamcrest/**/*")
         exclude("com/google/**/*")
+        exclude("org/slf4j/**")
 
         relocate("com.mongodb", "com.kingpixel.cobbleutils.mongodb")
         relocate("org.bson", "com.kingpixel.cobbleutils.bson")

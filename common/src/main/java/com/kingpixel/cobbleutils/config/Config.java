@@ -4,8 +4,6 @@ import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.google.gson.Gson;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.*;
-import com.kingpixel.cobbleutils.Model.options.Boss;
-import com.kingpixel.cobbleutils.Model.options.PokemonDataBoss;
 import com.kingpixel.cobbleutils.Model.options.Pokerus;
 import com.kingpixel.cobbleutils.util.Utils;
 import lombok.Data;
@@ -34,6 +32,8 @@ public class Config {
   private List<String> commandparty;
   private List<String> commmandplugin;
   private List<String> commandshop;
+  private boolean boss;
+  private int bosschance;
   private boolean randomsize;
   private boolean shops;
   private boolean shulkers;
@@ -50,7 +50,6 @@ public class Config {
   private String pokeshoutall;
   private int cooldownpokeshout;
   private Pokerus pokerus;
-  private Boss bosses;
   private String defaultsize;
   private List<SizeChance> pokemonsizes;
   private List<ScalePokemonData> specifiedSizes;
@@ -72,6 +71,8 @@ public class Config {
     commandrewards = List.of("storagerewards", "storage");
     commmandplugin = List.of("cobbleutils", "pokeutils");
     commandshop = List.of("shop", "cushop");
+    boss = true;
+    bosschance = 16512;
     shops = true;
     shulkers = true;
     randomsize = true;
@@ -88,7 +89,6 @@ public class Config {
     pokeshoutall = "pokeshoutplusall";
     cooldownpokeshout = 60;
     pokerus = new Pokerus();
-    bosses = new Boss();
 
     defaultsize = "Normal";
     pokemonsizes = List.of(
@@ -128,6 +128,8 @@ public class Config {
         lang = config.getLang();
         shops = config.isShops();
         fill = config.getFill();
+        boss = config.isBoss();
+        bosschance = config.getBosschance();
         commandshop = config.getCommandshop();
         shinytoken = config.getShinytoken();
         directreward = config.isDirectreward();
@@ -150,16 +152,7 @@ public class Config {
         commmandplugin = config.getCommmandplugin();
         alertreward = config.getAlertreward();
         itemsCommands = config.getItemsCommands();
-        bosses = config.getBosses();
         cooldownpokeshout = config.getCooldownpokeshout();
-        if (bosses == null)
-          bosses = new Boss();
-        if (bosses.getBlacklist() == null)
-          bosses.setBlacklist(new ArrayList<>());
-        bosses.getBossChances().forEach(bossChance -> {
-          if (bossChance.getPokemons() == null)
-            bossChance.setPokemons(new PokemonDataBoss());
-        });
 
         shinytokenBlacklist = config.getShinytokenBlacklist();
         blacklist = config.getBlacklist();

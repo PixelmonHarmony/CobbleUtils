@@ -52,16 +52,17 @@ public class CobbleUtils extends ShopExtend {
   public static final String PATH_BREED_DATA = PATH_BREED + "data/";
   public static final String PATH_SHOP = CobbleUtils.PATH + "/shop/";
   public static final String PATH_SHOPS = PATH_SHOP + "shops/";
+  public static final String PATH_BOSS = PATH + "/boss/";
   public static final UtilsLogger LOGGER = new UtilsLogger();
   public static final String MOD_NAME = "CobbleUtils";
   public static MinecraftServer server;
   public static Config config = new Config();
   public static BreedConfig breedconfig = new BreedConfig();
+  public static ShopConfig shopConfig = new ShopConfig();
   public static PoolMoney poolMoney = new PoolMoney();
   public static PoolItems poolItems = new PoolItems();
   public static PoolPokemons poolPokemons = new PoolPokemons();
   public static SpawnRates spawnRates = new SpawnRates();
-  public static ShopConfig shopConfig = new ShopConfig();
   // Lang
   public static Lang language = new Lang();
   public static ShopLang shopLang = new ShopLang();
@@ -112,6 +113,7 @@ public class CobbleUtils extends ShopExtend {
     poolMoney.init();
     partyConfig.init();
     partyLang.init();
+    BossConfig.init();
     shopConfig.init(PATH_SHOP, MOD_ID, PATH_SHOPS);
     DatabaseClientFactory.createDatabaseClient(config.getDatabase());
 
@@ -133,7 +135,7 @@ public class CobbleUtils extends ShopExtend {
     LOGGER.info("§e| §Storage Rewards: " + isActive(CobbleUtils.config.isStorageRewards()));
     LOGGER.info("§e| §6Pokerus: " + isActive(CobbleUtils.config.getPokerus().isActive()));
     LOGGER.info("§e| §6Breeding: " + isActive(CobbleUtils.breedconfig.isActive()));
-    LOGGER.info("§e| §6Bosses: " + isActive(CobbleUtils.config.getBosses().isActive()));
+    LOGGER.info("§e| §6Bosses: " + isActive(CobbleUtils.config.isBoss()));
     LOGGER.info("§e| §6Supported economies: Impactor, BlanketEconomy, CobbleDollars and Vault");
     LOGGER.info("§e+-------------------------------+");
   }

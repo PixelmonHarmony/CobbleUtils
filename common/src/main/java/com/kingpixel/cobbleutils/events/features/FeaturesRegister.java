@@ -10,7 +10,6 @@ public class FeaturesRegister {
   public static void register() {
     PokemonBoss.register();
     PokerusEvents.register();
-    PokeballThrow.register();
     ScaleEvent.register();
     PickedUpEvent.register();
   }

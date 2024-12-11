@@ -2,9 +2,9 @@ package com.kingpixel.cobbleutils.command.admin.boss;
 
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
+import com.cobblemon.mod.common.entity.pokemon.effects.IllusionEffect;
 import com.kingpixel.cobbleutils.CobbleUtils;
-import com.kingpixel.cobbleutils.Model.options.BossChance;
-import com.kingpixel.cobbleutils.events.features.PokemonBoss;
+import com.kingpixel.cobbleutils.config.BossConfig;
 import com.kingpixel.cobbleutils.util.LuckPermsUtil;
 import com.kingpixel.cobbleutils.util.Utils;
 import com.mojang.brigadier.Command;
@@ -32,7 +32,7 @@ public class SpawnBoss implements Command<ServerCommandSource> {
 
   public static void register(CommandDispatcher<ServerCommandSource> dispatcher,
                               LiteralArgumentBuilder<ServerCommandSource> base) {
-    if (!CobbleUtils.config.getBosses().isActive()) return;
+    if (!CobbleUtils.config.isBoss()) return;
     dispatcher.register(
       base.then(
         CommandManager.literal("spawnboss")
@@ -40,8 +40,11 @@ public class SpawnBoss implements Command<ServerCommandSource> {
           .then(
             CommandManager.argument("boss", StringArgumentType.string())
               .suggests((context, builder) -> {
-                CobbleUtils.config.getBosses().getBossChances()
-                  .forEach(bossChance -> builder.suggest(bossChance.getRarity()));
+                BossConfig.typeBoss.forEach((s, bossConfig) -> {
+                  if (bossConfig.isActive()) {
+                    builder.suggest(s);
+                  }
+                });
                 return builder.buildFuture();
               })
               .executes(context -> {
@@ -82,18 +85,15 @@ public class SpawnBoss implements Command<ServerCommandSource> {
   }
 
   private static void spawnBoss(String boss, World level, Vec3d pos) {
-    BossChance bossChance = CobbleUtils.config.getBosses().getBossChance(boss);
-    if (bossChance == null)
-      return;
+    BossConfig bossConfig = BossConfig.getBossConfigByRarity(boss);
 
 
-    int n = bossChance.getPokemons().getPokemon().size() == 1 ? 0 : Utils.RANDOM.nextInt(bossChance.getPokemons().getPokemon().size());
+    int n = Utils.RANDOM.nextInt(bossConfig.getPokemons().size());
     PokemonEntity pokemonEntity = PokemonProperties.Companion
-      .parse(bossChance.getPokemons().getPokemon().get(n) + " " + bossChance.getPokemons().getFormsoraspects() + " uncatchable=yes")
-      .create().sendOut(level.getServer().getOverworld(), pos, null, e -> Unit.INSTANCE);
+      .parse(bossConfig.getPokemons().get(n) + " " + bossConfig.getPokemonData() + " uncatchable=yes")
+      .create().sendOut(level.getServer().getOverworld(), pos, new IllusionEffect(), e -> Unit.INSTANCE);
 
-    PokemonBoss.apply(pokemonEntity, bossChance,
-      CobbleUtils.config.getBosses().getPokemonDataBoss(pokemonEntity.getPokemon()));
+    bossConfig.apply(pokemonEntity);
     level.spawnEntity(pokemonEntity);
   }
 

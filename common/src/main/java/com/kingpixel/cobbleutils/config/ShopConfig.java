@@ -1,12 +1,10 @@
 package com.kingpixel.cobbleutils.config;
 
-import com.cobblemon.mod.common.CobblemonItems;
 import com.google.gson.Gson;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.ItemModel;
 import com.kingpixel.cobbleutils.features.shops.Shop;
 import com.kingpixel.cobbleutils.features.shops.ShopConfigMenu;
-import com.kingpixel.cobbleutils.features.shops.models.Product;
 import com.kingpixel.cobbleutils.features.shops.models.types.ShopTypeDynamic;
 import com.kingpixel.cobbleutils.features.shops.models.types.ShopTypeDynamicWeekly;
 import com.kingpixel.cobbleutils.features.shops.models.types.ShopTypePermanent;
@@ -97,23 +95,12 @@ public class ShopConfig {
       "%amountProducts%",
       "%days%"
     )));
-    /*
-    try {
-      shopArrayList.add(getPokeballs());
-    } catch (NoClassDefFoundError | ExceptionInInitializerError |
-             Exception ignored) {
-    }*/
+
+
     for (int i = 0; i < shopArrayList.size(); i++) {
       shopArrayList.get(i).getDisplay().setSlot(i);
     }
     return shopArrayList;
-  }
-
-  private static Shop getPokeballs() {
-    Shop shop = new Shop("pokeballs", "Pokeballs", new ShopTypePermanent(), (short) 6, List.of());
-    shop.getProducts().clear();
-    CobblemonItems.pokeBalls.forEach(pokeBallItem -> shop.getProducts().add(new Product(pokeBallItem.getDefaultStack())));
-    return shop;
   }
 
   public static void saveShopsToPath(String mod_id, String path, List<Shop> shopList) {
