@@ -368,7 +368,7 @@ public class Shop {
       // Item Show Cooldown and Amount Products
       ItemModel itemInfoShop = shop.getItemInfoShop();
 
-      if (UIUtils.isInside(itemInfoShop)) {
+      if (UIUtils.isInside(itemInfoShop, rows)) {
         List<String> lore = new ArrayList<>(itemInfoShop.getLore());
         switch (shop.getShopType().getTypeShop()) {
           case DYNAMIC:
@@ -407,7 +407,7 @@ public class Shop {
       }
 
       // Balance
-      if (UIUtils.isInside(CobbleUtils.shopLang.getBalance())) {
+      if (UIUtils.isInside(CobbleUtils.shopLang.getBalance(), rows)) {
         ItemModel balance = CobbleUtils.shopLang.getBalance();
         List<String> lorebalance = new ArrayList<>(balance.getLore());
 

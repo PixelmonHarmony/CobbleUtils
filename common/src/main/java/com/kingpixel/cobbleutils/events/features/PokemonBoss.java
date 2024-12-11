@@ -11,7 +11,6 @@ import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.options.BossChance;
 import com.kingpixel.cobbleutils.Model.options.PokemonDataBoss;
-import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.ArraysPokemons;
 import com.kingpixel.cobbleutils.util.PokemonUtils;
 import com.kingpixel.cobbleutils.util.Utils;
@@ -22,6 +21,7 @@ import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.Team;
+import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
 import static com.kingpixel.cobbleutils.Model.CobbleUtilsTags.*;
@@ -155,21 +155,26 @@ public class PokemonBoss {
     }
     spawnboss = false;
     if (pokemonEntity != null) {
+      pokemonEntity.setGlowing(true);
+
+      pokemonEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, Integer.MAX_VALUE, 0x333333, false,
+        false));
       Scoreboard scoreboard = pokemonEntity.getWorld().getScoreboard();
       Team team = scoreboard.getTeam("glowing_team");
       if (team == null) {
         team = scoreboard.addTeam("glowing_team");
         team.setColor(Formatting.GOLD); // Set the color to blue
+      } else {
+        team.setColor(Formatting.GOLD); // Set the color to blue
       }
       // Add the PokemonEntity to the team
       scoreboard.addPlayerToTeam(pokemonEntity.getEntityName(), team);
       // Set the glowing effect
-      pokemonEntity.setGlowing(true);
-      pokemonEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, Integer.MAX_VALUE, 0x333333, false,
-        false));
 
-      pokemonEntity.setCustomName(AdventureTranslator.toNative(
-        "§9§lBoss " + PokemonUtils.getTranslatedName(pokemon)));
+
+      pokemonEntity.setCustomName(
+        Text.literal("§6§l" + bossChance.getRarity() + " " + pokemon.getDisplayName().getString())
+      );
       bossChance.getSound().start(pokemonEntity);
       bossChance.getParticle().sendParticlesNearPlayers(pokemonEntity);
     }

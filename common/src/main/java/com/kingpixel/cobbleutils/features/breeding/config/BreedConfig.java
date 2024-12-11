@@ -102,7 +102,7 @@ public class BreedConfig {
   public BreedConfig() {
     this.prefix = "&7[<#82d448>Breeding&7] &8»";
     this.active = true;
-    this.showIvs = true;
+    this.showIvs = false;
     this.eggcommand = List.of("daycare", "pokebreed", "breed");
     this.titleselectplot = "<#82d448>Select Plot";
     this.titleplot = "<#82d448>Plot";

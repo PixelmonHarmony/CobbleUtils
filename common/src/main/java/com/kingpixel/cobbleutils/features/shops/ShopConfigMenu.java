@@ -187,13 +187,14 @@ public class ShopConfigMenu {
 
   public static void open(ServerPlayerEntity player, ShopConfig shopConfig, String mod_id, boolean byCommand) {
     try {
+      int rows = shopConfig.getShop().getRows();
       ChestTemplate template = ChestTemplate
-        .builder(shopConfig.getShop().getRows())
+        .builder(rows)
         .build();
 
       getShopsMod(mod_id).forEach(shop -> {
         ItemModel itemModelShop = shop.getDisplay();
-        if (!UIUtils.isInside(itemModelShop)) return;
+        if (!UIUtils.isInside(itemModelShop, rows)) return;
 
         List<String> lore = new ArrayList<>(itemModelShop.getLore());
         switch (shop.getShopType().getTypeShop()) {

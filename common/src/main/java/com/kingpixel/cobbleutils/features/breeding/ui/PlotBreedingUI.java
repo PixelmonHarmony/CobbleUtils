@@ -29,8 +29,9 @@ import java.util.List;
  */
 public class PlotBreedingUI {
   public static void open(ServerPlayerEntity player) {
+    int rows = CobbleUtils.breedconfig.getNeedRows();
     DatabaseClientFactory.CheckDaycarePlots(player);
-    ChestTemplate template = ChestTemplate.builder(CobbleUtils.breedconfig.getNeedRows()).build();
+    ChestTemplate template = ChestTemplate.builder(rows).build();
 
 
     int size = CobbleUtils.breedconfig.getPlotSlots().size();
@@ -66,7 +67,7 @@ public class PlotBreedingUI {
         .replace("%cooldown%", PlayerUtils.getCooldown(CobbleUtils.breedconfig.getCooldown(player)))
     );
 
-    if (UIUtils.isInside(info)) {
+    if (UIUtils.isInside(info, rows)) {
       GooeyButton button = GooeyButton.builder()
         .display(info.getItemStack())
         .title(AdventureTranslator.toNative(info.getDisplayname()))
@@ -86,7 +87,7 @@ public class PlotBreedingUI {
       lore.replaceAll(s -> PokemonUtils.replace(s, pokemons)
         .replace("%cooldown%", PlayerUtils.getCooldown(new Date(plotBreeding.getCooldown())))
         .replace("%eggs%", String.valueOf(amount)));
-      
+
       ItemStack itemStack;
       if (plotBreeding.getEggs().isEmpty()) {
         itemStack = CobbleUtils.breedconfig.getPlotItem().getItemStack();

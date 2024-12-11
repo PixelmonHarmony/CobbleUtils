@@ -63,19 +63,30 @@ public class UIUtils {
   }
 
 
-  public static boolean isInside(ItemModel itemModel) {
-    return itemModel.getSlot() >= 0 && itemModel.getSlot() <= 53;
+  /**
+   * Check if the slot is inside the inventory
+   *
+   * @param itemModel The item model to check
+   * @param rows      The rows of the inventory
+   *
+   * @return If the slot is inside the inventory
+   */
+  public static boolean isInside(ItemModel itemModel, int rows) {
+    int max = rows * 9 - 1;
+    return itemModel.getSlot() >= 0 && itemModel.getSlot() <= max;
   }
 
   /**
    * Check if the slot is inside the inventory
    *
    * @param slot The slot to check
+   * @param rows The rows of the inventory
    *
    * @return If the slot is inside the inventory
    */
-  public static boolean isInside(int slot) {
-    return slot >= 0 && slot <= 53;
+  public static boolean isInside(int slot, int rows) {
+    int max = rows * 9 - 1;
+    return slot >= 0 && slot <= max;
   }
 
   /**
