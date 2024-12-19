@@ -319,6 +319,6 @@ public class BreedConfig {
   }
 
   private void checker(BreedConfig breedConfig) {
-    if (breedConfig.getPokemonsForDoubleDitto() == null) breedConfig.setPokemonsForDoubleDitto(new FilterPokemons());
+//    if (breedConfig.getPokemonsForDoubleDitto() == null) breedConfig.setPokemonsForDoubleDitto(new FilterPokemons());
   }
 }
